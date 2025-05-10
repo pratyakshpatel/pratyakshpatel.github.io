@@ -2,89 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pratyaksh Patel | Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    header {
-      background: #2d3e50;
-      color: white;
-      padding: 2rem;
-      text-align: center;
-    }
-    nav a {
-      color: white;
-      margin: 0 1rem;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    section {
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
-    }
-    h2 {
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 0.5rem;
-    }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background: #2d3e50;
-      color: white;
-      margin-top: 2rem;
-    }
-    @media (max-width: 600px) {
-      header, section {
-        padding: 1rem;
-      }
-      nav a {
-        display: block;
-        margin: 0.5rem 0;
-      }
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; color: #333; }
+    header { background: #222; color: #fff; padding: 20px; text-align: center; }
+    nav a { margin: 0 15px; color: #fff; text-decoration: none; font-weight: bold; }
+    section { padding: 20px; max-width: 800px; margin: auto; }
+    h2 { border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+    ul { padding-left: 20px; }
+    .project a { color: #007acc; text-decoration: none; }
+    footer { text-align: center; padding: 15px; background: #222; color: #ccc; }
   </style>
 </head>
 <body>
+  <header>
+    <h1>Pratyaksh Patel</h1>
+    <p>BS Data Science and Engineering | IISER Bhopal</p>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Skills</a>
+      <a href="#experience">Experience</a>
+    </nav>
+  </header>
 
-<header>
-  <h1>Your Name</h1>
-  <p>Welcome to my website</p>
-  <nav>
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</header>
+  <section id="about">
+    <h2>About Me</h2>
+    <p>
+      I'm passionate about the intersection of data science, statistics, and finance. With experience in equity research, machine learning, and computer vision, I analyze financial data and extract meaningful insights. I'm also interested in operations and strategy, and continue to build my proficiency in financial modeling and quantitative methods.
+    </p>
+  </section>
 
-<section id="about">
-  <h2>About Me</h2>
-  <p>I'm a [your profession or interest], passionate about technology, development, and design. I love building things and solving problems.</p>
-</section>
+  <section id="projects">
+    <h2>Projects</h2>
+    <ul>
+      <li class="project">
+        <strong>NLP Analysis of the Israel-Syria War’s Impact</strong> – <a href="#">[Link]</a><br>
+        Used NLP, topic modeling, and sentiment analysis to assess geopolitical impacts on gold, oil, and financial markets.
+      </li>
+      <li class="project">
+        <strong>Electricity Consumption Forecasting</strong> – <a href="#">[Link]</a><br>
+        Built SARIMA models to predict UK electricity demand. Preprocessed 15 years of time-series data.
+      </li>
+      <li class="project">
+        <strong>Traffic Density Estimation using YOLOv8</strong> – <a href="#">[Link]</a><br>
+        Fine-tuned YOLOv8 on a custom dataset for top-view vehicle detection using transfer learning.
+      </li>
+    </ul>
+  </section>
 
-<section id="projects">
-  <h2>Projects</h2>
-  <ul>
-    <li><strong>Project 1:</strong> Description of your first project.</li>
-    <li><strong>Project 2:</strong> Description of your second project.</li>
-    <li><strong>Project 3:</strong> Description of your third project.</li>
-  </ul>
-</section>
+  <section id="skills">
+    <h2>Skills</h2>
+    <ul>
+      <li><strong>Languages:</strong> Python, C, R</li>
+      <li><strong>Tools:</strong> Pandas, NumPy, OpenCV, NLTK, Power BI, Excel</li>
+      <li><strong>Methods:</strong> Time Series, Topic Modeling, SARIMA, Seeded LDA, CV</li>
+    </ul>
+  </section>
 
-<section id="contact">
-  <h2>Contact</h2>
-  <p>Email: <a href="mailto:pratyaksh22@iiserb.ac.in">you@example.com</a></p>
-  <p>GitHub: <a href="https://github.com/your-username" target="_blank">your-username</a></p>
-</section>
+  <section id="experience">
+    <h2>Experience</h2>
+    <ul>
+      <li><strong>Prudent Financial (Equity & Market Research Intern)</strong> – Dec 2023<br>
+        Analyzed Axis Bank, Zomato, and Indian luggage sector. Built financial models for client advisories.
+      </li>
+      <li><strong>IIM Nagpur (Data Science & ML Intern)</strong> – May–Jul 2024<br>
+        Conducted ESG analysis using LDA/Seeded LDA on CSR reports. Applied NLP and unsupervised learning.
+      </li>
+    </ul>
+  </section>
 
-<footer>
-  <p>&copy; 2025 Your Name</p>
-</footer>
-
+  <footer>
+    Contact: <a href="mailto:pratyaksh22@iiserb.ac.in">pratyaksh22@iiserb.ac.in</a> |
+    <a href="https://www.linkedin.com/in/pratyaksh-patel-9360a7251/" target="_blank">LinkedIn</a>
+  </footer>
 </body>
 </html>
