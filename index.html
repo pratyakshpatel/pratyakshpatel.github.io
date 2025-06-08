@@ -3,100 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pratyaksh Patel | Home</title>
+  <title>Your Name</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f4f4;
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f9f9f9;
       color: #333;
-      font-size: 100%;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
     }
-    header {
-      padding: 1.25rem;
-      text-align: center;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      padding: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .bio {
-      flex: 1 1 300px;
-      min-width: 250px;
-    }
-    .bio h1 {
-      margin-top: 0;
-    }
-    .photo {
-      flex: 0 0 180px;
-      max-width: 180px;
-    }
-    .photo img {
-      width: 100%;
-      height: auto;
-      border-radius: 50%;
-      display: block;
-      object-fit: cover;
-    }
-    h2 {
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 5px;
-      margin-top: 2rem;
+    h1, h2 {
+      margin-bottom: 0.2em;
     }
     a {
-      color: inherit;
-      text-decoration: underline;
-      font-weight: bold;
+      color: #007acc;
+      text-decoration: none;
     }
-    @media (max-width: 600px) {
-      body {
-        font-size: 95%;
-      }
-      h1 {
-        font-size: 1.5rem;
-      }
-      h2 {
-        font-size: 1.2rem;
-      }
-      .container {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .photo {
-        max-width: 150px;
-        margin-top: 1rem;
-      }
+    a:hover {
+      text-decoration: underline;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+    .section {
+      margin-bottom: 2.5rem;
+    }
+    ul {
+      padding-left: 1.2rem;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Your Name</h1>
+    <p>Academic Student | Field of Study<br>
+    Your University<br>
+    <a href="mailto:your.email@example.com">your.email@example.com</a> | 
+    <a href="https://github.com/yourusername">GitHub</a> | 
+    <a href="https://linkedin.com/in/yourprofile">LinkedIn</a></p>
 
-  <header>
-    <div class="container">
-      <div class="bio">
-        <h1>Pratyaksh Patel</h1>
-        <p>Data Science & Engineering | IISER Bhopal</p>
-        <p>Welcome to my webpage</p>
-      </div>
-      <div class="photo">
-        <img src="your-photo.jpg" alt="Pratyaksh Patel" />
-      </div>
+    <div class="section">
+      <h2>About Me</h2>
+      <p>Brief intro about your academic interests, current focus, and goals. One or two paragraphs max.</p>
     </div>
-  </header>
 
-  <section>
-    <h2><a href="about.html">About →</a></h2>
-    <h2><a href="research.html">Research Experience →</a></h2>
-    <h2><a href="projects.html">Interests and Projects →</a></h2>
-    <h2><a href="nontech.html">Beyond Work →</a></h2>
-    <p>Work ain't the only thing I do.</p>
-  </section>
+    <div class="section">
+      <h2>Research</h2>
+      <ul>
+        <li><strong>Title of Paper</strong> – Conference/Journal, Year. Short one-line summary. [<a href="#">PDF</a>]</li>
+        <li><strong>Another Project</strong> – A brief description of your research or academic project.</li>
+      </ul>
+    </div>
 
+    <div class="section">
+      <h2>CV</h2>
+      <p>You can download my CV <a href="cv.pdf" target="_blank">here</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>Links</h2>
+      <ul>
+        <li><a href="https://scholar.google.com/citations?user=XXXXX">Google Scholar</a></li>
+        <li><a href="https://yourblog.com">Blog</a></li>
+        <li><a href="https://strava.com/yourprofile">Strava</a> (I like to run)</li>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>
 
