@@ -2,104 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pratyaksh Patel - Academic Website</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pratyaksh Patel | Home</title>
   <style>
-    /* basic reset */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f6e8dc; /* light skin tone background */
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
       color: #333;
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 2rem;
+      font-size: 100%;
+    }
+    header {
+      padding: 1.25rem;
+      text-align: center;
     }
     .container {
-      max-width: 900px;
+      max-width: 800px;
+      margin: auto;
+      padding: 1.25rem;
       display: flex;
       align-items: center;
-      gap: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
-      padding: 2rem;
+      gap: 1.5rem;
+      flex-wrap: wrap;
     }
-    .text-section {
-      flex: 1;
-      text-align: left;
-      padding-right: 1rem;
+    .bio {
+      flex: 1 1 300px;
+      min-width: 250px;
     }
-    .text-section h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin-bottom: 0.4rem;
+    .bio h1 {
+      margin-top: 0;
     }
-    .text-section p {
-      font-size: 1.1rem;
-      color: #555;
-      margin-bottom: 1rem;
-      max-width: 500px;
+    .photo {
+      flex: 0 0 180px;
+      max-width: 180px;
     }
-    .photo-section {
-      flex-shrink: 0;
-      width: 160px;
-      height: 160px;
-      border-radius: 50%; /* circular photo */
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .photo-section img {
+    .photo img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
+      border-radius: 50%;
       display: block;
+      object-fit: cover;
     }
-
-    /* Responsive for mobile */
+    h2 {
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+      margin-top: 2rem;
+    }
+    a {
+      color: inherit;
+      text-decoration: underline;
+      font-weight: bold;
+    }
     @media (max-width: 600px) {
       body {
-        padding: 1rem;
+        font-size: 95%;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      h2 {
+        font-size: 1.2rem;
       }
       .container {
         flex-direction: column;
-        padding: 1.5rem;
+        align-items: flex-start;
       }
-      .photo-section {
-        width: 120px;
-        height: 120px;
-        margin-bottom: 1rem;
-      }
-      .text-section {
-        padding-right: 0;
-        text-align: center;
-      }
-      .text-section h1 {
-        font-size: 2rem;
-      }
-      .text-section p {
-        max-width: 100%;
+      .photo {
+        max-width: 150px;
+        margin-top: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="text-section">
-      <h1>Pratyaksh Patel</h1>
-      <p>Graduate Student | Researcher | Data Scientist</p>
-      <p>Welcome to my academic website. Here you can find information about my research experience, projects, interests, and more.</p>
+
+  <header>
+    <div class="container">
+      <div class="bio">
+        <h1>Pratyaksh Patel</h1>
+        <p>Data Science & Engineering | IISER Bhopal</p>
+        <p>Welcome to my webpage</p>
+      </div>
+      <div class="photo">
+        <img src="your-photo.jpg" alt="Pratyaksh Patel" />
+      </div>
     </div>
-    <div class="photo-section">
-      <img src="your-photo.jpg" alt="Pratyaksh Patel Photo" />
-    </div>
-  </div>
+  </header>
+
+  <section>
+    <h2><a href="about.html">About →</a></h2>
+    <h2><a href="research.html">Research Experience →</a></h2>
+    <h2><a href="projects.html">Interests and Projects →</a></h2>
+    <h2><a href="nontech.html">Beyond Work →</a></h2>
+    <p>Work ain't the only thing I do.</p>
+  </section>
+
 </body>
 </html>
 
