@@ -3,175 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pratyaksh Patel</title>
+  <title>Pratyaksh Patel - Academic Website</title>
   <style>
-    /* Fonts: Montserrat for headings, Lora for body */
-    @import url('https://fonts.googleapis.com/css2?family=Lora&family=Montserrat:wght@700&display=swap');
-
-    /* subtle noise texture from transparent PNG pattern base64 */
-    body {
+    /* basic reset */
+    * {
+      box-sizing: border-box;
       margin: 0;
-      background: #f7efe8 url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKklEQVQYV2NkYGBgYGBg+M+ACDAyMjAzYGEAF3AiIINw+wUQYA3fQV4ZCoLw7QAAAABJRU5ErkJggg==") repeat;
-      font-family: 'Lora', serif;
-      color: #4a3f35;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f6e8dc; /* light skin tone background */
+      color: #333;
       line-height: 1.6;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 3rem 1rem;
-      min-height: 100vh;
-      box-sizing: border-box;
+      padding: 2rem;
     }
-
     .container {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 2.5rem;
       max-width: 900px;
-      background: #fff9f3;
-      box-shadow: 0 15px 30px rgba(74, 63, 53, 0.15);
-      border-radius: 12px;
-      overflow: hidden;
-      animation: fadeIn 1.2s ease forwards;
-    }
-
-    /* sidebar with photo and accent color */
-    .sidebar {
-      background: #d9cbb1;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      position: relative;
+      gap: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+      padding: 2rem;
     }
-
-    .profile-pic {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      border: 6px solid #b39c82;
-      box-shadow: 0 10px 20px rgba(74, 63, 53, 0.3);
+    .text-section {
+      flex: 1;
+      text-align: left;
+      padding-right: 1rem;
+    }
+    .text-section h1 {
+      font-weight: 700;
+      font-size: 2.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .text-section p {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 1rem;
+      max-width: 500px;
+    }
+    .photo-section {
+      flex-shrink: 0;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%; /* circular photo */
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .photo-section img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-
-    .profile-pic:hover {
-      transform: scale(1.05) rotate(3deg);
-      box-shadow: 0 15px 30px rgba(74, 63, 53, 0.45);
-    }
-
-    .content {
-      padding: 2rem 1.5rem;
-      font-family: 'Lora', serif;
-    }
-
-    h1 {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 2.4rem;
-      margin: 0 0 0.3rem 0;
-      color: #6a5d4d;
-      letter-spacing: 1.1px;
-      text-transform: uppercase;
-    }
-
-    h1::after {
-      content: "";
       display: block;
-      width: 60px;
-      height: 3px;
-      background: #b39c82;
-      margin: 0.5rem 0 1.5rem 0;
-      border-radius: 2px;
-      opacity: 0.7;
     }
 
-    p.intro {
-      font-size: 1.15rem;
-      margin-bottom: 2rem;
-      color: #5a4f42;
-      max-width: 600px;
-    }
-
-    h2 {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 1.6rem;
-      color: #836f58;
-      margin-bottom: 0.75rem;
-      border-bottom: 2px solid #b39c82;
-      padding-bottom: 0.25rem;
-      letter-spacing: 0.05em;
-    }
-
-    ul {
-      list-style: square inside;
-      color: #5a4f42;
-      max-width: 700px;
-      margin-top: 0.5rem;
-      margin-bottom: 2rem;
-    }
-
-    ul li {
-      margin-bottom: 0.6rem;
-      font-size: 1rem;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #a2927d;
-      margin-top: 3rem;
-      font-style: italic;
-    }
-
-    /* simple fade-in animation */
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(20px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 700px) {
+    /* Responsive for mobile */
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
       .container {
-        grid-template-columns: 1fr;
-        max-width: 100%;
+        flex-direction: column;
+        padding: 1.5rem;
       }
-      .sidebar {
-        padding: 1.5rem 0;
+      .photo-section {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 1rem;
       }
-      .profile-pic {
-        width: 140px;
-        height: 140px;
+      .text-section {
+        padding-right: 0;
+        text-align: center;
       }
-      h1 {
+      .text-section h1 {
         font-size: 2rem;
+      }
+      .text-section p {
+        max-width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container" role="main">
-    <aside class="sidebar" aria-label="Profile Picture">
-      <img src="your-photo.jpg" alt="Pratyaksh Patel" class="profile-pic" />
-    </aside>
-
-    <section class="content">
-      <h1>Hi, I'm Pratyaksh Patel</h1>
-      <p class="intro">I’m a Data Science undergrad at IISER Bhopal, with research interests in machine learning, social media analysis, operations research, and finance.</p>
-
-      <h2>Experience</h2>
-      <ul>
-        <li>Research Intern – IIM Nagpur (Add your details here)</li>
-        <li>Other experience item</li>
-      </ul>
-
-      <!-- Add more sections as needed -->
-
-      <div class="footer">
-        © 2025 Pratyaksh Patel — All rights reserved
-      </div>
-    </section>
+  <div class="container">
+    <div class="text-section">
+      <h1>Pratyaksh Patel</h1>
+      <p>Graduate Student | Researcher | Data Scientist</p>
+      <p>Welcome to my academic website. Here you can find information about my research experience, projects, interests, and more.</p>
+    </div>
+    <div class="photo-section">
+      <img src="your-photo.jpg" alt="Pratyaksh Patel Photo" />
+    </div>
   </div>
 </body>
 </html>
+
