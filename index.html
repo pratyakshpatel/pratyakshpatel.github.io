@@ -29,14 +29,14 @@
       margin: auto;
     }
 
-    .header-container {
+    .header-wrapper {
       display: flex;
+      justify-content: space-between;
       align-items: flex-start;
-      gap: 2rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
-    .header-text {
+    .header-content {
       flex: 1;
     }
 
@@ -45,10 +45,34 @@
       height: 120px;
       border-radius: 4px;
       object-fit: cover;
+      margin-left: 2rem;
     }
 
-    h1, h2 {
-      margin-bottom: 0.2em;
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .subtitle {
+      margin: 0.3rem 0;
+      font-size: 1rem;
+    }
+
+    .contact {
+      margin: 0.3rem 0;
+      font-style: italic;
+    }
+
+    hr {
+      border: 0;
+      height: 1px;
+      background: #ddd;
+      margin: 1.5rem 0;
+    }
+
+    h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
     }
 
     a {
@@ -65,40 +89,32 @@
       margin-bottom: 2rem;
     }
 
-    ul {
-      padding-left: 1.2rem;
-    }
-
-    @media (max-width: 500px) {
-      body {
-        padding: 1rem;
-      }
-      .header-container {
+    @media (max-width: 600px) {
+      .header-wrapper {
         flex-direction: column;
-        gap: 1rem;
       }
       .profile-photo {
-        width: 100px;
-        height: 100px;
+        margin: 1rem 0 0 0;
+        align-self: center;
       }
     }
   </style>
 </head>
 <body>
   <main class="container">
-    <div class="header-container">
-      <div class="header-text">
+    <div class="header-wrapper">
+      <div class="header-content">
         <h1>Pratyaksh Patel</h1>
-        <p>
-          Data Science and Engineering | IISER Bhopal<br>
-          <em>
-            <a href="mailto:pratyaksh22@iiserb.ac.in">email</a> | 
-            <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a> 
-          </em>
+        <p class="subtitle">Data Science and Engineering | IISER Bhopal</p>
+        <p class="contact">
+          <a href="mailto:pratyaksh22@iiserb.ac.in">email</a> | 
+          <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a>
         </p>
       </div>
-      <img src="pfp.jpg" alt="Pratyaksh Patel" class="profile-photo">
+      <img src="your-photo.jpg" alt="Pratyaksh Patel" class="profile-photo">
     </div>
+
+    <hr>
 
     <section class="section">
       <h2>About Me</h2>
@@ -112,17 +128,17 @@
 
     <section class="section">
       <h2><a href="projects_and_interests.html">Projects and Interests</a></h2>
-       <p>All of my projects along with some storyline and what all went into making them.</p>
+      <p>All of my projects along with some storyline and what all went into making them.</p>
     </section>
 
     <section class="section">
       <h2><a href="beyond_work.html">Beyond work</a></h2>
-       <p>There's a bunch of stuff I do other than work.</p>
+      <p>There's a bunch of stuff I do other than work.</p>
     </section>
 
     <section class="section">
       <h2><a href="technical_blog.html">Technical Blog</a></h2>
-       <p>Here's some cool stuff I come across and like to share with others.</p>
+      <p>Here's some cool stuff I come across and like to share with others.</p>
     </section>
   </main>
 </body>
