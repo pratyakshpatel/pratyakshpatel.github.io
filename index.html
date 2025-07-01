@@ -29,6 +29,24 @@
       margin: auto;
     }
 
+    .header-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-text {
+      flex: 1;
+    }
+
+    .profile-photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+
     h1, h2 {
       margin-bottom: 0.2em;
     }
@@ -38,11 +56,10 @@
       text-decoration: underline;
     }
 
-     a:hover {
-    font-size: 1.05em;
-    color: inherit; 
+    a:hover {
+      font-size: 1.05em;
+      color: inherit; 
     }
-
 
     .section {
       margin-bottom: 2rem;
@@ -56,21 +73,32 @@
       body {
         padding: 1rem;
       }
+      .header-container {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .profile-photo {
+        width: 100px;
+        height: 100px;
+      }
     }
   </style>
 </head>
 <body>
   <main class="container">
-    <h1>Pratyaksh Patel</h1>
-    <p>
-      Data Science and Engineering | IISER Bhopal<br>
-      </p><p><em>
-      <a href="mailto:pratyaksh22@iiserb.ac.in">email</a> | <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a> 
-    
-      </em>
-   </p>
-   
-   <img src="pfp.jpg" alt="Pratyaksh Patel" style="width: 150px; height: auto; margin: 1rem 0;">
+    <div class="header-container">
+      <div class="header-text">
+        <h1>Pratyaksh Patel</h1>
+        <p>
+          Data Science and Engineering | IISER Bhopal<br>
+          <em>
+            <a href="mailto:pratyaksh22@iiserb.ac.in">email</a> | 
+            <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a> 
+          </em>
+        </p>
+      </div>
+      <img src="your-photo.jpg" alt="Pratyaksh Patel" class="profile-photo">
+    </div>
 
     <section class="section">
       <h2>About Me</h2>
@@ -96,9 +124,6 @@
       <h2><a href="technical_blog.html">Technical Blog</a></h2>
        <p>Here's some cool stuff I come across and like to share with others.</p>
     </section>
-
-  
-    
   </main>
 </body>
 </html>
