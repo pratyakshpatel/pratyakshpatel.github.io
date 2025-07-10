@@ -8,7 +8,7 @@
   <!-- LaTeX.css -->
   <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
 
-  <!-- MathJax for math support -->
+  <!-- MathJax for LaTeX math -->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
@@ -26,11 +26,11 @@
   <style>
     .profile-pic {
       display: block;
-      margin: 0 auto 1rem auto;
-      width: 140px;
-      height: 140px;
-      object-fit: cover;
+      margin: 1rem auto 0.5rem auto;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
+      object-fit: cover;
       border: 2px solid #444;
     }
 
@@ -38,28 +38,57 @@
       text-align: center;
     }
 
-    .center-text p {
-      margin: 0.3rem;
+    .subtitle {
+      font-size: 0.9rem;
+      font-variant: small-caps;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .abstract {
+      max-width: 650px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+
+    .abstract strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    ol {
+      margin-left: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .profile-pic {
+        width: 100px;
+        height: 100px;
+      }
     }
   </style>
 </head>
 
 <body>
 
+  <!-- Profile image -->
   <img src="pfp.jpg" alt="Profile Picture" class="profile-pic" />
 
+  <!-- Name and links -->
   <div class="center-text">
     <h1>Pratyaksh Patel</h1>
-    <h2>Data Science and Engineering, IISER Bhopal</h2>
+    <div class="subtitle">Data Science and Engineering, IISER Bhopal</div>
     <p><a href="mailto:pratyaksh22@iiserb.ac.in">email</a> &ensp;|&ensp;
        <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a></p>
   </div>
 
-  <section>
-    <h3><strong>About Me</strong></h3>
+  <!-- Abstract style section -->
+  <div class="abstract">
+    <strong>About Me</strong>
     <p>I am a DSE undergrad at IISERB. I like to do ML, also a bit of operations research, and love football and academic speaking.</p>
-  </section>
+  </div>
 
+  <!-- Contents list -->
   <section>
     <h2>Contents</h2>
     <ol>
@@ -69,8 +98,6 @@
       <li><a href="technical_blog.html">Technical Blog</a></li>
     </ol>
   </section>
-
-
 
 </body>
 </html>
