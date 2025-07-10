@@ -1,35 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-69CER33QN8');
-</script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pratyaksh Patel | Projects and Interests</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
   <style>
     body {
-      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 1.1rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
       background: #f9f9f9;
       color: #333;
-      margin: 0;
-      padding: 1.5rem;
-      line-height: 1.6;
     }
 
-    .container {
-      max-width: 700px;
-      margin: auto;
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+      text-align: center;
     }
 
-    h1, h2 {
-      margin-bottom: 0.2em;
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    h3 {
+      margin-bottom: 0.3rem;
+    }
+
+    p {
+      margin-bottom: 0.8rem;
     }
 
     a {
@@ -37,103 +58,106 @@
       text-decoration: underline;
     }
 
-     a:hover {
-    font-size: 1.05em;
-    color: inherit; 
-    } 
-
-
-    .section {
-      margin-bottom: 2rem;
+    a:hover {
+      font-size: 1.05em;
     }
 
     ul {
-      padding-left: 1.2rem;
+      margin-left: 1.4rem;
+      margin-bottom: 1.2rem;
     }
 
     @media (max-width: 500px) {
       body {
         padding: 1rem;
+        font-size: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
       }
     }
   </style>
 </head>
 <body>
 
-<main class="container">
+<main>
   <h1>Projects and Interests</h1>
-    <section class="section">
-      <h2>Paper Implementations</h2>
-      <h3><a href="https://ieeexplore.ieee.org/document/4781136">Isolation Forest</a></h3>
-        <p><em>July 2025</em> |
-        <a href="https://colab.research.google.com/drive/1w7y9QT8rlfl-OgTBEECva21p8xlr89Ey?usp=sharing" target="_blank">Project Link</a>
-      </p>We've all learnt and implemented random forest, its one of the first algorithms we learn while learning ML. Most of the times, we strive to find patterns using these algorithms, another paradigm that exists is that of anomaly detection; learning about it is how I came across Isolation Forests.
-       In this project, I wrote a full isolation forest algorithm from first principles using numpy. The model constructs multiple binary trees by recursively partitioning randomly subsampled data, isolating anomalies with shorter path lengths. I applied this on synthetically generated 2d data (normal distribution + uniform outliers), computed anomaly scores based on average path length, and visualized the detection results with a threshold-based classification.
-       </p>
-      
-      <h3><a href="https://www.sciencedirect.com/science/article/pii/S0020025509001200">Gravitational Search Algorithm</a></h3>
-        <p><em>June 2025</em> |
-        <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/GSA%20on%20truck%20fleet" target="_blank">Project Link</a>
-      </p>Implemented the GSA on the <a href="https://link.springer.com/article/10.1007/s12046-024-02578-w">Heterogeneous truck fleet optimization</a> problem. I learnt about evolutionary algorithms in my AI course in my sixth semester, ever since I wanted to explore other nature inspired algorithms, I came across GSA and implemented it on the truck fleet optimisation problem.
-          I will try implementing more metaheuristics which are nature inspired, preferably on the same problem setup.
-        </p>
-     
-      <h3><a href="https://link.springer.com/article/10.1007/s12046-024-02578-w">Heterogeneous truck fleet optimization</a></h3>
-        <p><em>DSE316</em> |
-        <a href="https://github.com/rishi-ps/Heterogeneous-Truck-Fleet-Optimization" target="_blank">Project Link</a>
-      </p>
-     <ul>
-       <li>Developed a truck fleet optimization model minimizing delivery costs under capacity and time constraints.</li>
-       <li>Implemented Mixed-Integer Programming using Python (PuLP) and benchmarked against heuristic methods like the genetic algorithm.</li>
-       <li>Translated real-world logistics scenarios into formal constraints to enable efficient resource allocation.</li>
-     </ul>
 
-      
-      
-      
-      
-      
-      <h2>Projects</h2>
+  <section>
+    <h2>Paper Implementations</h2>
 
-      <h3>NLP Analysis of the Israel-Syria War’s Impact on Gold, Oil, and Financial Markets</h3>
-      <p><em>Oct 2024 – Nov 2024 | ECO318</em> |
-        <a href="https://drive.google.com/file/d/1eyzSqyT7gtOgDx8j69jj0t8cL6Ly6i4E/view" target="_blank">Project Link</a>
-      </p>
-      <ul>
-        <li>Economic study on geopolitical conflict impacts on energy and finance sectors.</li>
-        <li>Applied the topic modeling of LDA.</li>
-        <li>Connected news narratives with market volatility and drew conclusions.</li>
-      </ul>
+    <h3><a href="https://ieeexplore.ieee.org/document/4781136" target="_blank">Isolation Forest</a></h3>
+    <p><em>July 2025</em> |
+      <a href="https://colab.research.google.com/drive/1w7y9QT8rlfl-OgTBEECva21p8xlr89Ey?usp=sharing" target="_blank">Project Link</a>
+    </p>
+    <p>
+      We've all learnt and implemented random forest; it's one of the first algorithms we encounter in ML. Most of the time, we strive to find patterns using such algorithms. Another paradigm is anomaly detection — and that’s how I came across Isolation Forests.
+      In this project, I wrote the full Isolation Forest algorithm from scratch using NumPy. The model builds binary trees by recursively splitting randomly sampled data to isolate outliers quickly. I used synthetic 2D data (normal + uniform noise), calculated anomaly scores based on average path lengths, and visualized the decision boundaries.
+    </p>
 
-      <h3>Electricity Consumption Forecasting Using Time Series Analysis</h3>
-      <p><em>Sept 2024 – Nov 2024 | DSE315</em> |
-        <a href="https://drive.google.com/drive/folders/1RCtOp2nghuuf_5kpHoDobcHf3mbLiaS3" target="_blank">Project Link</a>
-      </p>
-      <ul>
-        <li>Built SARIMA models using 15 years of UK electricity demand.</li>
-        <li>Validated stationarity with ADF & Ljung-Box tests.</li>
-        <li>Demonstrated SARIMA’s superior forecasting accuracy over other time series models.</li>
-      </ul>
+    <h3><a href="https://www.sciencedirect.com/science/article/pii/S0020025509001200" target="_blank">Gravitational Search Algorithm</a></h3>
+    <p><em>June 2025</em> |
+      <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/GSA%20on%20truck%20fleet" target="_blank">Project Link</a>
+    </p>
+    <p>
+      Implemented GSA on the <a href="https://link.springer.com/article/10.1007/s12046-024-02578-w" target="_blank">Heterogeneous Truck Fleet Optimization</a> problem. Inspired by evolutionary algorithms introduced in my AI course, I explored GSA — a nature-inspired metaheuristic. I implemented it on the same truck fleet problem to compare its effectiveness with genetic algorithms and MIP.
+    </p>
 
-      <h3>Traffic Density Estimation and Vehicle Detection Using YOLOv8</h3>
-      <p><em>Sept 2024 – Nov 2024 | DSE312</em> |
-        <a href="https://drive.google.com/file/d/1LdUTFV5Ucjgc7ojozVUTr8iTKvlTOgw2/view" target="_blank">Project Link</a>
-      </p>
-      <ul>
-        <li>Fine-tuned YOLOv8 on a custom dataset achieving mAP@50 of 0.973.</li>
-      </ul>
-    </section>
+    <h3><a href="https://link.springer.com/article/10.1007/s12046-024-02578-w" target="_blank">Heterogeneous Truck Fleet Optimization</a></h3>
+    <p><em>DSE316</em> |
+      <a href="https://github.com/rishi-ps/Heterogeneous-Truck-Fleet-Optimization" target="_blank">Project Link</a>
+    </p>
+    <ul>
+      <li>Developed a truck fleet optimization model minimizing delivery cost under capacity and time constraints.</li>
+      <li>Implemented a Mixed Integer Program using PuLP and benchmarked it against genetic algorithm solutions.</li>
+      <li>Converted real-world logistics into mathematical constraints for optimal allocation.</li>
+    </ul>
+  </section>
 
-    <section class="section">
-      <h2>Interests</h2>
-      <p>My primary interests are machine learning, ever since I took the course. I also share a similar fondness for statistical NLP. 
-        Recently, I have been reading a lot on vision problems, image-to-text models and their intricacies. But something that has caught 
-        my attention heavily is operations research and decision sciences, especially with a ML/DL outlook. I wish to explore that even 
-        more and also share some of it through my <a href="technical_blog.html">technical blog</a> as I find time.
-      </p>
-    </section>
-  </main>
+  <section>
+    <h2>Projects</h2>
 
+    <h3>NLP Analysis of the Israel-Syria War’s Impact on Gold, Oil, and Financial Markets</h3>
+    <p><em>Oct–Nov 2024 | ECO318</em> |
+      <a href="https://drive.google.com/file/d/1eyzSqyT7gtOgDx8j69jj0t8cL6Ly6i4E/view" target="_blank">Project Link</a>
+    </p>
+    <ul>
+      <li>Explored how war narratives affect energy and finance sectors using LDA topic modeling on news data.</li>
+      <li>Connected macroeconomic reactions to geopolitical sentiment and volatility trends.</li>
+    </ul>
+
+    <h3>Electricity Consumption Forecasting Using Time Series Analysis</h3>
+    <p><em>Sept–Nov 2024 | DSE315</em> |
+      <a href="https://drive.google.com/drive/folders/1RCtOp2nghuuf_5kpHoDobcHf3mbLiaS3" target="_blank">Project Link</a>
+    </p>
+    <ul>
+      <li>Used 15 years of UK electricity data to model seasonal patterns using SARIMA.</li>
+      <li>Validated with ADF and Ljung-Box tests to confirm stationarity and independence.</li>
+      <li>Compared forecast accuracy against ARIMA and exponential smoothing models.</li>
+    </ul>
+
+    <h3>Traffic Density Estimation and Vehicle Detection Using YOLOv8</h3>
+    <p><em>Sept–Nov 2024 | DSE312</em> |
+      <a href="https://drive.google.com/file/d/1LdUTFV5Ucjgc7ojozVUTr8iTKvlTOgw2/view" target="_blank">Project Link</a>
+    </p>
+    <ul>
+      <li>Trained YOLOv8 on a custom dataset; achieved mAP@50 of 0.973 for vehicle detection.</li>
+      <li>Developed a scalable inference pipeline to count vehicles and estimate traffic density from CCTV frames.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Interests</h2>
+    <p>
+      My primary interest lies in machine learning, especially after taking a core ML course. I also enjoy statistical NLP and am currently reading more about image-to-text systems and VLMs. Lately, I’ve grown fond of operations research and decision sciences, especially at their intersection with ML/AI. I hope to write more on these ideas in my <a href="technical_blog.html">technical blog</a> as I go deeper.
+    </p>
+  </section>
+</main>
 
 </body>
 </html>
