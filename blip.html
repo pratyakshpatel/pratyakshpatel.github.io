@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pratyaksh Patel | Technical Blog</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      margin: 0;
+      padding: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1, h2 {
+      margin-bottom: 0.2em;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+      color: inherit; 
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    code, pre {
+      background: #efefef;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    pre {
+      display: block;
+      padding: 1em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 1em 0;
+    }
+
+    .references {
+      border-top: 1px solid #ccc;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<main class="container">
+  <h1>BLIP: Bootstrapping Language-Image Pretraining for Unified Vision-Language Understanding</h1>
+  <article>
+    <p><em>5 July, 2025.</em></p>
+    <p>While I was working at IIMN this summer, I had an idea; to compare the original captions of social media images versus what is actually happening in the image, exploring, I came across BLIP, its by far, one of the coolest things I've read, refreshed my whole course of Deep Learning, it was a long afternoon that day.
+
+    <p>In the world of artificial intelligence, the ability to jointly understand and generate visual and textual content has become an essential frontier. The emergence of vision-language models such as CLIP and ALIGN revealed that combining image and text modalities can unlock powerful capabilities in tasks like image captioning, visual question answering, and cross-modal retrieval <sup>[1]</sup>. However, these earlier models heavily relied on enormous and noisy web-scraped datasets. This requirement raised concerns about scalability, quality control, and accessibility for researchers and practitioners. To address these limitations, the BLIP model — Bootstrapped Language-Image Pretraining — was proposed by Salesforce Research <sup>[2]</sup> as a more efficient and versatile alternative.</p>
+
+    <p>BLIP presents a unified vision-language pretraining framework capable of both understanding and generation. It achieves this by combining three training objectives: contrastive learning, image-text matching, and caption generation. Central to its design is the Q-former module, a novel Transformer component with learnable query tokens that enable efficient and effective interaction between visual and textual modalities. With the help of the Q-former and a bootstrapped self-learning strategy, BLIP can leverage both curated and synthetic data to continuously improve its performance without needing to rely on gigantic datasets.</p>
+
+    <h2>Architecture and Learning Mechanism</h2>
+
+    <p>At a high level, BLIP consists of three key components: a vision encoder, the Q-former, and a text encoder/decoder. The vision encoder, typically a Vision Transformer (ViT), extracts patch-level image embeddings <sup>[3]</sup>. Rather than passing all these embeddings directly to the language module — which is computationally expensive — BLIP introduces the Q-former. This module contains a fixed number of learnable query tokens that attend to the visual embeddings via cross-attention, extracting only the most relevant features and condensing them into a manageable form for downstream processing.</p>
+
+    <p>The text module, depending on the task, acts either as an encoder or a decoder. When used in understanding tasks such as image-text matching or retrieval, it behaves as a BERT-like encoder. For generation tasks like captioning, it functions as an autoregressive decoder similar to GPT <sup>[4]</sup>. The dual nature of this design allows BLIP to perform exceptionally well in both understanding and generative vision-language tasks.</p>
+
+    <h2>Training Objectives and Mathematical Foundations</h2>
+
+    <p>The BLIP model is trained using three core objectives: Image-Text Contrastive (ITC) loss, Image-Text Matching (ITM) loss, and Captioning loss.</p>
+
+    <p><strong>1. Image-Text Contrastive Learning (ITC)</strong></p>
+    <p>The goal of ITC is to align images and their corresponding text in a shared embedding space. If <code>z<sub>i</sub></code> and <code>z<sub>t</sub></code> represent the image and text embeddings respectively, and <code>τ</code> is the temperature parameter, the contrastive loss is calculated as:</p>
+
+    <pre>
+L<sub>ITC</sub> = -log 
+  ( exp(sim(z<sub>i</sub>, z<sub>t</sub>) / τ) 
+    / Σ<sub>j</sub> exp(sim(z<sub>i</sub>, z<sub>t_j</sub>) / τ) )
+    </pre>
+
+    <p>This encourages positive image-text pairs to have high similarity while pushing apart negative pairs <sup>[2]</sup>.</p>
+
+    <p><strong>2. Image-Text Matching (ITM)</strong></p>
+    <p>This is a binary classification task where the model learns to identify whether a given image-text pair is correctly matched. The loss is:</p>
+
+    <pre>
+L<sub>ITM</sub> = -y log(p) - (1 - y) log(1 - p)
+    </pre>
+
+    <p>where <code>y</code> is the label (1 for a match, 0 otherwise) and <code>p</code> is the predicted probability.</p>
+
+    <p><strong>3. Captioning Loss</strong></p>
+    <p>BLIP generates captions by decoding visual embeddings into natural language using teacher-forced learning. The standard cross-entropy loss for captioning is:</p>
+
+    <pre>
+L<sub>CAP</sub> = - Σ<sub>t</sub> log P(w<sub>t</sub> | w<sub>1:t-1</sub>, image)
+    </pre>
+
+    <p>This enables BLIP to generate descriptive text about unseen images with high accuracy.</p>
+
+    <h2>Bootstrapped Pretraining Strategy</h2>
+
+    <p>What distinguishes BLIP from earlier vision-language models is its bootstrapped learning approach. During training, BLIP uses its own captioning model to generate synthetic captions for unlabeled images. These generated captions are filtered using the ITM head to ensure quality. The resulting image-text pairs are then used to further train the model, thus creating a feedback loop that continuously improves the model's quality and generalizability <sup>[2]</sup>. This self-supervised process helps overcome the limitations of noisy, web-scraped datasets and drastically reduces reliance on human-labeled data.</p>
+
+    <p>This approach also helps BLIP remain compact and data-efficient while still achieving results competitive with much larger models. Its pretrained weights can be adapted to a wide variety of tasks with minimal fine-tuning, making it a versatile tool for practical applications.</p>
+
+    <h2>Conclusion</h2>
+
+    <p>BLIP represents a significant milestone in the field of multimodal AI. By bridging the gap between contrastive learning and generative modeling, and by introducing an elegant mechanism for bridging vision and language via query-based transformation, it unlocks the ability to train highly capable vision-language models without requiring billions of training samples. As we move toward more integrated and intelligent AI systems, architectures like BLIP are likely to serve as foundational building blocks, demonstrating that with the right strategies, efficiency and performance can go hand in hand.</p>
+
+    <section class="references">
+      <h2>References</h2>
+      <ol>
+        <li>Radford, A., et al. (2021). "Learning Transferable Visual Models From Natural Language Supervision." In ICML.</li>
+        <li>Li, J., Li, D., Xiong, C., & Hoi, S. C. (2022). <a href="https://arxiv.org/abs/2201.12086" target="_blank">BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding</a>. In ICML.</li>
+        <li>Dosovitskiy, A., et al. (2021). "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale." In ICLR.</li>
+        <li>Devlin, J., et al. (2018). "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding." In NAACL-HLT.</li>
+      </ol>
+    </section>
+
+  </article>
+</main>
+
+</body>
+</html>
+
