@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax for math support -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -10,139 +23,54 @@
     gtag('config', 'G-69CER33QN8');
   </script>
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pratyaksh Patel</title>
   <style>
-    body {
-      font-family: 'Helvetica Neue', sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      margin: 0;
-      padding: 1.5rem;
-      line-height: 1.6;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-    }
-
-    .profile-section {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .profile-photo {
+    .profile-pic {
+      display: block;
+      margin: 0 auto 1rem auto;
       width: 140px;
       height: 140px;
-      border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 0.8rem;
-      border: 2px solid #ccc;
+      border-radius: 50%;
+      border: 2px solid #444;
     }
 
-    h1 {
-      font-size: 1.8rem;
-      margin: 0.2rem 0;
+    .center-text {
+      text-align: center;
     }
 
-    .subtitle {
-      font-size: 1rem;
-      margin: 0.2rem 0;
-    }
-
-    .contact {
-      font-style: italic;
-      margin-top: 0.3rem;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: underline;
-    }
-
-    a:hover {
-      font-size: 1.05em;
-    }
-
-    hr {
-      border: 0;
-      height: 1px;
-      background: #ddd;
-      margin: 1.5rem 0;
-    }
-
-    h2 {
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .section {
-      margin-bottom: 2rem;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-
-      .profile-photo {
-        width: 110px;
-        height: 110px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .subtitle {
-        font-size: 0.95rem;
-      }
+    .center-text p {
+      margin: 0.3rem;
     }
   </style>
 </head>
 
 <body>
-  <main class="container">
-    <div class="profile-section">
-      <img src="pfp.jpg" alt="Pratyaksh Patel" class="profile-photo" />
-      <h1>Pratyaksh Patel</h1>
-      <p class="subtitle">Data Science and Engineering | IISER Bhopal</p>
-      <p class="contact">
-        <a href="mailto:pratyaksh22@iiserb.ac.in">email</a> |
-        <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a>
-      </p>
-    </div>
 
-    <hr />
+  <img src="pfp.jpg" alt="Profile Picture" class="profile-pic" />
 
-    <section class="section">
-      <h2>About Me</h2>
-      <p>I am a DSE undergrad at IISERB. I like to do ML, also a bit of operations research, and love football and academic speaking.</p>
-    </section>
+  <div class="center-text">
+    <h1>Pratyaksh Patel</h1>
+    <h2>Data Science and Engineering, IISER Bhopal</h2>
+    <p><a href="mailto:pratyaksh22@iiserb.ac.in">email</a> &ensp;|&ensp;
+       <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a></p>
+  </div>
 
-    <section class="section">
-      <h2><a href="research_and_exp.html">Research and Experience</a></h2>
-      <p>Details about my research work I've done in some of my internships.</p>
-    </section>
+  <section>
+    <h3><strong>About Me</strong></h3>
+    <p>I am a DSE undergrad at IISERB. I like to do ML, also a bit of operations research, and love football and academic speaking.</p>
+  </section>
 
-    <section class="section">
-      <h2><a href="projects_and_interests.html">Projects and Interests</a></h2>
-      <p>All of my projects along with some storyline and what all went into making them.</p>
-    </section>
+  <section>
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="research_and_exp.html">Research and Experience</a></li>
+      <li><a href="projects_and_interests.html">Projects and Interests</a></li>
+      <li><a href="beyond_work.html">Beyond Work</a></li>
+      <li><a href="technical_blog.html">Technical Blog</a></li>
+    </ol>
+  </section>
 
-    <section class="section">
-      <h2><a href="beyond_work.html">Beyond work</a></h2>
-      <p>There's a bunch of stuff I do other than work.</p>
-    </section>
 
-    <section class="section">
-      <h2><a href="technical_blog.html">Technical Blog</a></h2>
-      <p>Here's some cool stuff I come across and like to share with others.</p>
-    </section>
-  </main>
+
 </body>
 </html>
-
-
