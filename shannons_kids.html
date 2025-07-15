@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Shannon's Kids: A Story of KL and JS Divergences</h1>
+  <p>15 July 2025</p>
+
+  <p>One of the things I love about IISERB is the annual<a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank">math club</a> fest of Continuum, this year it happened in March, one of the events was a seven minute symposium where you would present a topic, anything, but with math and explain it to an audience and a few professors, I chose to present Shannon's kids. I won the second prize and a sipper, which Iuse to sip ice tea ocasionally.</p>
+
+  <p>Imagine two professors grading differently. One course, BIO101, has marks that look quite balanced — maybe even Gaussian. Meanwhile, courses like ECS201 or MTH202 produce scores that are heavily skewed toward the lower end. It’s easy to see the difference when you plot them, but how do we quantify it? That’s where Shannon's kids — KL and JS Divergences — come in.</p>
+
+  <h2>The Hassle: Uneven Grading Distributions</h2>
+  <p>Let’s look at the visual representation of such score distributions:</p>
+  <img src="output1.png" alt="It's bad, isn't it?" style="width:100%;"/>
+
+  <p>Clearly, not all distributions are born equal. One of these doesn't just feel wrong — it is quantifiably inefficient if you try to use it to describe another. That inefficiency is where our story begins.</p>
+
+  <h2>KL Divergence: The First, Asymmetric Kid</h2>
+  <p>In 1951, Solomon Kullback and Richard Leibler introduced a measure now central to information theory:</p>
+
+  <p><strong>Kullback-Leibler Divergence:</strong></p>
+  <p>\[ D_{KL}(P || Q) = \sum_x P(x) \log \frac{P(x)}{Q(x)} \]</p>
+
+  <ul>
+    <li>Measures how much extra information is needed to describe \(P\) using \(Q\).</li>
+    <li>Not symmetric: \(D_{KL}(P || Q) \neq D_{KL}(Q || P)\).</li>
+    <li>Can be infinite if \(Q(x) = 0\) and \(P(x) > 0\).</li>
+  </ul>
+
+  <h2>Shannon’s Legacy and KL Divergence</h2>
+  <p>KL divergence comes from foundational concepts in information theory introduced by Claude Shannon:</p>
+
+  <p><strong>Entropy:</strong></p>
+  <p>\[ H(P) = - \sum_x P(x) \log P(x) \]</p>
+
+  <p><strong>Cross Entropy:</strong></p>
+  <p>\[ H(P, Q) = - \sum_x P(x) \log Q(x) \]</p>
+
+  <p><strong>Relationship:</strong></p>
+  <p>\[ D_{KL}(P || Q) = H(P, Q) - H(P) \]</p>
+
+  <p>So KL divergence measures how many extra bits you’d use if you encoded \(P\) using \(Q\) instead of the true optimal encoding.</p>
+
+  <h2>A Real Example</h2>
+  <p>Suppose Biology marks are normally distributed and Math marks are skewed. Calculating the KL divergence:</p>
+
+  <ul>
+    <li>\(D_{KL}(\text{Bio} || \text{Math}) = 1.0034\)</li>
+    <li>\(D_{KL}(\text{Math} || \text{Bio}) = 2.6962\)</li>
+  </ul>
+
+  <p>This tells us assuming Math is Biology loses a lot more information than the reverse.</p>
+
+  <h2>Understanding Information</h2>
+  <p>Let’s say I ask you to think of a number between 1 and 8. Every time I ask a Yes/No question (e.g., "Is it greater than 4?"), your answer reduces my uncertainty.</p>
+
+  <p><strong>Key Idea:</strong> Information is uncertainty reduction, measured in bits. For 8 numbers, I need \(\log_2 8 = 3\) bits to guess correctly.</p>
+
+  <h2>Why KL Isn’t Enough</h2>
+  <p>KL divergence has issues:</p>
+  <ul>
+    <li><strong>Asymmetry:</strong> \(D_{KL}(P || Q) \neq D_{KL}(Q || P)\).</li>
+    <li><strong>Infinity risk:</strong> If \(Q(x) = 0\) and \(P(x) > 0\), KL blows up.</li>
+  </ul>
+
+  <p>This leads us to Shannon’s second kid — one who tried to fix KL’s attitude problem.</p>
+
+  <h2>Jensen-Shannon Divergence: The Symmetric One</h2>
+  <p>Developed in 1991, Jensen-Shannon Divergence (JSD) averages KL divergence in a smart way:</p>
+
+  <p>\[ D_{JS}(P || Q) = \frac{1}{2} D_{KL}(P || M) + \frac{1}{2} D_{KL}(Q || M), \quad M = \frac{1}{2}(P + Q) \]</p>
+
+  <ul>
+    <li>Symmetric: \(D_{JS}(P || Q) = D_{JS}(Q || P)\).</li>
+    <li>Always finite: \(0 \leq D_{JS} \leq \log 2\).</li>
+    <li>Avoids zero-probability problem.</li>
+  </ul>
+
+  <h2>Entropy Formulation of JSD</h2>
+  <p>There’s another way to write JSD — using entropy:</p>
+
+  <p>\[ D_{JS}(P || Q) = H(M) - \frac{1}{2} H(P) - \frac{1}{2} H(Q) \]</p>
+
+  <p>This measures the extra uncertainty introduced when merging two distributions. In our earlier case, \(D_{JS}(\text{Bio} || \text{Math}) = 0.0955\).</p>
+
+  <h2>Where I Learned This: Topic Modeling</h2>
+  <p>In topic modeling, every topic is a distribution over words, and documents are distributions over topics. KL divergence helps:</p>
+  <ul>
+    <li><strong>Compare topics:</strong> Are two topics similar?</li>
+    <li><strong>Infer documents:</strong> Does a document match a certain topic?</li>
+    <li><strong>Optimize inference:</strong> LDA and related methods minimize KL divergence.</li>
+  </ul>
+
+  <h2>Conclusion</h2>
+  <p>We can always do better — KL was a strong first step, but it wasn't perfect. JS is more forgiving, symmetric, and practical. And Shannon? Well, he remains the proud parent of it all.</p>
+
+  <section class="references">
+    <h2>References</h2>
+    <ol>
+      <li>Kullback, S., & Leibler, R. A. (1951). On information and sufficiency. Annals of Mathematical Statistics.</li>
+      <li>Shannon, C. E. (1948). A Mathematical Theory of Communication. Bell System Technical Journal.</li>
+      <li>Lin, J. (1991). Divergence measures based on the Shannon entropy. IEEE Transactions on Information Theory.</li>
+      <li>Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). Latent Dirichlet Allocation. Journal of Machine Learning Research.</li>
+    </ol>
+  </section>
+
+</body>
+</html>
