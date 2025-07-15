@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Predictability in Football</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <!-- LaTeX.css -->
   <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
   <script>
@@ -15,6 +20,7 @@
     gtag('js', new Date());
     gtag('config', 'G-69CER33QN8');
   </script>
+
   <style>
     body {
       font-size: 1.1rem;
@@ -24,69 +30,127 @@
       background: #f9f9f9;
       color: #333;
     }
+
     h1 {
-      text-align: center;
       font-size: 1.6rem;
       margin-bottom: 1rem;
+      text-align: center;
     }
+
     h2 {
       font-size: 1.3rem;
       margin-top: 2rem;
+      margin-bottom: 0.6rem;
     }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
     p {
       margin-bottom: 1rem;
     }
-    code {
-      background-color: #eee;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-    }
+
     @media (max-width: 500px) {
       body {
         font-size: 1rem;
         padding: 1rem;
       }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<h1>The Predictability Problem in Football</h1>
+  <h1>The Predictability Problem in Football</h1>
+  <p>15 July</p>
 
-<p>I wrote this originally for Chrysalis, the science magazine of IISERB, I am a big time football fan, and also love statistics.</p>
-  
-<p><em>"...the ultimate game of our planet"</em>, said Peter Drury. But is the unpredictability that makes it so, slipping away?</p>
+  <p>I wrote this originally for Chrysalis, the science magazine of IISERB, I am a big time football fan, and also love statistics.</p>
 
-<p>Football's appeal lies in its chaos — the miracle goals, the last-minute winners, the David vs Goliath moments. But just as cities gentrify, so do leagues. Top-tier clubs continue to dominate, not by accident, but through capital-driven talent accumulation. The more they win, the more money they earn, reinforcing dominance — and predictability.</p>
+  <p><em>"...the ultimate game of our planet"</em>, said Peter Drury. But is the unpredictability that makes it so, slipping away?</p>
 
-<h2>Quantifying the Edge: Home Advantage</h2>
-<p>Consider Anfield, the fortress of Liverpool. Statistically, we define score gap as:</p>
-<p>\[ x = \text{Home Score} - \text{Away Score} \]</p>
-<p>With \( y = 1 \) if the home team wins, and \( y = 0 \) otherwise. A logistic regression can model win probability:</p>
-<p>\[ P(\text{win}) = \frac{1}{1 + e^{-\mu x + s}} \]</p>
-<p>Here, \(\mu\) and \(s\) are learned from historical data using maximum likelihood or least squares methods.</p>
+  <p>Football's appeal lies in its chaos — the miracle goals, the last-minute winners, the David vs Goliath moments. But just as cities gentrify, so do leagues. Top-tier clubs continue to dominate, not by accident, but through capital-driven talent accumulation. The more they win, the more money they earn, reinforcing dominance — and predictability.</p>
 
-<h2>Betting Odds and Real Probability</h2>
-<p>In betting markets, payouts \( h \) and \( a \) for home/away wins are designed so that:</p>
-<p>\[ P_{\text{home}} + P_{\text{away}} < 1 \]</p>
-<p>That leftover is the bookmaker's edge. The game isn't just unfair — it's quantifiably tilted.</p>
+  <h2>Quantifying the Edge: Home Advantage</h2>
 
-<h2>The Elo Approach</h2>
-<p>Elo rating systems dynamically adjust team strength based on match outcomes. The expected score \( E_i \) before the match is:</p>
-<p>\[ E_i = \frac{1}{1 + 10^{(R_j - R_i)/400}} \]</p>
-<p>After the match, update as:</p>
-<p>\[ R_i' = R_i + K(s_i - E_i) \]</p>
-<p>Here, \( s_i \) is the actual outcome (1 = win, 0 = loss), \( K \) controls update speed. A logistic fit to Elo difference then predicts outcomes just like before.</p>
+  <p>Consider Anfield, the fortress of Liverpool. Statistically, we define score gap as:</p>
 
-<h2>Brier Score: Measuring Predictive Accuracy</h2>
-<p>How good are our models? Enter the Brier score, which measures the mean squared error between predicted probability and actual outcome:</p>
-<p>\[ BS = \frac{1}{N} \sum_{i=1}^{N} (f_i - o_i)^2 \]</p>
-<p>Where \( f_i \) is predicted probability and \( o_i \) is the actual result (0 or 1). Lower Brier scores indicate better predictive accuracy. In multi-class cases with \( r \) categories:</p>
-<p>\[ BS = \frac{1}{t} \sum_{i=1}^{t} \sum_{j=1}^{r} (f_{ij} - E_{ij})^2 \]</p>
-<p>For our binary case (home win or not), the equation simplifies. It quantifies how far off the model's probability was, on average, across all matches.</p>
+  <p>\[
+  x = \text{Home Score} - \text{Away Score}
+  \]</p>
 
-<h2>Closing Thoughts</h2>
-<p>If you've made it this far, you're either a stats nerd or a die-hard football fan — possibly both. We walked through the math that tries to capture football’s unpredictability. Yet, no model, no metric can fully explain Leicester City in 2016. That’s the beauty of the game.</p>
+  <p>With \( y = 1 \) if the home team wins, and \( y = 0 \) otherwise. A logistic regression can model win probability:</p>
+
+  <p>\[
+  P(\text{win}) = \frac{1}{1 + e^{-\mu x + s}}
+  \]</p>
+
+  <p>Here, \(\mu\) and \(s\) are learned from historical data using maximum likelihood or least squares methods.</p>
+
+  <h2>Betting Odds and Real Probability</h2>
+
+  <p>In betting markets, payouts \( h \) and \( a \) for home/away wins are designed so that:</p>
+
+  <p>\[
+  P_{\text{home}} + P_{\text{away}} < 1
+  \]</p>
+
+  <p>That leftover is the bookmaker's edge. The game isn't just unfair — it's quantifiably tilted.</p>
+
+  <h2>The Elo Approach</h2>
+
+  <p>Elo rating systems dynamically adjust team strength based on match outcomes. The expected score \( E_i \) before the match is:</p>
+
+  <p>\[
+  E_i = \frac{1}{1 + 10^{(R_j - R_i)/400}}
+  \]</p>
+
+  <p>After the match, update as:</p>
+
+  <p>\[
+  R_i' = R_i + K(s_i - E_i)
+  \]</p>
+
+  <p>Here, \( s_i \) is the actual outcome (1 = win, 0 = loss), and \( K \) controls how fast ratings adapt. A logistic model can again be fitted on Elo rating difference to predict outcomes.</p>
+
+  <h2>Brier Score: Measuring Predictive Accuracy</h2>
+
+  <p>How good are our models? Enter the Brier score, which measures the mean squared error between predicted probability and actual outcome:</p>
+
+  <p>\[
+  BS = \frac{1}{N} \sum_{i=1}^{N} (f_i - o_i)^2
+  \]</p>
+
+  <p>Where \( f_i \) is the predicted probability and \( o_i \) is the actual result (0 or 1). In the multi-class case:</p>
+
+  <p>\[
+  BS = \frac{1}{t} \sum_{i=1}^{t} \sum_{j=1}^{r} (f_{ij} - E_{ij})^2
+  \]</p>
+
+  <p>In our binary case (home win vs not), the formula simplifies and gives an average error across all matches — the lower, the better.</p>
+
+  <h2>Conclusion</h2>
+
+  <p>If you've made it this far, you're either a stats nerd or a die-hard football fan — possibly both. We walked through the math that tries to capture football’s unpredictability. Yet, no model, no metric can fully explain Leicester City in 2016. That’s the beauty of the game.</p>
+
+  <section class="references">
+    <h2>References</h2>
+    <ol>
+      <li>Shannon, C. E. (1948). "A Mathematical Theory of Communication." Bell System Technical Journal.</li>
+      <li>Brier, G. W. (1950). "Verification of Forecasts Expressed in Terms of Probability." Monthly Weather Review.</li>
+      <li>Elo, A. E. (1978). "The Rating of Chessplayers, Past and Present." Arco Pub.</li>
+      <li>Wikipedia contributors. (2024). <a href="https://en.wikipedia.org/wiki/Logistic_regression" target="_blank">Logistic regression</a>. Wikipedia.</li>
+      <li>Wikipedia contributors. (2024). <a href="https://en.wikipedia.org/wiki/Elo_rating_system" target="_blank">Elo rating system</a>. Wikipedia.</li>
+    </ol>
+  </section>
 
 </body>
 </html>
