@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pratyaksh Patel | Technical Blog</title>
+  <title>Football Predictions | Technical Blog</title>
 
   <!-- LaTeX.css -->
   <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
@@ -67,51 +67,79 @@
     }
   </style>
 </head>
-
 <body>
 
-<h1>The Predictability Problem in Football</h1>
-<p>“..the ultimate game of our planet”, these were some of the words by the poet of football commentry – Peter Dury during the commencement of the 2022 FIFA World Cup. It really is a big game and like many I am a big fan. But, what does really make this game so popular? The answer can be rivalries, history, fans, the players, the clubs, but the rational answer to this is unpredictability. But it has been slowly losing that unpredictable nature and so its popularity. More so, we could quantify the predictability to know this. Let’s see if we really can?</p>
+  <h1>Matchday Math</h1>
+  <p>15 July, 2025</p>
 
-<p>In the realm of football, a striking parallel emerges with society's process of gentrification. As wealthier leagues ascend, a deterministic trend takes hold: superior teams clinch victories more frequently, subsequently amassing wealth, enabling them to recruit top-tier players from an increasingly global talent pool. This cycle fortifies their dominance, fostering predictability within the realm of professional football, particularly in the higher echelons of the sport. (shoutout to the oil-money clubs).</p>
+  <p>“..the ultimate game of our planet”, these were some of the words by the poet of football commentry – Peter Dury during the commencement of the 2022 FIFA World Cup. It really is a big game and like many I am a big fan. But, what does really make this game so popular? The answer can be rivalries, history, fans, the players, the clubs, but the rational answer to this is unpredictability. But it has been slowly losing that unpredictable nature and so its popularity. More so, we could quantify the predictability to know this. Let’s see if we really can?</p>
 
-<p>Anfield, the home of Liverpool Football Club, by far considered one of the most difficult stadiums to win at for any other team. The home advantage as they call it is quite significant. This can actually be mathematically expressed in terms of equations. We can determine the score gap between two teams in any match following the Nth encounter. With \((T - N)\) matches and their respective results and score gaps for both models, we proceed to employ logistic regression. This involves modelling the outcome (a categorical variable, \(y\)) based on the score differences. To maintain generality, we consistently compute the point differential as \(x = \text{home team score} - \text{away team score}\), and assign \(y = 1/0\) if the home/away team emerges victorious.</p>
+  <p>In the realm of football, a striking parallel emerges with society's process of gentrification. As wealthier leagues ascend, a deterministic trend takes hold: superior teams clinch victories more frequently, subsequently amassing wealth, enabling them to recruit top-tier players from an increasingly global talent pool. This cycle fortifies their dominance, fostering predictability within the realm of professional football, particularly in the higher echelons of the sport. (shoutout to the oil-money clubs).</p>
 
-<p>\[(1) \quad P(\text{win}) = \frac{1}{1 + e^{-\mu x + s}}\]</p>
-<p>where \(\mu\) and \(s\) are model parameters obtained by ordinary least-squares methods.</p>
+  <p>Anfield, the home of Liverpool Football Club, by far considered one of the most difficult stadiums to win at for any other team. The home advantage as they call it is quite significant. This can actually be mathematically expressed in terms of equations. We can determine the score gap between two teams in any match following the Nth encounter. With (T - N) matches and their respective results and score gaps for both models, we proceed to employ logistic regression. This involves modelling the outcome (a categorical variable, y) based on the score differences as per equation. To maintain generality, we consistently compute the point differential as \( x = \text{home team score} - \text{away team score} \), and assign \( y = 1/0 \) if the home/away team emerges victorious.</p>
 
-<p>In monetary terms, \(h\) represents the winnings for a home team victory, and \(a\) represents the winnings for an away team victory. An experienced gambler understands that, in reality, the total of the probabilities for all possible outcomes in any betting house's game does not equal 1.</p>
+  <p>\[
+  P(y = 1 \mid x) = \frac{1}{1 + e^{-\mu(x - s)}}
+  \]</p>
 
-<p>\[(2) \quad P_{\text{home}} + P_{\text{away}} < 1\]</p>
+  <p>where \( \mu \) and \( s \) are model parameters that can be obtained by ordinary least-squares methods.</p>
 
-<p>Here comes the Elo ranking system to our help. Before each match, we calculate the expected outcome for each team (\(E_i\)). This is a quasi-normal function based on the difference between the teams' current rankings (\(R_i\) and \(R_j\)).</p>
-<p>\[(3) \quad E_i = \frac{1}{1 + 10^{(R_j - R_i)/400}}\]</p>
+  <p>\[
+  E = \frac{h}{h + a}
+  \]</p>
 
-<p>Once the match concludes, the rankings are updated as:</p>
-<p>\[(4) \quad R_i' = R_i + K(s_i - E_i)\]</p>
+  <p>In monetary terms, \( h \) represents the winnings for a home team victory, and \( a \) represents the winnings for an away team victory. An experienced gambler understands that, in reality, the total of the probabilities for all possible outcomes in any betting house's game does not equal 1. This indicates that the game offered by the betting houses is not entirely fair.</p>
 
-<p>In this context, \(s_i\) represents the binary outcome of the match between teams \(i\) and \(j\), while \(E_i\) is the expected outcome. \(K\) is a weight factor determining the impact of the result.</p>
+  <p>One of the most explored and rather followed ways of ranking teams/players within a tournament based not only on their winnings and defeats, but also considering how hard were those matches expected to be, I mean, its obviously gonna be hard the Spurs to win against Real Madrid given the current squad. But what about teams like Manchester City or even PSG. Now I may just have said some super controversial stuff as a football fan, but come one isn’t Real Madrid literally ruling football, its not fair, but it also wasn’t an overnight thing, go back a few paragraphs and read again what I said about a team hiring superb players and winning and re-iterating the same thing, that’s what Real did, rather, mastered it, and as a result, Kings of Europe for the 15th time.</p>
 
-<p>To measure predictive accuracy, we use the Brier score. On each of \(t\) occasions, an event can occur in one of \(r\) classes. Forecast probabilities \(f_{ij}\) are defined over these classes, and the Brier score is:</p>
-<p>\[(5) \quad BS = \frac{1}{t} \sum_{i=1}^{t} \sum_{j=1}^{r} (f_{ij} - E_{ij})^2\]</p>
+  <p>But can we really predict the match outcome? Its not always that Real is going to win, or is it?</p>
 
-<p>Where \(E_{ij} = 1\) if the event occurred in class \(j\), else 0. For binary classification (home win vs not), this becomes:</p>
-<p>\[(6) \quad BS = \frac{1}{N} \sum_{i=1}^{N} (f_i - o_i)^2\]</p>
+  <p>Here comes the Elo ranking system to our help, it might not be the best in use, but helps us out pretty well in this case.</p>
 
-<p>The lower the Brier score, the better the model's prediction performance.</p>
+  <p>Before each match, we calculate the expected outcome for each team \( E_i \). This is a quasi-normal function based on the difference between the teams' current rankings \( R_i \) and \( R_j \).</p>
 
-<p>I just want to let you know, if you made it till here of this article, you are either a probability and statistics enthusiast or a die hard football fan, both would be rare. We went through a lot of mathematical equations, trying to model the perfect prediction model for identifying the winning team, but, all this still might not be able to explain Leicester City’s 2016 Premier League win. Nothing can, I guess.</p>
+  <p>\[
+  E_i = \frac{1}{1 + 10^{(R_j - R_i)/400}}
+  \]</p>
 
-<section class="references">
-  <h2>References</h2>
-  <ol>
-    <li>Brier, G. W. (1950). "Verification of Forecasts Expressed in Terms of Probability." Monthly Weather Review.</li>
-    <li>Elo, A. E. (1978). "The Rating of Chessplayers, Past and Present." Arco Pub.</li>
-    <li>Wikipedia contributors. (2024). <a href="https://en.wikipedia.org/wiki/Logistic_regression" target="_blank">Logistic regression</a>. Wikipedia.</li>
-    <li>Wikipedia contributors. (2024). <a href="https://en.wikipedia.org/wiki/Elo_rating_system" target="_blank">Elo rating system</a>. Wikipedia.</li>
-    <li>Wikipedia contributors. (2024). <a href="https://en.wikipedia.org/wiki/Brier_score" target="_blank">Brier score</a>. Wikipedia.</li>
-  </ol>
-</section>
+  <p>Once the match concludes, the rankings are updated, given the difference between the expected outcome and the real one.</p>
+
+  <p>\[
+  R_i^{\text{new}} = R_i + K(S_i - E_i)
+  \]</p>
+
+  <p>In this context, \( S_i \) represents the binary outcome of the match between teams/players \( i \) and \( j \), while \( E_i \) is the expected outcome for team/player \( i \) as determined by equation above. A K-factor is introduced as a weight, influencing how significantly the match result affects the new rating for the teams/players. Elo initially suggested two K-values for chess player rankings: 16 for chess masters and 32 for lower-ranked players. Although the rating itself involves a prediction, we applied the same methodology used for analyzing previous models: we calculated the ratings for both teams before each match and used the difference between these ratings (home minus away) to fit a logistic curve, with 1 representing a home win and 0 an away win.</p>
+
+  <p>But how do you measure how accurate the predictions are? Here comes in the Brier function. The Brier score is a loss function used to measure the accuracy of probabilistic predictions. It applies to tasks where predictions must assign probabilities to a set of mutually exclusive discrete outcomes. These outcomes can be either binary or categorical, and the assigned probabilities must sum to one, with each individual probability ranging from 0 to 1.</p>
+
+  <p>Now, I don’t wish to bore you with a lot of equations, but please stay with me, lets just have some look at these –</p>
+
+  <p>Suppose that on each of \( t \) occasions, an event can occur in only one of \( r \) possible classes or categories. On a particular occasion \( i \), the forecast probabilities are \( f_{i1}, f_{i2}, \ldots, f_{ir} \), representing the likelihood that the event will occur in classes 1, 2, ….., r, respectively. These r classes are mutually exclusive and exhaustive, meaning that the sum of the forecast probabilities for each occasion equals one, i.e., \( \sum_{j=1}^{r} f_{ij} = 1 \), for \( i = 1, 2, 3,… t \). Thus, the Brier score is defined as follows:</p>
+
+  <p>\[
+  \text{BS} = \frac{1}{t} \sum_{i=1}^{t} \sum_{j=1}^{r} (f_{ij} - o_{ij})^2
+  \]</p>
+
+  <p>Where \( o_{ij} \) takes the value of 1 or 0, according to whether the event occurred in class \( j \) or not. In our case, we have \( r = 2 \) classes: either the home team wins or does not win. There are \( (1 - n)T \) matches to be predicted, which transforms equation (5) into:</p>
+
+  <p>\[
+  \text{BS} = \frac{1}{(1 - n)T} \sum_{i=1}^{(1 - n)T} (f_i - o_i)^2
+  \]</p>
+
+  <p>We see, from equation (6), how the Brier score is an averaged measure over all the predicted matches, i.e. each league–season combination will have its own single Brier score, so if you do some math, the lower your brier score is, the more better prediction can be made.</p>
+
+  <p>I just want to let you know, if you made it till here of this article, you are either a probability and statistics enthusiast or a die hard football fan, both would be rare. We went through  a lot of mathematical equations, trying to model the perfect prediction model for identifying the winning team, but, all this still might not be able to explain Leicester City’s 2016 Premier League win. Nothing can, I guess.</p>
+
+  <section class="references">
+    <h2>References</h2>
+    <ol>
+      <li>Elo, A. E. (1978). *The Rating of Chessplayers, Past and Present.* Arco Pub.</li>
+      <li>Brier, G. W. (1950). "Verification of forecasts expressed in terms of probability." *Monthly Weather Review.*</li>
+      <li>Wikipedia contributors. "Elo rating system." Wikipedia, The Free Encyclopedia.</li>
+      <li>Various sports analytics and betting sites for match prediction data.</li>
+    </ol>
+  </section>
 
 </body>
 </html>
+
