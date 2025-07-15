@@ -72,98 +72,120 @@
   <h1>Shannon's Kids</h1>
   <p>15 July 2025</p>
 
-  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank"> math club</a> fest of Continuum, this year it happened in March, one of the events was a seven minute symposium where you would present a topic, anything, but with math and explain it to an audience and a few professors, I chose to present Shannon's kids. I won the second prize and a sipper, which I use to sip ice tea occasionally.</p>
+  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank">math club</a> fest of Continuum. This year, one of the events was a 7-minute symposium where you could present any topic — as long as you used mathematics. I chose Shannon's kids: KL and JS divergences. It won me second prize and a sipper, now employed for iced tea on lazy afternoons.</p>
 
-  <p>Imagine two professors grading differently. One course, BIO101, has marks that look quite balanced — maybe even Gaussian. Meanwhile, courses like ECS201 or MTH202 produce scores that are heavily skewed toward the lower end. It’s easy to see the difference when you plot them, but how do we quantify it? That’s where Shannon's kids — KL and JS Divergences — come in.</p>
+  <p>Imagine two professors grading differently. BIO101 has Gaussian-like scores — balanced and symmetric. ECS201 or MTH202, however, reveal skewed results. It’s obvious visually — but how can we measure this difference rigorously and quantitatively? That's where information theory enters.</p>
 
   <h2>The Hassle: Uneven Grading Distributions</h2>
-  <p>Let’s look at the visual representation of such score distributions:</p>
+  <p>Here's what these distributions might look like:</p>
   <img src="output1.png" alt="It's bad, isn't it?" style="width:100%;"/>
 
-  <p>Clearly, not all distributions are born equal. One of these doesn't just feel wrong — it is quantifiably inefficient if you try to use it to describe another. That inefficiency is where our story begins.</p>
+  <p>Not all distributions describe reality equally well. KL divergence tells us how inefficient one distribution is in describing data generated from another. This inefficiency — in bits — is the cost of using the wrong model.</p>
 
   <h2>KL Divergence: The First, Asymmetric Kid</h2>
-  <p>In 1951, Solomon Kullback and Richard Leibler introduced a measure now central to information theory:</p>
+  <p>Kullback-Leibler divergence quantifies the discrepancy between two probability distributions:</p>
 
-  <p><strong>Kullback-Leibler Divergence:</strong></p>
-  <p>\[ D_{KL}(P || Q) = \sum_x P(x) \log \frac{P(x)}{Q(x)} \]</p>
+  <p>
+    \[ D_{KL}(P || Q) = \sum_x P(x) \log \frac{P(x)}{Q(x)} \]
+  </p>
 
   <ul>
-    <li>Measures how much extra information is needed to describe \(P\) using \(Q\).</li>
-    <li>Not symmetric: \(D_{KL}(P || Q) \neq D_{KL}(Q || P)\).</li>
-    <li>Can be infinite if \(Q(x) = 0\) and \(P(x) > 0\).</li>
+    <li>Measures the expected number of extra bits to encode samples from \(P\) using a code optimized for \(Q\).</li>
+    <li>Not symmetric — it matters which distribution is the reference.</li>
+    <li>Infinite if \(Q(x) = 0\) and \(P(x) > 0\), due to division by zero inside the logarithm.</li>
   </ul>
 
+  <p>KL divergence is zero iff \(P = Q\) almost everywhere. In this sense, it acts as a quasi-distance measure on the space of distributions.</p>
+
   <h2>Shannon’s Legacy and KL Divergence</h2>
-  <p>KL divergence comes from foundational concepts in information theory introduced by Claude Shannon:</p>
+  <p>The KL divergence is rooted in Shannon’s definition of entropy, which measures the average uncertainty (or information content) in a distribution:</p>
 
-  <p><strong>Entropy:</strong></p>
-  <p>\[ H(P) = - \sum_x P(x) \log P(x) \]</p>
+  <p>
+    \[ H(P) = - \sum_x P(x) \log P(x) \]
+  </p>
 
-  <p><strong>Cross Entropy:</strong></p>
-  <p>\[ H(P, Q) = - \sum_x P(x) \log Q(x) \]</p>
+  <p>Cross-entropy is the average number of bits needed to encode samples from \(P\) using a coding scheme optimized for \(Q\):</p>
 
-  <p><strong>Relationship:</strong></p>
-  <p>\[ D_{KL}(P || Q) = H(P, Q) - H(P) \]</p>
+  <p>
+    \[ H(P, Q) = - \sum_x P(x) \log Q(x) \]
+  </p>
 
-  <p>This identity connects divergence with the inefficiency of using the wrong distribution for coding. The KL divergence also arises in maximum likelihood estimation when comparing two probabilistic models.</p>
+  <p>The KL divergence is simply the difference:</p>
+
+  <p>
+    \[ D_{KL}(P || Q) = H(P, Q) - H(P) \]
+  </p>
+
+  <p>This makes its interpretation in coding theory precise: how many more bits are needed, on average, because you assumed the wrong distribution?</p>
 
   <h2>A Real Example</h2>
-  <p>Suppose Biology marks are normally distributed and Math marks are skewed. Calculating the KL divergence:</p>
+  <p>Suppose Biology marks are normally distributed and Math marks are skewed. Then:</p>
 
   <ul>
     <li>\(D_{KL}(\text{Bio} || \text{Math}) = 1.0034\)</li>
     <li>\(D_{KL}(\text{Math} || \text{Bio}) = 2.6962\)</li>
   </ul>
 
-  <p>This tells us assuming Math is Biology loses a lot more information than the reverse.</p>
+  <p>This tells us assuming Math is Bio is much worse than the reverse — there’s more inefficiency, more surprise.</p>
 
   <h2>Understanding Information</h2>
-  <p>Let’s say I ask you to think of a number between 1 and 8. Every time I ask a Yes/No question (e.g., "Is it greater than 4?"), your answer reduces my uncertainty.</p>
+  <p>Think of guessing a number from 1 to 8. Each binary question like “Is it > 4?” gives 1 bit of information. Since there are 8 options, you need:</p>
 
-  <p><strong>Key Idea:</strong> Information is uncertainty reduction, measured in bits. For 8 numbers, I need \(\log_2 8 = 3\) bits to guess correctly.</p>
+  <p>
+    \[ \log_2 8 = 3 \text{ bits} \]
+  </p>
 
-  <p><strong>Information Content:</strong> If an event has probability \(p\), then the information content is \(-\log_2(p)\). Rare events carry more information. This forms the basis for both entropy and divergence measures.</p>
+  <p><strong>Information content</strong> of an event with probability \(p\) is:</p>
+
+  <p>
+    \[ I(x) = -\log_2 p(x) \]
+  </p>
+
+  <p>Thus, rarer events contain more information. Shannon entropy is just the expected value of this surprise.</p>
 
   <h2>Why KL Isn’t Enough</h2>
-  <p>KL divergence has issues:</p>
+  <p>While powerful, KL divergence has limitations:</p>
   <ul>
-    <li><strong>Asymmetry:</strong> \(D_{KL}(P || Q) \neq D_{KL}(Q || P)\).</li>
-    <li><strong>Infinity risk:</strong> If \(Q(x) = 0\) and \(P(x) > 0\), KL blows up.</li>
+    <li><strong>Asymmetry:</strong> direction matters — switching \(P\) and \(Q\) gives different results.</li>
+    <li><strong>Undefined for zeros:</strong> if \(Q(x) = 0\) and \(P(x) > 0\), then KL diverges to infinity.</li>
   </ul>
 
-  <p>This leads us to Shannon’s second kid — one who tried to fix KL’s attitude problem.</p>
+  <p>To address these, a more robust measure was developed.</p>
 
   <h2>Jensen-Shannon Divergence: The Symmetric One</h2>
-  <p>Developed in 1991, Jensen-Shannon Divergence (JSD) averages KL divergence in a smart way:</p>
+  <p>Jensen-Shannon Divergence is a symmetrized and smoothed version of KL divergence:</p>
 
-  <p>\[ D_{JS}(P || Q) = \frac{1}{2} D_{KL}(P || M) + \frac{1}{2} D_{KL}(Q || M), \quad M = \frac{1}{2}(P + Q) \]</p>
+  <p>
+    \[ D_{JS}(P || Q) = \frac{1}{2} D_{KL}(P || M) + \frac{1}{2} D_{KL}(Q || M), \quad M = \frac{1}{2}(P + Q) \]
+  </p>
 
   <ul>
-    <li>Symmetric: \(D_{JS}(P || Q) = D_{JS}(Q || P)\).</li>
-    <li>Always finite: \(0 \leq D_{JS} \leq \log 2\).</li>
-    <li>Avoids zero-probability problem.</li>
+    <li>Symmetric by construction.</li>
+    <li>Always finite — even if \(P\) or \(Q\) contain zeros.</li>
+    <li>Bounded: \( 0 \leq D_{JS} \leq \log 2 \).</li>
   </ul>
 
   <h2>Entropy Formulation of JSD</h2>
-  <p>There’s another way to write JSD — using entropy:</p>
+  <p>JSD can also be written using entropies:</p>
 
-  <p>\[ D_{JS}(P || Q) = H(M) - \frac{1}{2} H(P) - \frac{1}{2} H(Q) \]</p>
+  <p>
+    \[ D_{JS}(P || Q) = H(M) - \frac{1}{2} H(P) - \frac{1}{2} H(Q) \]
+  </p>
 
-  <p>This measures the extra uncertainty introduced when merging two distributions. In our earlier case, \(D_{JS}(\text{Bio} || \text{Math}) = 0.0955\).</p>
+  <p>This measures how much more uncertain the mixture \(M\) is compared to the average uncertainty of \(P\) and \(Q\).</p>
 
-  <p>JSD has an interpretation as a measure of mutual information between a sample and its distribution label in a mixture model: given that a sample came from either \(P\) or \(Q\), how much information do we gain by knowing the source distribution?</p>
+  <p>It also has a nice interpretation: it is the mutual information between a sample and its origin label (whether it came from \(P\) or \(Q\)) — thus connecting information theory with classification.</p>
 
   <h2>Where I Learned This: Topic Modeling</h2>
-  <p>In topic modeling, every topic is a distribution over words, and documents are distributions over topics. KL divergence helps:</p>
+  <p>In Latent Dirichlet Allocation (LDA), topics are distributions over words, and documents are mixtures of topics. KL divergence plays a central role:</p>
   <ul>
-    <li><strong>Compare topics:</strong> Are two topics similar?</li>
-    <li><strong>Infer documents:</strong> Does a document match a certain topic?</li>
-    <li><strong>Optimize inference:</strong> LDA and related methods minimize KL divergence.</li>
+    <li><strong>Comparing topic similarity:</strong> are two topics semantically close?</li>
+    <li><strong>Document inference:</strong> how likely is a document under a given topic model?</li>
+    <li><strong>Optimization:</strong> LDA uses variational inference to minimize KL divergence between true and approximate posteriors.</li>
   </ul>
 
   <h2>Conclusion</h2>
-  <p>We can always do better — KL was a strong first step, but it wasn't perfect. JS is more forgiving, symmetric, and practical. And Shannon? Well, he remains the proud parent of it all.</p>
+  <p>KL divergence gave us a powerful lens for measuring divergence between beliefs and reality — but it’s not perfect. Jensen-Shannon builds on it with symmetry and robustness. Behind them all, Shannon's insight remains foundational: information is uncertainty, and math can measure it.</p>
 
   <section class="references">
     <h2>References</h2>
