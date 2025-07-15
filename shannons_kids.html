@@ -72,7 +72,7 @@
   <h1>Shannon's Kids</h1>
   <p>15 July 2025</p>
 
-  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank"> math club</a> fest of Continuum, this year it happened in March, one of the events was a seven minute symposium where you would present a topic, anything, but with math and explain it to an audience and a few professors, I chose to present Shannon's kids. I won the second prize and a sipper, which Iuse to sip ice tea ocasionally.</p>
+  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank"> math club</a> fest of Continuum, this year it happened in March, one of the events was a seven minute symposium where you would present a topic, anything, but with math and explain it to an audience and a few professors, I chose to present Shannon's kids. I won the second prize and a sipper, which I use to sip ice tea occasionally.</p>
 
   <p>Imagine two professors grading differently. One course, BIO101, has marks that look quite balanced — maybe even Gaussian. Meanwhile, courses like ECS201 or MTH202 produce scores that are heavily skewed toward the lower end. It’s easy to see the difference when you plot them, but how do we quantify it? That’s where Shannon's kids — KL and JS Divergences — come in.</p>
 
@@ -106,7 +106,7 @@
   <p><strong>Relationship:</strong></p>
   <p>\[ D_{KL}(P || Q) = H(P, Q) - H(P) \]</p>
 
-  <p>So KL divergence measures how many extra bits you’d use if you encoded \(P\) using \(Q\) instead of the true optimal encoding.</p>
+  <p>This identity connects divergence with the inefficiency of using the wrong distribution for coding. The KL divergence also arises in maximum likelihood estimation when comparing two probabilistic models.</p>
 
   <h2>A Real Example</h2>
   <p>Suppose Biology marks are normally distributed and Math marks are skewed. Calculating the KL divergence:</p>
@@ -122,6 +122,8 @@
   <p>Let’s say I ask you to think of a number between 1 and 8. Every time I ask a Yes/No question (e.g., "Is it greater than 4?"), your answer reduces my uncertainty.</p>
 
   <p><strong>Key Idea:</strong> Information is uncertainty reduction, measured in bits. For 8 numbers, I need \(\log_2 8 = 3\) bits to guess correctly.</p>
+
+  <p><strong>Information Content:</strong> If an event has probability \(p\), then the information content is \(-\log_2(p)\). Rare events carry more information. This forms the basis for both entropy and divergence measures.</p>
 
   <h2>Why KL Isn’t Enough</h2>
   <p>KL divergence has issues:</p>
@@ -150,6 +152,8 @@
 
   <p>This measures the extra uncertainty introduced when merging two distributions. In our earlier case, \(D_{JS}(\text{Bio} || \text{Math}) = 0.0955\).</p>
 
+  <p>JSD has an interpretation as a measure of mutual information between a sample and its distribution label in a mixture model: given that a sample came from either \(P\) or \(Q\), how much information do we gain by knowing the source distribution?</p>
+
   <h2>Where I Learned This: Topic Modeling</h2>
   <p>In topic modeling, every topic is a distribution over words, and documents are distributions over topics. KL divergence helps:</p>
   <ul>
@@ -173,3 +177,4 @@
 
 </body>
 </html>
+
