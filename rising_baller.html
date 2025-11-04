@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    pre {
+      background: #fff;
+      padding: 0.75rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Liberation Mono", monospace; }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e6e6e6;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<main>
+  <h1>RisingBALLER — A Player is a Token, a Match is a Sentence</h1>
+
+  <article>
+    <p>9 June, 2025</p>
+
+    <p>
+      This post is an in-depth walkthrough of <em>RisingBALLER</em>, a paper that treats football
+      matches like sentences and players like tokens to learn match-contextualized player embeddings using a transformer. The original paper (StatsBomb Conference 2024, Research Stage) is
+      the source for everything below — I closely follow the author’s methodology, math and results. For the primary source, see the uploaded paper. 
+    </p>
+
+    <h2>High-level intuition</h2>
+    <p>
+      RisingBALLER asks: what if we apply the same foundation-model idea from NLP to football? In text, words (tokens) are embedded and contextualized by a transformer; here, each <strong>player</strong>
+      becomes a token, and a <strong>match</strong> becomes a sequence of those tokens. The transformer learns contextualized player embeddings specific to that match. This idea unlocks downstream tasks such as predicting next-match statistics, retrieving similar players, or estimating team cohesion.
+    </p>
+
+    <h2>Dataset and preprocessing</h2>
+    <p>
+      The paper uses StatsBomb event data for the 2015–2016 season across the top 5 European leagues. For each match the event table (3.5k–4k rows) is converted into a per-player statistics table: every player in the match squad (starting XI + bench) gets a vector of match statistics. If a player did not play, their stats are zeroed. The author selected 39 base statistics (passes, shots, interceptions, dribbles, fouls, keeper stats, blocks/clearances/recoveries, etc.) and computed aggregates (sums, means, stds) to produce 234 variables used for the
+      Next Match Statistics Prediction (NMSP) downstream task.
+    </p>
+
+    <h2>The core model architecture</h2>
+    <p>
+      RisingBALLER’s building block is the player representation per match. For each player in a match the model constructs four embeddings and sums them element-wise to obtain an initial token embedding.
+    </p>
+
+    <p>
+      Denote embedding dimension by \(D\) and number of players in the match sequence by \(N\) (the paper uses a fixed sequence length of up to 80 and pads when necessary). For a player \(i\) in a match, the initial embedding is:
+    </p>
+
+    <p>
+      \[
+        \mathbf{x}^{(i)}_{init} = \mathbf{e}^{(i)}_{player} + \mathbf{e}^{(i)}_{pos} + \mathbf{e}^{(i)}_{team} + \mathbf{e}^{(i)}_{tpe},
+      \]
+    </p>
+
+    <p>
+      where
+    </p>
+
+    <ul>
+      <li>\(\mathbf{e}_{player}\) is the player-ID embedding (learned from a one-hot / ID input via an MLP).</li>
+      <li>\(\mathbf{e}_{pos}\) is the spatial positional embedding (categorical position encoded via MLP).</li>
+      <li>\(\mathbf{e}_{team}\) is the team affiliation embedding.</li>
+      <li>\(\mathbf{e}_{tpe}\) is the temporal positional encoding: the per-match statistics (234 variables for NMSP, 39 raw stats for MPP) projected into the \(D\)-dimensional space via an MLP.</li>
+    </ul>
+
+    <p>
+      Stack the \(N\) initial embeddings to obtain \(X_{init} \in \mathbb{R}^{N\times D}\). This is passed through a (standard) transformer encoder to obtain context-aware embeddings \(X_{out}\in\mathbb{R}^{N\times D}\).
+    </p>
+
+    <h2>Masked Player Prediction (MPP) — pretraining</h2>
+    <p>
+      MPP is the self-supervised pretext task: randomly mask 25% of the input players in each match and train the model to predict the masked player IDs. This is analogous to MLM (masked language modeling) in BERT.
+    </p>
+
+    <p>
+      Formally, given a sequence of players with masked positions \(M\subset\{1,\dots,N\}\), the model outputs at each masked position \(j\in M\) a probability distribution over the player vocabulary \(V\) via a softmax over the projection of the contextualized vector:
+    </p>
+
+    <p>
+      \[
+        P(\hat{y}_j = v \mid X_{out}) = \mathrm{softmax}\left( W_{v}^\top \mathbf{x}^{(j)}_{out} + b_v\right) ,\quad v\in\{1,\dots,|V|\}.
+      \]
+    </p>
+
+    <p>
+      The training objective is cross-entropy summed over masked positions. For a single sample (match) the MPP loss is:
+    </p>
+
+    <p>
+      \[
+        \mathcal{L}_{MPP} = -\sum_{j\in M} \log P(y_j\mid X_{out}).
+      \]
+    </p>
+
+    <p>
+      The paper reports training two models: 1-layer transformer with \(D=64\) and \(D=128\). To augment data due to limited matches (1,792 matches), the author created 10 MPP masks per match yielding ~18k samples. Vocabulary size \(|V|\approx2602\) (2600 players + mask + pad). Training used AdamW, batch size 256, LR 1e-4 and linear decay; 64-D trained for 280k steps, 128-D for 56k steps. Metrics reported: cross entropy and top-1/top-3 accuracy on validation.
+    </p>
+
+    <h2>NMSP — downstream fine-tuning</h2>
+    <p>
+      For Next Match Statistics Prediction the model is repurposed: the MPP head is removed, and an MLP projects flattened team/player representations to predict team-level statistics (18 team metrics). The NMSP input uses richer temporal features (234 variables per player) as the TPE input. The output target is the next-match team statistics vector \(\mathbf{y}\in\mathbb{R}^{2N_{stats}}\) (two teams), and the training objective is mean squared error averaged across statistics:
+    </p>
+
+    <p>
+      \[
+        \mathcal{L}_{NMSP} = \frac{1}{2N_{stats}} \sum_{k=1}^{2N_{stats}} (\hat{y}_k - y_k)^2.
+      \]
+
+    <p>
+      Fine-tuning updated all weights (backbone + new head) with AdamW, batch size 256, LR scheduling with a warmup ratio 0.1 and weight decay 0.01.
+    </p>
+
+    <h2>Key numerical results (summary)</h2>
+    <p>
+      The paper reports:
+    </p>
+    <ul>
+      <li>MPP: both 64-D and 128-D single-layer models achieve high top-3 accuracy (>95%), indicating the model learns meaningful player relations.</li>
+      <li>NMSP: compared to a baseline that predicts next-match stats as the average of previous five matches, the 128-D model improved global average MSE by ~37.7% and the 64-D by ~35.35% on validation.</li>
+      <li>Ablations: removing team-affiliation embeddings degrades MPP accuracy substantially, confirming that team info is a strong signal in the dataset; however, removing team aff helps learn cross-team player similarity for retrieval tasks.</li>
+    </ul>
+
+    <h2>Math & metrics recap</h2>
+    <p>
+      For clarity, here are the key formulas used in the paper:
+    </p>
+
+    <ul>
+      <li><strong>Initial embedding per player:</strong> \(\mathbf{x}_{init}=\mathbf{e}_{player}+\mathbf{e}_{pos}+\mathbf{e}_{team}+\mathbf{e}_{tpe}\).</li>
+
+      <li><strong>MPP loss (cross-entropy):</strong>
+        \(\mathcal{L}_{MPP} = -\sum_{j\in M} \log P(y_j\mid X_{out})\), where \(P(\cdot)\) is the softmax over the vocabulary.
+      </li>
+
+      <li><strong>NMSP loss (MSE averaged):</strong>
+        \(\mathcal{L}_{NMSP} = \frac{1}{2N_{stats}}\sum_{k=1}^{2N_{stats}}(\hat{y}_k-y_k)^2\).
+      </li>
+
+      <li><strong>Batched training tokens:</strong> with sequence length \(N\) and dataset samples \(S\), tokens = \(S\times N\). The author reports ~1.14M training tokens across 18k MPP samples and max sequence length 80.
+      </li>
+    </ul>
+
+    <h2>Architecture & implementation details</h2>
+    <p>
+      Implementation notes useful for reproduction (as in the paper):
+    </p>
+    <ul>
+      <li>Codebase: PyTorch; training used Hugging Face Trainer on Google Colab Pro (Tesla T4).</li>
+      <li>Sequence length: max 80 players per match (padding when necessary).</li>
+      <li>Vocabulary: ~2,602 tokens (unique players + mask + pad).</li>
+      <li>Embedding MLPs: used to project categorical IDs and numerical features into the shared \(D\)-dimensional space.</li>
+      <li>Optimization: AdamW, LR=1e-4, batch size 256, linear decay (MPP), and warmup ratio 0.1 + weight decay 0.01 for fine-tuning.
+      </li>
+    </ul>
+
+    <h2>Embeddings analysis — what we can do with these vectors</h2>
+    <p>
+      The paper shows diverse uses of the learned embeddings (MPP backbone):
+    </p>
+    <ol>
+      <li><strong>Positional embeddings clustering:</strong> clustering learned positional vectors separates defenders/midfielders/attackers when visualized, capturing tactical zones and role fluidity.</li>
+      <li><strong>Similar player retrieval:</strong> nearest-neighbour search in embedding space retrieves players with similar match roles. Ablating team-info tends to improve cross-team player similarity retrievals.</li>
+      <li><strong>Team cohesion metric:</strong> average pairwise similarity of players in a squad used as a heuristic cohesion score.</li>
+      <li><strong>Attention analysis:</strong> attention matrices could (future work) reveal player interactions and synergies.
+      </li>
+    </ol>
+
+    <h2>Why this matters — strengths and limitations</h2>
+    <p>
+      <strong>Strengths:</strong>
+    </p>
+    <ul>
+      <li>Automated learned features that capture match-contextualized attributes — less handcrafted feature engineering.</li>
+      <li>Flexible transfer to downstream tasks (NMSP, retrieval, cohesion measures).</li>
+      <li>Clear ablation studies showing the role of inputs like team embeddings and the value of MPP pretraining.</li>
+    </ul>
+
+    <p>
+      <strong>Limitations & caveats:</strong>
+    </p>
+    <ul>
+      <li>Dataset is relatively small (1,792 matches), which constrains the model’s ability to generalize across leagues/seasons — team-affiliation signal is strong and can bias embeddings.</li>
+      <li>Model size is tiny compared to modern foundation models; scaling up (more data, layers, params) is proposed as future work.
+      <li>Certain statistics (xG, goals) were harder to beat compared to the simple baseline — suggesting room for improved label engineering or architecture tweaks.</li>
+    </ul>
+
+    <h2>Reproducing the experiments — a compact blueprint</h2>
+    <p>
+      If you want to reproduce RisingBALLER, follow these steps (high-level):
+    </p>
+    <ol>
+      <li>Download StatsBomb free event data for season(s) of interest and parse event tables per match.</li>
+      <li>Aggregate per-player match statistics (the 39 base stats and aggregated 234 features for NMSP).
+      </li>
+      <li>Construct player vocabulary (unique IDs), team IDs, positional IDs, mask/pad tokens and a fixed sequence length (e.g., 80 players).
+      </li>
+      <li>Implement MLPs to project categorical IDs and numerical stats into a shared \(D\)-dimensional space.
+      </li>
+      <li>Use a transformer encoder (1–2 layers tested), train with MPP (mask 25% players per sample), cross-entropy loss.
+      </li>
+      <li>Fine-tune for NMSP: replace MPP head with MLP mapping flattened contextualized team/player vectors to next-match stats, train with MSE.
+      </li>
+    </ol>
+
+    <p>
+      The author’s code repository is referenced in the paper and is helpful for exact implementation details.
+    </p>
+
+    <h2>References</h2>
+    <p>
+      The references below match the paper’s bibliography. For compactness I list the core citations used in RisingBALLER:
+    </p>
+    <ol>
+      <li>Vaswani, A., et al. (2017). <em>Attention is All You Need</em>. NeurIPS. (transformer)</li>
+      <li>Devlin, J., et al. (2018). <em>BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</em>. (MLM)</li>
+      <li>Liu, Y., et al. (2019). <em>RoBERTa</em>.</li>
+      <li>Radford, A., et al. (2021). <em>CLIP</em>.</li>
+      <li>Caron, M., et al. (2021). <em>DINO</em>.</li>
+      <li>AdamW optimizer: Loshchilov & Hutter (2017).</li>
+      <li>Transfer Portal: Dinsdale & Gallagher (2022).</li>
+      <li>StatsBomb conference papers and related player-clustering literature cited in the paper.
+    </ol>
+
+    <footer>
+      <p>
+        Source paper: RisingBALLER — A Player is a Token, A Match is a Sentence (StatsBomb Conference 2024, Research Stage). I used the uploaded PDF as my primary source. 
+      </p>
+    </footer>
+
+  </article>
+</main>
+
+</body>
+</html>
