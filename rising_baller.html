@@ -34,14 +34,22 @@
     }
 
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       margin-bottom: 1rem;
       text-align: center;
     }
 
     h2 {
-      font-size: 1.3rem;
-      margin-top: 2rem;
+      font-size: 1.4rem;
+      margin-top: 2.5rem;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
       margin-bottom: 0.6rem;
     }
 
@@ -56,19 +64,29 @@
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Liberation Mono", monospace; }
 
     a:hover {
-      font-size: 1.05em;
+      text-decoration: underline;
     }
 
     p {
+      line-height: 1.6;
       margin-bottom: 1rem;
+    }
+    
+    blockquote {
+      border-left: 3px solid #ccc;
+      padding-left: 1rem;
+      margin-left: 0;
+      font-style: italic;
+      color: #555;
     }
 
     footer {
-      margin-top: 2rem;
-      padding-top: 1rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
       border-top: 1px solid #e6e6e6;
       font-size: 0.95rem;
       color: #555;
+      text-align: center;
     }
 
     @media (max-width: 500px) {
@@ -78,11 +96,11 @@
       }
 
       h1 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
       }
 
       h2 {
-        font-size: 1.15rem;
+        font-size: 1.25rem;
       }
     }
   </style>
@@ -90,212 +108,148 @@
 <body>
 
 <main>
-  <h1>RisingBALLER — A Player is a Token, a Match is a Sentence</h1>
+  <h1>RisingBALLER — A Deep Dive into Treating Players as Tokens</h1>
 
   <article>
     <p>9 June, 2025</p>
 
     <p>
-      This post is an in-depth walkthrough of <em>RisingBALLER</em>, a paper that treats football
-      matches like sentences and players like tokens to learn match-contextualized player embeddings using a transformer. The original paper (StatsBomb Conference 2024, Research Stage) is
-      the source for everything below — I closely follow the author’s methodology, math and results. For the primary source, see the uploaded paper. 
+      Every now and then, a paper comes along that doesn't just present a new model, but a new way of thinking. I recently stumbled upon one such paper from the StatsBomb Conference 2024 that genuinely made me sit up and reconsider how we can apply modern AI to sports analytics. It's called <em>RisingBALLER</em>, and its core premise is as elegant as it is powerful: <strong>what if we treat football matches like sentences and players like tokens?</strong>
     </p>
-
-    <h2>High-level intuition</h2>
     <p>
-      RisingBALLER asks: what if we apply the same foundation-model idea from NLP to football? In text, words (tokens) are embedded and contextualized by a transformer; here, each <strong>player</strong>
-      becomes a token, and a <strong>match</strong> becomes a sequence of those tokens. The transformer learns contextualized player embeddings specific to that match. This idea unlocks downstream tasks such as predicting next-match statistics, retrieving similar players, or estimating team cohesion.
+      This blog is my deep dive into that very idea. I'm going to walk you through the entire methodology, the math that underpins it, and the fascinating results, sharing my perspective on why I think this approach is so transformative. Everything here is sourced directly from the original paper—I'm just adding my own narrative as I explore their work.
     </p>
 
-    <h2>Dataset and preprocessing</h2>
+    <h2>The Core Idea: Football Through the Lens of NLP</h2>
     <p>
-      The paper uses StatsBomb event data for the 2015–2016 season across the top 5 European leagues. For each match the event table (3.5k–4k rows) is converted into a per-player statistics table: every player in the match squad (starting XI + bench) gets a vector of match statistics. If a player did not play, their stats are zeroed. The author selected 39 base statistics (passes, shots, interceptions, dribbles, fouls, keeper stats, blocks/clearances/recoveries, etc.) and computed aggregates (sums, means, stds) to produce 234 variables used for the
-      Next Match Statistics Prediction (NMSP) downstream task.
+      The intuition behind RisingBALLER is what I found most captivating. The authors essentially asked: why can't we use the same foundation model concepts that revolutionized Natural Language Processing (NLP) for football? In NLP, a transformer model learns the meaning of words (tokens) by looking at their context within a sentence. RisingBALLER ports this idea directly to the pitch.
     </p>
-
-    <h2>The core model architecture</h2>
+    <blockquote>
+      Each <strong>player</strong> in a match becomes a token, and the <strong>match</strong> itself becomes the sentence.
+    </blockquote>
     <p>
-      RisingBALLER’s building block is the player representation per match. For each player in a match the model constructs four embeddings and sums them element-wise to obtain an initial token embedding.
+      By feeding this sequence into a transformer, the model learns deeply contextualized player embeddings that are specific to that single match. This unlocks a whole host of downstream tasks, from predicting future performance and finding stylistically similar players to even estimating abstract concepts like team cohesion. It's a fundamental shift from static player attributes to dynamic, context-aware representations.
     </p>
 
+    <h2>Building the Foundation: Data and Preprocessing</h2>
     <p>
-      Denote embedding dimension by \(D\) and number of players in the match sequence by \(N\) (the paper uses a fixed sequence length of up to 80 and pads when necessary). For a player \(i\) in a match, the initial embedding is:
+      As any data scientist knows, an idea is only as good as the data it's built on. For this project, the authors used the incredible StatsBomb event dataset, focusing on the 2015–2016 season across the top 5 European leagues. The raw data for a single match consists of 3,500-4,000 event rows, which isn't directly usable by a transformer.
+    </p>
+    <p>
+      So, the first crucial step was a heavy dose of preprocessing. I was impressed by how they converted this event stream into a structured, per-player statistics table for each match. Every player in the match day squad (both the starting XI and the bench) was given a feature vector. For their main downstream task, Next Match Statistics Prediction (NMSP), they didn't just use raw stats. They selected <strong>39 base statistics</strong> (like progressive passes, successful dribbles, aerial duels won, interceptions, xG, etc.) and then engineered aggregates (sums, means, and standard deviations over rolling 3 and 5-match windows) to create a rich, <strong>234-variable feature vector</strong> for each player. This captures not just what a player did in one match, but their recent form and consistency.
     </p>
 
+    <h2>The Model Architecture: Deconstructing a "Player-Token"</h2>
+    <p>
+      Now, let's get into the technical core of RisingBALLER. The fundamental building block is how they represent each player within a match. For any given player, the model constructs four separate embeddings and then sums them element-wise. This creates a rich initial "token" embedding that captures multiple facets of the player's context.
+    </p>
+    <p>
+      If we denote the embedding dimension by \(D\) and the number of players in the match sequence by \(N\) (the paper uses a fixed sequence length of up to 80, padding where necessary), then for a player \(i\), I can write their initial embedding like this:
+    </p>
     <p>
       \[
         \mathbf{x}^{(i)}_{init} = \mathbf{e}^{(i)}_{player} + \mathbf{e}^{(i)}_{pos} + \mathbf{e}^{(i)}_{team} + \mathbf{e}^{(i)}_{tpe},
       \]
     </p>
-
-    <p>
-      where
-    </p>
-
+    
+    <h3>The Four Pillars of a Player Embedding</h3>
+    <p>Let me break down what each of these components represents, as this is key to the whole model:</p>
     <ul>
-      <li>\(\mathbf{e}_{player}\) is the player-ID embedding (learned from a one-hot / ID input via an MLP).</li>
-      <li>\(\mathbf{e}_{pos}\) is the spatial positional embedding (categorical position encoded via MLP).</li>
-      <li>\(\mathbf{e}_{team}\) is the team affiliation embedding.</li>
-      <li>\(\mathbf{e}_{tpe}\) is the temporal positional encoding: the per-match statistics (234 variables for NMSP, 39 raw stats for MPP) projected into the \(D\)-dimensional space via an MLP.</li>
+      <li>\(\mathbf{e}_{player}\): This is the unique <strong>player-ID embedding</strong>. Think of this as the model learning an intrinsic signature for every single player, capturing their inherent skills and style, independent of context.</li>
+      <li>\(\mathbf{e}_{pos}\): This is a <strong>spatial positional embedding</strong>. It tells the model about the player's general position on the pitch (e.g., center-back, attacking midfielder), giving it a tactical anchor.</li>
+      <li>\(\mathbf{e}_{team}\): This is the <strong>team affiliation embedding</strong>. It captures the tactical system, coaching style, and overall quality of the team the player belongs to.</li>
+      <li>\(\mathbf{e}_{tpe}\): This is what they call the <strong>temporal positional encoding</strong>. This is the clever part where the actual match statistics come in. The vector of stats is projected into the same \(D\)-dimensional space, grounding the player's identity in their concrete performance in that specific match.</li>
     </ul>
-
+    
+    <h3>The Transformer's Role</h3>
     <p>
-      Stack the \(N\) initial embeddings to obtain \(X_{init} \in \mathbb{R}^{N\times D}\). This is passed through a (standard) transformer encoder to obtain context-aware embeddings \(X_{out}\in\mathbb{R}^{N\times D}\).
+      Once these initial embeddings are created for all \(N\) players, they're stacked into a matrix \(X_{init} \in \mathbb{R}^{N\times D}\). This matrix is then fed through a standard transformer encoder. It's here that the real magic happens. Through its multi-head self-attention mechanism, the transformer allows every player-token to 'look' at every other token in the sequence. The model learns who to pay attention to, effectively asking questions like "Given this midfielder's performance, how should I update my understanding of the striker he was passing to?" The output is a matrix of context-aware embeddings \(X_{out}\in\mathbb{R}^{N\times D}\), where each player's vector is now enriched with information about everyone else in that match.
     </p>
 
-    <h2>Masked Player Prediction (MPP) — pretraining</h2>
+    <h2>Pre-training: Developing a "Football IQ"</h2>
     <p>
-      MPP is the self-supervised pretext task: randomly mask 25% of the input players in each match and train the model to predict the masked player IDs. This is analogous to MLM (masked language modeling) in BERT.
+      To get the transformer to learn these complex relationships, the authors used a self-supervised pre-training task they call <strong>Masked Player Prediction (MPP)</strong>. If you're familiar with NLP models like BERT, this is directly analogous to Masked Language Modeling (MLM).
     </p>
-
     <p>
-      Formally, given a sequence of players with masked positions \(M\subset\{1,\dots,N\}\), the model outputs at each masked position \(j\in M\) a probability distribution over the player vocabulary \(V\) via a softmax over the projection of the contextualized vector:
+      For each match, they randomly hide (or "mask") 25% of the players in the input sequence. The model's job is to predict the identities of these masked players based on the context provided by the unmasked players. This forces the model to develop a deep "football IQ." For instance, if it sees a sequence of Real Madrid defenders and midfielders from 2016, and one player is masked, it has to learn that the missing player is likely to be someone like Cristiano Ronaldo, based on the surrounding context.
     </p>
-
+    <p>
+      From a technical perspective, for each masked position \(j\), the model takes the final contextualized output vector \(\mathbf{x}^{(j)}_{out}\) and projects it into a probability distribution over the entire vocabulary of players \(V\). This is done using a standard softmax layer:
+    </p>
     <p>
       \[
         P(\hat{y}_j = v \mid X_{out}) = \mathrm{softmax}\left( W_{v}^\top \mathbf{x}^{(j)}_{out} + b_v\right) ,\quad v\in\{1,\dots,|V|\}.
       \]
     </p>
-
     <p>
-      The training objective is cross-entropy summed over masked positions. For a single sample (match) the MPP loss is:
+      The model is then trained to minimize the cross-entropy loss, which essentially penalizes it for making wrong predictions. For a single match, the MPP loss function is:
     </p>
-
     <p>
       \[
         \mathcal{L}_{MPP} = -\sum_{j\in M} \log P(y_j\mid X_{out}).
       \]
     </p>
 
+    <h2>Fine-tuning: From General Knowledge to Specific Prediction</h2>
     <p>
-      The paper reports training two models: 1-layer transformer with \(D=64\) and \(D=128\). To augment data due to limited matches (1,792 matches), the author created 10 MPP masks per match yielding ~18k samples. Vocabulary size \(|V|\approx2602\) (2600 players + mask + pad). Training used AdamW, batch size 256, LR 1e-4 and linear decay; 64-D trained for 280k steps, 128-D for 56k steps. Metrics reported: cross entropy and top-1/top-3 accuracy on validation.
+      After the pre-training phase, the model has a deep, contextual understanding of players. The next step, which I think demonstrates the real utility of this approach, is fine-tuning it for a specific downstream task: <strong>Next Match Statistics Prediction (NMSP)</strong>. They take the pre-trained transformer, remove the MPP head, and attach a new MLP head. This new head is trained to take the contextualized representations of a team's players and predict 18 team-level statistics for the *next* game.
     </p>
-
-    <h2>NMSP — downstream fine-tuning</h2>
     <p>
-      For Next Match Statistics Prediction the model is repurposed: the MPP head is removed, and an MLP projects flattened team/player representations to predict team-level statistics (18 team metrics). The NMSP input uses richer temporal features (234 variables per player) as the TPE input. The output target is the next-match team statistics vector \(\mathbf{y}\in\mathbb{R}^{2N_{stats}}\) (two teams), and the training objective is mean squared error averaged across statistics:
+      For this task, the model's goal is to predict the next-match team stats vector \(\mathbf{y}\in\mathbb{R}^{2N_{stats}}\) (one set of stats for each of the two teams). The training objective is a straightforward mean squared error, averaged across all the predicted statistics:
     </p>
-
     <p>
       \[
         \mathcal{L}_{NMSP} = \frac{1}{2N_{stats}} \sum_{k=1}^{2N_{stats}} (\hat{y}_k - y_k)^2.
       \]
-
+    </p>
     <p>
-      Fine-tuning updated all weights (backbone + new head) with AdamW, batch size 256, LR scheduling with a warmup ratio 0.1 and weight decay 0.01.
+      During fine-tuning, all the model's weights are updated. This allows the model to adapt its general football knowledge specifically to the task of statistical prediction, a process known as transfer learning.
     </p>
 
-    <h2>Key numerical results (summary)</h2>
+    <h2>So, Did It Work? The Key Results</h2>
     <p>
-      The paper reports:
-    </p>
-    <ul>
-      <li>MPP: both 64-D and 128-D single-layer models achieve high top-3 accuracy (>95%), indicating the model learns meaningful player relations.</li>
-      <li>NMSP: compared to a baseline that predicts next-match stats as the average of previous five matches, the 128-D model improved global average MSE by ~37.7% and the 64-D by ~35.35% on validation.</li>
-      <li>Ablations: removing team-affiliation embeddings degrades MPP accuracy substantially, confirming that team info is a strong signal in the dataset; however, removing team aff helps learn cross-team player similarity for retrieval tasks.</li>
-    </ul>
-
-    <h2>Math & metrics recap</h2>
-    <p>
-      For clarity, here are the key formulas used in the paper:
-    </p>
-
-    <ul>
-      <li><strong>Initial embedding per player:</strong> \(\mathbf{x}_{init}=\mathbf{e}_{player}+\mathbf{e}_{pos}+\mathbf{e}_{team}+\mathbf{e}_{tpe}\).</li>
-
-      <li><strong>MPP loss (cross-entropy):</strong>
-        \(\mathcal{L}_{MPP} = -\sum_{j\in M} \log P(y_j\mid X_{out})\), where \(P(\cdot)\) is the softmax over the vocabulary.
-      </li>
-
-      <li><strong>NMSP loss (MSE averaged):</strong>
-        \(\mathcal{L}_{NMSP} = \frac{1}{2N_{stats}}\sum_{k=1}^{2N_{stats}}(\hat{y}_k-y_k)^2\).
-      </li>
-
-      <li><strong>Batched training tokens:</strong> with sequence length \(N\) and dataset samples \(S\), tokens = \(S\times N\). The author reports ~1.14M training tokens across 18k MPP samples and max sequence length 80.
-      </li>
-    </ul>
-
-    <h2>Architecture & implementation details</h2>
-    <p>
-      Implementation notes useful for reproduction (as in the paper):
+      This is the moment of truth. After all this clever setup, does the model actually perform well? Based on the paper, the answer is a resounding yes. Here's my summary of their key findings:
     </p>
     <ul>
-      <li>Codebase: PyTorch; training used Hugging Face Trainer on Google Colab Pro (Tesla T4).</li>
-      <li>Sequence length: max 80 players per match (padding when necessary).</li>
-      <li>Vocabulary: ~2,602 tokens (unique players + mask + pad).</li>
-      <li>Embedding MLPs: used to project categorical IDs and numerical features into the shared \(D\)-dimensional space.</li>
-      <li>Optimization: AdamW, LR=1e-4, batch size 256, linear decay (MPP), and warmup ratio 0.1 + weight decay 0.01 for fine-tuning.
-      </li>
+      <li><strong>MPP Performance:</strong> On the pre-training task, both the 64-D and 128-D models achieved a top-3 accuracy of over 95%. To me, this is a strong signal that the model isn't just memorizing; it's genuinely learning meaningful player roles and relationships.</li>
+      <li><strong>NMSP Performance:</strong> When fine-tuned, the RisingBALLER models significantly outperformed a tough baseline (which predicted stats as the average of the previous five matches). The 128-D model reduced the global average MSE by about <strong>37.7%</strong>, and the 64-D model by <strong>35.35%</strong>. That's a substantial improvement.</li>
+      <li><strong>Ablation Studies:</strong> I always appreciate good ablation studies. The authors found that removing the team-affiliation embeddings caused the MPP top-3 accuracy to plummet from ~95% to ~82%, confirming that team context is a very strong signal. This tells us the model heavily relies on knowing who a player's teammates are.</li>
     </ul>
 
-    <h2>Embeddings analysis — what we can do with these vectors</h2>
-    <p>
-      The paper shows diverse uses of the learned embeddings (MPP backbone):
-    </p>
+    <h2>Beyond Prediction: Unlocking the Player Embeddings</h2>
+    <p>For me, this is the most exciting part of the paper. The predictive accuracy is great, but the true power of this approach lies in the learned embeddings themselves. They are rich, nuanced representations of players that can be used for all sorts of analysis. The authors showcase a few fantastic examples:</p>
     <ol>
-      <li><strong>Positional embeddings clustering:</strong> clustering learned positional vectors separates defenders/midfielders/attackers when visualized, capturing tactical zones and role fluidity.</li>
-      <li><strong>Similar player retrieval:</strong> nearest-neighbour search in embedding space retrieves players with similar match roles. Ablating team-info tends to improve cross-team player similarity retrievals.</li>
-      <li><strong>Team cohesion metric:</strong> average pairwise similarity of players in a squad used as a heuristic cohesion score.</li>
-      <li><strong>Attention analysis:</strong> attention matrices could (future work) reveal player interactions and synergies.
-      </li>
+      <li><strong>Positional Clustering:</strong> When they visualized the learned positional embeddings, they found that the vectors naturally clustered into defenders, midfielders, and attackers. This shows the model learns the tactical structure of a football pitch organically.</li>
+      <li><strong>Similar Player Retrieval:</strong> This is a classic use case with a new twist. By finding the nearest neighbors to a player's embedding, you can find others who perform a similar role. When I saw their example of querying for players similar to the 2016 version of N'Golo Kanté, the results were stunning. It didn't just find other defensive midfielders; it found players with a similar "engine" and defensive work-rate, like Idrissa Gueye and Allan, even across different leagues.</li>
+      <li><strong>A Metric for Team Cohesion:</strong> The authors proposed a fascinating heuristic for team cohesion: calculate the average pairwise similarity (e.g., cosine similarity) of all players in a team's starting lineup. A higher score might indicate a more stylistically coherent unit that "sings from the same hymn sheet."</li>
+      <li><strong>Attention Analysis:</strong> While noted as future work, one could analyze the transformer's attention matrices to see which players "pay attention" to which other players, potentially revealing on-pitch synergies, like the connection between a playmaker and a striker.</li>
     </ol>
-
-    <h2>Why this matters — strengths and limitations</h2>
+    
+    <h2>A Frank Look at Limitations and Future Directions</h2>
     <p>
-      <strong>Strengths:</strong>
+      Of course, no model is perfect, and the authors are transparent about the limitations.
+    </p>
+    <p>
+      <strong>Its key strengths, in my view, are:</strong>
     </p>
     <ul>
-      <li>Automated learned features that capture match-contextualized attributes — less handcrafted feature engineering.</li>
-      <li>Flexible transfer to downstream tasks (NMSP, retrieval, cohesion measures).</li>
-      <li>Clear ablation studies showing the role of inputs like team embeddings and the value of MPP pretraining.</li>
+      <li>It automates the discovery of complex, contextual player attributes, moving away from laborious handcrafted feature engineering.</li>
+      <li>The pre-training/fine-tuning paradigm makes the model incredibly flexible and adaptable to many different downstream tasks.</li>
+      <li>The learned embeddings provide a rich, quantitative foundation for previously qualitative analysis, like player similarity and team style.</li>
     </ul>
-
     <p>
-      <strong>Limitations & caveats:</strong>
+      <strong>However, there are important caveats:</strong>
     </p>
     <ul>
-      <li>Dataset is relatively small (1,792 matches), which constrains the model’s ability to generalize across leagues/seasons — team-affiliation signal is strong and can bias embeddings.</li>
-      <li>Model size is tiny compared to modern foundation models; scaling up (more data, layers, params) is proposed as future work.
-      <li>Certain statistics (xG, goals) were harder to beat compared to the simple baseline — suggesting room for improved label engineering or architecture tweaks.</li>
+      <li>The single-season dataset is relatively small, risking the model overfitting to specific team tactics of that season.</li>
+      <li>The model itself is tiny by modern standards. I'm very curious to see what would happen if this approach were scaled up with more data and larger models.</li>
+      <li>They note that predicting high-variance stats like goals was still very difficult. This makes sense—goals are rare events often influenced by luck, making them inherently harder to predict than high-volume stats like passes.</li>
     </ul>
 
-    <h2>Reproducing the experiments — a compact blueprint</h2>
+    <h2>My Final Take</h2>
     <p>
-      If you want to reproduce RisingBALLER, follow these steps (high-level):
+      RisingBALLER isn't just another model; I see it as a blueprint for the future of sports analytics. It demonstrates that the principles of modern AI—self-supervised pre-training on large datasets followed by task-specific fine-tuning—are just as powerful on the football pitch as they are in natural language. It moves the field from static analysis to a dynamic, context-aware understanding of players and teams. I, for one, am incredibly excited to see where this line of research goes next.
     </p>
-    <ol>
-      <li>Download StatsBomb free event data for season(s) of interest and parse event tables per match.</li>
-      <li>Aggregate per-player match statistics (the 39 base stats and aggregated 234 features for NMSP).
-      </li>
-      <li>Construct player vocabulary (unique IDs), team IDs, positional IDs, mask/pad tokens and a fixed sequence length (e.g., 80 players).
-      </li>
-      <li>Implement MLPs to project categorical IDs and numerical stats into a shared \(D\)-dimensional space.
-      </li>
-      <li>Use a transformer encoder (1–2 layers tested), train with MPP (mask 25% players per sample), cross-entropy loss.
-      </li>
-      <li>Fine-tune for NMSP: replace MPP head with MLP mapping flattened contextualized team/player vectors to next-match stats, train with MSE.
-      </li>
-    </ol>
-
-    <p>
-      The author’s code repository is referenced in the paper and is helpful for exact implementation details.
-    </p>
-
-    <h2>References</h2>
-    <p>
-      The references below match the paper’s bibliography. For compactness I list the core citations used in RisingBALLER:
-    </p>
-    <ol>
-      <li>Vaswani, A., et al. (2017). <em>Attention is All You Need</em>. NeurIPS. (transformer)</li>
-      <li>Devlin, J., et al. (2018). <em>BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</em>. (MLM)</li>
-      <li>Liu, Y., et al. (2019). <em>RoBERTa</em>.</li>
-      <li>Radford, A., et al. (2021). <em>CLIP</em>.</li>
-      <li>Caron, M., et al. (2021). <em>DINO</em>.</li>
-      <li>AdamW optimizer: Loshchilov & Hutter (2017).</li>
-      <li>Transfer Portal: Dinsdale & Gallagher (2022).</li>
-      <li>StatsBomb conference papers and related player-clustering literature cited in the paper.
-    </ol>
 
     <footer>
       <p>
