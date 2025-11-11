@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog — Why KL in VAEs Encourages Disentanglement</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics (kept as you provided) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: #fbfbfc;
+      color: #222;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin-bottom: 0.6rem;
+      text-align: left;
+      letter-spacing: -0.02em;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2.2rem;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.2rem;
+      border-bottom: 1px solid #e9e9ea;
+    }
+
+    h3 {
+      font-size: 1.08rem;
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: #fff;
+      padding: 0.75rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+      font-size: 0.95rem;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Liberation Mono", monospace; }
+
+    blockquote {
+      border-left: 3px solid #d7d7d9;
+      padding-left: 1rem;
+      margin-left: 0;
+      font-style: italic;
+      color: #444;
+      background: #fff;
+      padding-top: 0.6rem;
+      padding-bottom: 0.6rem;
+      border-radius: 6px;
+    }
+
+    ul, ol {
+      margin-left: 1.25rem;
+    }
+
+    .math {
+      background: #fff;
+      padding: 0.6rem;
+      border-radius: 6px;
+      display: block;
+      margin: 0.75rem 0;
+    }
+
+    footer {
+      margin-top: 2.6rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #eee;
+      font-size: 0.95rem;
+      color: #555;
+      text-align: left;
+    }
+
+    a { color: #0b61ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      body { font-size: 1rem; padding: 1rem; }
+      h1 { font-size: 1.4rem; }
+      h2 { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <article>
+    <h1>Why the KL term in VAEs nudges the model toward disentanglement</h1>
+    <p class="meta">11 November, 2025</p>
+
+    <p>
+      At 2:54 AM one morning my friend <a href="https://x.com/Pranav2278" target="_blank" rel="noopener noreferrer">Pranav</a> pinged me on X (formerly Twitter) with a short message: <em>"Why does adding the KL in VAEs produce disentangled features? It seems like magic."</em> I was half awake at that time, but I thought, that its a great question to write a blog on. So here we go. 
+    </p>
+
+    <h2>Quick summary (for impatient brains)</h2>
+    <p>
+      In short: the Kullback–Leibler (KL) term in a VAE’s objective ties the inferred posterior \(q_\phi(z\mid x)\) to a simple prior \(p(z)\) (usually an isotropic Gaussian). By penalizing divergence from that prior the objective discourages the encoder from putting arbitrary, highly-informative structure into the posterior unless it helps reconstruction. When combined with an appropriate balance between reconstruction and KL (e.g., \(\beta\)-VAE), and with further decomposition of the KL into interpretable pieces (mutual information, total correlation, dimension-wise KL), the learning pressure becomes one that favors factorized, independent latent coordinates — i.e., disentanglement. Key references: Kingma & Welling (VAE basics), Higgins et al. (β-VAE), Chen et al. (β-TCVAE/TC decomposition), and Kim & Mnih (FactorVAE). :contentReference[oaicite:0]{index=0}
+    </p>
+
+    <h2>The math — starting from the ELBO</h2>
+    <p>
+      Let \(x\) be observed data and \(z\) a latent variable. A VAE trains an encoder \(q_\phi(z\mid x)\) and decoder \(p_\theta(x\mid z)\) by maximizing the evidence lower bound (ELBO), equivalently minimizing the negative ELBO:
+    </p>
+
+    <div class="math">
+      \[
+        \mathcal{L}_{\text{VAE}}(x) \;=\; -\mathbb{E}_{z\sim q_\phi(z\mid x)}[\log p_\theta(x\mid z)] \;+\; D_{\mathrm{KL}}\big(q_\phi(z\mid x)\,\|\,p(z)\big).
+      \]
+    </div>
+
+    <p>
+      The first term is the expected negative log-likelihood (reconstruction loss). The second is the KL divergence from the encoder posterior to the prior. The VAE objective balances two forces: reconstruct the data accurately, and keep posteriors close to a chosen prior \(p(z)\) (commonly \( \mathcal{N}(0,I)\) ). This basic formulation is from Kingma & Welling. :contentReference[oaicite:1]{index=1}
+    </p>
+
+    <h3>What's inside that KL — a decomposition that matters</h3>
+    <p>
+      The KL term can be decomposed (when considering the aggregated posterior \(q(z)=\mathbb{E}_{p_{data}(x)}[q_\phi(z\mid x)]\)) into meaningful pieces. Chen et al. and subsequent work split the expected KL across a dataset into:
+    </p>
+
+    <ol>
+      <li>the mutual information \(I_q(x;z)\) between data and latents (how much information the latents carry about the input),</li>
+      <li>the total correlation (TC) of the aggregated posterior \(q(z)\) (a multivariate dependence measure across latent dimensions), and</li>
+      <li>dimension-wise KL terms that measure marginal divergence per coordinate. </li>
+    </ol>
+
+    <p>
+      Formally, for the expected KL aggregated over data you can write (intuitively):
+    </p>
+
+    <div class="math">
+      \[
+        \mathbb{E}_{p_{data}(x)}\big[D_{KL}(q_\phi(z\mid x)\|p(z))\big]
+        \;=\;
+        I_q(x;z) + \underbrace{D_{KL}(q(z)\,\|\,\prod_j q(z_j))}_{\text{Total correlation (TC)}} + \sum_j D_{KL}\big(q(z_j)\,\|\,p(z_j)\big).
+      \]
+    </div>
+
+    <p>
+      The key observation: the TC term measures dependence between latent coordinates. Reducing TC encourages the marginal \(q(z)\) to factorize across dimensions — exactly the property we usually call disentanglement. This decomposition (and the practical β-TCVAE that explicitly penalizes TC) is described and motivated in Chen et al. and related work. :contentReference[oaicite:2]{index=2}
+    </p>
+
+    <h2>Mechanisms: how the KL nudges toward disentanglement (intuition + rate-distortion)</h2>
+
+    <h3>1) Regularization toward a simple prior</h3>
+    <p>
+      If the encoder is free to map each \(x\) to a very peaky, data-specific posterior \(q_\phi(z\mid x)\), the decoder can hide all information in \(z\) and reconstruct perfectly — but the latents will be arbitrary and non-generalizable. The KL penalty discourages this: moving \(q_\phi(z\mid x)\) far from \(p(z)\) costs loss. Hence, unless a coordinate genuinely needs to carry information about a specific generative factor to improve reconstruction, the encoder prefers to keep it near prior noise. That pressure produces sparsity of usage across coordinates and can align individual coordinates with independent generative factors. This is the basic, practical role of the KL in the VAE objective. :contentReference[oaicite:3]{index=3}
+    </p>
+
+    <h3>2) The β hyperparameter: trading capacity for disentanglement</h3>
+    <p>
+      Higgins et al. proposed the \(\beta\)-VAE that multiplies the KL by a factor \(\beta>1\):
+    </p>
+
+    <div class="math">
+      \[
+        \mathcal{L}_{\beta\text{-VAE}}(x) \;=\; -\mathbb{E}_{q_\phi(z\mid x)}[\log p_\theta(x\mid z)] \;+\; \beta\,D_{KL}(q_\phi(z\mid x)\|p(z)).
+      \]
+    </div>
+
+    <p>
+      Increasing \(\beta\) reduces the information capacity of the latent code: the model is forced to compress more aggressively and thus tends to allocate the limited capacity to the most salient independent factors. In many empirical settings this produces more disentangled coordinates — albeit at the cost of reconstruction fidelity if \(\beta\) is too large. This is the central empirical trick introduced by β-VAE. :contentReference[oaicite:4]{index=4}
+    </p>
+
+    <h3>3) Rate-distortion perspective (Burgess et al.)</h3>
+    <p>
+      A clearer theoretical picture comes from framing VAE training as a rate–distortion trade-off: the reconstruction term is distortion and the KL is the rate (bits used by the code). Burgess et al. analyze when disentangled representations emerge under this viewpoint and show that gradually increasing the allowed code capacity (i.e., annealing the KL budget) helps robustly learn disentangled latents without harshly sacrificing reconstruction. This explains why careful training schedules and capacity control matter in practice. :contentReference[oaicite:5]{index=5}
+    </p>
+
+    <h2>Why β-VAE works but can be blunt — enter TC and FactorVAE</h2>
+    <p>
+      Early work noticed β-VAE improves disentanglement but often by suppressing mutual information too aggressively (encoder forgets useful info), hurting reconstruction. Chen et al. and Kim & Mnih showed that the real axis of disentanglement is the total correlation term: explicitly penalizing TC (the dependence among \(z_j\)) yields factorized marginals without unnecessarily destroying the mutual information between \(x\) and \(z\). Two practical variants:
+    </p>
+
+    <ul>
+      <li><strong>β-TCVAE</strong> — decomposes the KL and applies a larger weight to the TC component while leaving other components intact (Chen et al.). :contentReference[oaicite:6]{index=6}</li>
+      <li><strong>FactorVAE</strong> — estimates TC via a discriminator (an adversarial estimate) and penalizes it, producing better disentanglement-vs-reconstruction tradeoffs. :contentReference[oaicite:7]{index=7}</li>
+    </ul>
+
+    <h2>How we measure disentanglement (practical metrics)</h2>
+    <p>
+      Disentanglement is slippery to define formally, so the literature uses several metrics: Mutual Information Gap (MIG), FactorVAE score, DCI (Disentanglement, Completeness, Informativeness), and others. Many of these metrics correlate with TC — models with lower TC tend to score higher on these disentanglement metrics in the synthetic benchmarks used by the community. See Chen et al. and Kim & Mnih for experiments and metric definitions. :contentReference[oaicite:8]{index=8}
+    </p>
+
+    <h2>Philosophy: what do we mean by 'disentangled' and why it matters</h2>
+    <p>
+      At a human level, disentanglement means mapping distinct generative factors (lighting, pose, object identity, stroke thickness, etc.) to separate latent coordinates so we can interpret, inspect, and intervene. Philosophically, we are asking the model to discover independent explanatory variables of the data. Two important caveats:
+    </p>
+
+    <ol>
+      <li><strong>Identifiability:</strong> In pure unsupervised settings, disentanglement is not always identifiable: multiple coordinate rotations can explain the same data equally well. Some recent theoretical work shows identifiability holds only under extra assumptions (weak labels, temporal structure, or intervention-style data). This is why purely unsupervised disentanglement is fundamentally limited in some settings. (Recent surveys and papers discuss identifiability in depth.) :contentReference[oaicite:9]{index=9}</li>
+      <li><strong>Inductive bias matters:</strong> The prior, architecture, objective decomposition (explicit TC penalty), and training schedule together create the inductive biases that steer the learned latents toward factorized coordinates. The KL is necessary but not sufficient: how you apply it matters. :contentReference[oaicite:10]{index=10}</li>
+    </ol>
+
+    <h2>Practical recipe (what I do when I want disentangled latents)</h2>
+    <ol>
+      <li>Start with a standard VAE with a diagonal Gaussian prior, confirm it trains stably. Use ELBO reconstruction plus KL. :contentReference[oaicite:11]{index=11}</li>
+      <li>Try a β-VAE sweep: increase \(\beta\) slowly, monitoring reconstruction vs MIG or DCI. If reconstruction collapses too fast, reduce β or anneal its increase. :contentReference[oaicite:12]{index=12}</li>
+      <li>If β-VAE blunts mutual information, switch to a TC-aware method (β-TCVAE or FactorVAE). These methods explicitly target dependence among latent dims and typically give better tradeoffs. :contentReference[oaicite:13]{index=13}</li>
+      <li>Use capacity annealing: schedule an increasing KL budget so the network first learns to reconstruct and then progressively compresses into disentangled axes (Burgess et al.). :contentReference[oaicite:14]{index=14}</li>
+      <li>Validate on controlled generative datasets (dSprites, 3D Shapes, etc.) before expecting disentanglement on real-world messy data. Also test identifiability assumptions that may or may not hold. :contentReference[oaicite:15]{index=15}</li>
+    </ol>
+
+    <h2>Concrete mathematical snippet — β-TCVAE objective</h2>
+    <p>
+      Using the KL decomposition one can write a weighted objective that penalizes TC more than other terms:
+    </p>
+
+    <div class="math">
+      \[
+        \mathcal{L}_{\beta\text{-TC}} = -\mathbb{E}_{q_\phi(z\mid x)}[\log p_\theta(x\mid z)]
+        + \underbrace{\alpha\,I_q(x;z)}_{\text{mutual info term}}
+        + \underbrace{\beta\,\mathrm{TC}(z)}_{\text{total correlation}}
+        + \underbrace{\gamma\sum_j D_{KL}(q(z_j)\|p(z_j))}_{\text{dimension-wise KL}}.
+      \]
+    </div>
+
+    <p>
+      In practice, Chen et al. show how to estimate and emphasize only the TC term (set \(\alpha,\gamma=1\) and choose \(\beta>1\)) and obtain strong disentangling with less damage to reconstruction than naive β-VAE. :contentReference[oaicite:16]{index=16}
+    </p>
+
+    <h2>Examples and evidence (what the literature shows)</h2>
+    <p>
+      The empirical literature reports that:
+    </p>
+    <ul>
+      <li>β-VAE often produces interpretable single-coordinate changes (e.g., rotate, scale, color) on clean synthetic datasets, but with a reconstruction tradeoff if β is too large. :contentReference[oaicite:17]{index=17}</li>
+      <li>Methods that explicitly target TC (β-TCVAE, FactorVAE) achieve stronger disentanglement for the same reconstruction error. :contentReference[oaicite:18]{index=18}</li>
+      <li>Careful schedules for capacity and KL annealing (Burgess et al.) reduce the need for extremely large β and improve stability. :contentReference[oaicite:19]{index=19}</li>
+    </ul>
+
+    <h2>Open problems and current frontiers</h2>
+    <p>
+      A few frontiers worth following: proving identifiability under weak supervision or temporal constraints; designing priors that encode known symmetries; and bridging the gap between disentanglement on synthetic datasets and robustness on real images. Recent survey and theory work (2024–2025) continues to refine where and when unsupervised disentanglement is possible. :contentReference[oaicite:20]{index=20}
+    </p>
+
+    <h2>Philosophical aside — what does "simpler prior" really force the model to learn?</h2>
+    <p>
+      The prior is an inductive bias: by preferring a simple latent geometry (e.g., independent Gaussians), we tell the model that the world is best explained using independent axes of variation unless data strongly argues otherwise. This is a philosophical position: we trade off flexibility for interpretability. The KL is the leash that keeps the model from inventing complex latent bookkeeping — and, under the right conditions, that leash encourages the model to put each true independent factor on its own tether.
+    </p>
+
+    <h2>My final answer to Pranav (and you)</h2>
+    <p>
+      <strong>Short form:</strong> the KL isn't mystical — it regularizes the encoder toward a simple prior, and when combined with objective decompositions (TC), capacity control (β, annealing), and the right inductive biases, that regularization favors independent latent coordinates: disentanglement. But this only works reliably under certain assumptions and training regimes — it is not a magic bullet that always yields human-interpretable axes on arbitrary, unstructured datasets. :contentReference[oaicite:21]{index=21}
+    </p>
+
+    <h2>References (select primary sources)</h2>
+    <ol>
+      <li>Kingma, D. P., & Welling, M. — <em>Auto-Encoding Variational Bayes</em> (2013). The canonical VAE paper; ELBO + reparameterization trick. :contentReference[oaicite:22]{index=22}</li>
+      <li>Higgins, I. et al. — <em>β-VAE: Learning basic visual concepts with a constrained variational framework</em> (ICLR 2017). Introduces β-VAE idea and many early disentanglement experiments. :contentReference[oaicite:23]{index=23}</li>
+      <li>Chen, R. T. Q., Li, X., Grosse, R., & Duvenaud, D. — <em>Isolating Sources of Disentanglement in Variational Autoencoders</em> (NeurIPS 2018). Decomposes KL into MI, TC, and dimension-wise KL; proposes β-TCVAE. :contentReference[oaicite:24]{index=24}</li>
+      <li>Kim, H., & Mnih, A. — <em>Disentangling by Factorising (FactorVAE)</em> (ICML 2018). Explicit TC penalty via a discriminator (adversarial estimate of TC). :contentReference[oaicite:25]{index=25}</li>
+      <li>Burgess, C. P., et al. — <em>Understanding disentangling in β-VAE</em> (arXiv 2018). Rate–distortion view and capacity-annealing suggestions. :contentReference[oaicite:26]{index=26}</li>
+      <li>Allen, C. et al. — <em>Understanding Disentanglement in VAEs</em> (2024 survey). Recent perspectives on identifiability and theory. :contentReference[oaicite:27]{index=27}</li>
+    </ol>
+
+    <footer>
+      <p>
+        If you liked this deep dive — tell Pranav I owe him a coffee for waking me at 2:54 AM. If you want, I can convert the equations into runnable PyTorch snippets that show β-VAE vs β-TCVAE training, include MIG/DCI code, and a small experiment on dSprites. (I kept the treatment intentionally mathematical and citation-heavy so you can follow the chain of ideas.)
+      </p>
+      <p>
+        Primary sources cited above (click the citations in the text for the exact papers).
+      </p>
+    </footer>
+  </article>
+</main>
+</body>
+</html>
