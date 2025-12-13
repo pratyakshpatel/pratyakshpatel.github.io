@@ -24,21 +24,35 @@
 
   <style>
     body {
-      font-size: 1.1rem; /* increased font size */
+      font-size: 1.1rem;
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      line-height: 1.7;
     }
 
     h1 {
-      font-size: 1.9rem; /* reduced h1 size */
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1.2rem;
+      border-bottom: 2px solid #333;
+      padding-bottom: 0.5rem;
     }
 
     .profile-pic {
       display: block;
-      margin: 1rem auto 0.5rem auto;
-      width: 120px;
-      height: 120px;
+      margin: 1.5rem auto 0.8rem auto;
+      width: 130px;
+      height: 130px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid #444;
+      border: 3px solid #444;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     .center-text {
@@ -46,25 +60,48 @@
     }
 
     .subtitle {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-variant: small-caps;
-      color: #333;
-      margin-bottom: 0.5rem;
+      color: #555;
+      margin-bottom: 1rem;
     }
 
     .abstract {
-      max-width: 650px;
-      margin: 2rem auto;
-      text-align: center;
+      max-width: 750px;
+      margin: 2.5rem auto;
+      padding: 0 1rem;
+      text-align: justify;
+      line-height: 1.8;
     }
 
     .abstract strong {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    .abstract p {
+      margin-bottom: 1.2rem;
+    }
+
+    section {
+      max-width: 750px;
+      margin: 3rem auto;
+      padding: 0 1rem;
     }
 
     ol {
       margin-left: 2rem;
+      line-height: 2;
+    }
+
+    ol li {
+      margin-bottom: 0.8rem;
+    }
+
+    ol li a {
+      font-weight: 500;
     }
 
     a:hover {
@@ -73,16 +110,34 @@
 
     footer {
       text-align: center;
-      margin-top: 3rem;
-      padding: 1rem 0;
+      margin-top: 4rem;
+      padding: 2rem 0 1rem 0;
+      border-top: 1px solid #ddd;
       font-size: 0.95rem;
       color: #555;
     }
 
     @media (max-width: 600px) {
+      body {
+        padding: 1.5rem 1rem;
+        font-size: 1rem;
+      }
+
       .profile-pic {
-        width: 100px;
-        height: 100px;
+        width: 110px;
+        height: 110px;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .abstract {
+        text-align: center;
       }
     }
   </style>
@@ -113,8 +168,8 @@
     <ol>
       <li><a href="research_and_exp.html">Research and Experience</a></li>
       <li><a href="projects_and_interests.html">Projects and Interests</a></li>
+      <li><a href="blogs.html">Blogs</a></li>
       <li><a href="beyond_work.html">Beyond Work</a></li>
-      <li><a href="technical_blog.html">Technical Blog</a></li>
     </ol>
   </section>
 

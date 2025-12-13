@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pratyaksh Patel | Technical Blog</title>
+  <title>Pratyaksh Patel | Blogs</title>
 
   <!-- LaTeX.css -->
   <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
@@ -42,21 +41,27 @@
     }
 
     h2 {
-      font-size: 1.2rem;
-      margin-top: 2rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.5rem;
     }
 
     p {
       margin-bottom: 1rem;
     }
 
-    article {
+    .blog-category {
       background: white;
       padding: 1.5rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .blog-category h2 {
+      margin-top: 0;
     }
 
     .go-back {
@@ -90,10 +95,10 @@
       }
 
       h2 {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
       }
 
-      article {
+      .blog-category {
         padding: 1rem;
       }
     }
@@ -101,47 +106,23 @@
 </head>
 
 <body>
-  <a href="blogs.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">← Go Back</a>
 
-<main>
-  <h1>Technical Blog</h1>
+  <h1>Blogs</h1>
 
-  <article>
+  <div class="blog-category">
+    <h2><a href="technical_blog.html">Technical Blog</a></h2>
+    <p>Deep dives into machine learning, statistics, and the technical side of data science. Exploring research papers, algorithms, and computational concepts that fascinate me.</p>
+  </div>
 
-    <h2><a href="vae.html">KL in VAE's</a></h2>
-    <p>11 November, 2025.</p>
-    <p>Midnight twitter.</p>
+  <div class="blog-category">
+    <h2><a href="eye_sir_bee.html">Eye-Sir-Bee</a></h2>
+    <p>Reflections on life at IISER Bhopal, thoughts on science, academia, and everything in between. A space for musings beyond the technical realm.</p>
+  </div>
 
-
-    <h2><a href="rising_baller.html">The Beautiful Game</a></h2>
-    <p>04 November, 2025.</p>
-    <p>I love football and deep learning.</p>
-
-    
-
-    <h2><a href="matchday_math.html">Matchday Math</a></h2>
-    <p>15 July, 2025.</p>
-    <p>I love football and statistics.</p>
-    <h2><a href="shannons_kids.html">Shannon's Kids</a></h2>
-    <p>15 July, 2025.</p>
-    <p>Standup academic.</p>
-
-    
-    <h2><a href="blip.html">BLIP</a></h2>
-    <p>5 July, 2025.</p>
-    <p>One of the best models I've used.</p>
-
-    <h2><a href="bullwhip_effect.html">Bullwhip Effect</a></h2>
-    <p>9 June, 2025.</p>
-    <p>Seven hour midsems aren't that bad after all?</p>
-
-   
-  </article>
-</main>
-
-<footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.95rem; color: #555;">
-  &copy; 2025 Pratyaksh Patel
-</footer>
+  <footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.95rem; color: #555;">
+    &copy; 2025 Pratyaksh Patel
+  </footer>
 
 </body>
 </html>
