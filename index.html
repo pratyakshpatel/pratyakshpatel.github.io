@@ -24,48 +24,21 @@
 
   <style>
     body {
-      font-size: 1.05rem;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 2rem 2rem;
-      line-height: 1.75;
+      font-size: 1.1rem;
     }
 
     h1 {
-      font-size: 2.2rem;
-      margin-bottom: 0.3rem;
-      font-weight: 600;
-    }
-
-    h2 {
-      font-size: 1.45rem;
-      margin-top: 3rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid #333;
-      padding-bottom: 0.6rem;
-    }
-
-    .header-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 2rem;
-      margin-bottom: 3rem;
+      font-size: 1.9rem;
     }
 
     .profile-pic {
-      flex-shrink: 0;
-      width: 140px;
-      height: 140px;
+      display: block;
+      margin: 1rem auto 0.5rem auto;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid #444;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .header-text {
-      flex: 1;
-      min-width: 200px;
+      border: 2px solid #444;
     }
 
     .center-text {
@@ -73,91 +46,25 @@
     }
 
     .subtitle {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-variant: small-caps;
-      color: #666;
-      margin-bottom: 0.8rem;
-      letter-spacing: 0.5px;
-    }
-
-    .social-links {
-      display: flex;
-      justify-content: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-    }
-
-    .social-links a {
-      text-decoration: none;
-      color: #0066cc;
-      font-weight: 500;
-    }
-
-    .social-links a:hover {
-      text-decoration: underline;
-      font-size: 1em;
+      color: #333;
+      margin-bottom: 0.5rem;
     }
 
     .abstract {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      line-height: 1.9;
+      max-width: 650px;
+      margin: 2rem auto;
+      text-align: center;
     }
 
     .abstract strong {
       display: block;
-      margin-bottom: 1.2rem;
-      font-size: 1.3rem;
-      text-align: center;
-      color: #333;
-    }
-
-    .abstract p {
-      margin-bottom: 1.3rem;
-      text-align: justify;
-    }
-
-    .abstract p:last-child {
-      margin-bottom: 0;
-    }
-
-    section {
-      max-width: 900px;
-      margin: 3.5rem auto;
-      padding: 0 2rem;
-    }
-
-    .interests-grid {
-      display: none;
-    }
-
-    .interest-card {
-      display: none;
+      margin-bottom: 0.5rem;
     }
 
     ol {
       margin-left: 2rem;
-      line-height: 2.2;
-    }
-
-    ol li {
-      margin-bottom: 1rem;
-    }
-
-    ol li a {
-      font-weight: 500;
-      text-decoration: none;
-      color: #0066cc;
-    }
-
-    ol li a:hover {
-      text-decoration: underline;
-      font-size: 1em;
     }
 
     a:hover {
@@ -166,48 +73,16 @@
 
     footer {
       text-align: center;
-      margin-top: 4rem;
-      padding: 2rem 0 1rem 0;
-      border-top: 1px solid #ddd;
+      margin-top: 3rem;
+      padding: 1rem 0;
       font-size: 0.95rem;
-      color: #666;
+      color: #555;
     }
 
-    @media (max-width: 768px) {
-      body {
-        padding: 1.5rem 1rem;
-        font-size: 1rem;
-      }
-
-      .header-container {
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
+    @media (max-width: 600px) {
       .profile-pic {
-        width: 120px;
-        height: 120px;
-      }
-
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      h2 {
-        font-size: 1.25rem;
-      }
-
-      .abstract {
-        padding: 1.5rem;
-        text-align: center;
-      }
-
-      .interests-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .social-links {
-        justify-content: center;
+        width: 100px;
+        height: 100px;
       }
     }
   </style>
@@ -215,23 +90,22 @@
 
 <body>
 
-  <div class="header-container">
-    <img src="pfp.jpg" alt="Profile Picture" class="profile-pic" />
-    <div class="header-text center-text">
-      <h1>Pratyaksh Patel</h1>
-      <div class="subtitle">Data Science, IISER Bhopal</div>
-      <div class="social-links">
-        <a href="mailto:pratyaksh22@iiserb.ac.in">email</a>
-        <a href="https://github.com/pratyakshpatel">github</a>
-        <a href="https://www.linkedin.com/in/pratyaksh-patel-9360a7251/">linkedin</a>
-        <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a>
-      </div>
-    </div>
+  <img src="pfp.jpg" alt="Profile Picture" class="profile-pic" />
+
+  <div class="center-text">
+    <h1>Pratyaksh Patel</h1>
+    <div class="subtitle">Data Science, IISER Bhopal</div>
+    <p><a href="mailto:pratyaksh22@iiserb.ac.in">email</a> |
+       <a href="https://datascience.stackexchange.com/users/183863/pratyaksh-patel">data sci stack exchange</a> |
+       <a href="https://www.linkedin.com/in/pratyaksh-patel-9360a7251/">linkedin</a> |
+       <a href="https://github.com/pratyakshpatel">github</a></p> 
+
   </div>
 
   <div class="abstract">
     <strong>About Me</strong>
-    <p>I am a Data Science undergrad at <a href="https://www.iiserb.ac.in/">IISERB</a>. I have interests in classical machine learning, graph machine learning and sports analytics. Decision sciences and operations research is another realm I like to read and work on.</p>
+    <p>I am a Data Science undergrad at <a href="https://www.iiserb.ac.in/">IISERB</a>. I have interests in classical machine learning, graph machine learning and sports analytics. 
+    Decision sciences and operations research is another realm I like to read and work on. </p>
   </div>
 
   <section>
