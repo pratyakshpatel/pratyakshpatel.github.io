@@ -39,17 +39,18 @@
 
     h2 {
       font-size: 1.45rem;
-      margin-top: 3rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid #333;
+      margin-top: 0;
+      margin-bottom: 1.8rem;
+      border-bottom: 2px solid #0066cc;
       padding-bottom: 0.6rem;
+      color: #0066cc;
     }
 
     .header-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 3rem;
+      gap: 2rem;
       margin-bottom: 3rem;
     }
 
@@ -65,7 +66,7 @@
 
     .header-text {
       flex: 1;
-      min-width: 250px;
+      min-width: 200px;
     }
 
     .center-text {
@@ -129,33 +130,19 @@
     section {
       max-width: 900px;
       margin: 3.5rem auto;
-      padding: 0 2rem;
+      padding: 2.5rem;
+      background: #f0f5ff;
+      border-radius: 8px;
+      border-left: 5px solid #0066cc;
+      box-shadow: 0 2px 8px rgba(0,102,204,0.15);
     }
 
     .interests-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-      margin: 2rem 0;
+      display: none;
     }
 
     .interest-card {
-      background: #f5f5f5;
-      padding: 1.5rem;
-      border-radius: 6px;
-      border-left: 4px solid #333;
-    }
-
-    .interest-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 0.6rem;
-      margin-top: 0;
-    }
-
-    .interest-card p {
-      margin: 0;
-      color: #555;
-      font-size: 0.95rem;
+      display: none;
     }
 
     ol {
@@ -249,42 +236,16 @@
 
   <div class="abstract">
     <strong>About Me</strong>
-    <p>I'm a Data Science undergraduate at <a href="https://www.iiserb.ac.in/">IISER Bhopal</a>, passionate about bridging the gap between rigorous mathematics and real-world problem-solving. My interests span classical and graph machine learning, sports analytics, and decision sciences—each offering unique perspectives on how we can extract meaning from data.</p>
-    
-    <p>What drives me is the belief that data science isn't just about algorithms; it's about asking the right questions and telling compelling stories with numbers. Whether I'm analyzing football matches through a deep learning lens, exploring information theory through divergences, or optimizing supply chains, I'm constantly seeking to understand the systems around us through data.</p>
-    
-    <p>Beyond research and code, I'm an avid reader of biographies and history, a passionate Liverpool FC supporter, and someone who believes that the best insights often come from crossing disciplinary boundaries. I write about my journey—technical explorations, research papers that fascinate me, and reflections on life at IISER.</p>
+    <p>I am a Data Science undergrad at <a href="https://www.iiserb.ac.in/">IISERB</a>. I have interests in classical machine learning, graph machine learning and sports analytics. Decision sciences and operations research is another realm I like to read and work on.</p>
   </div>
-
-  <section>
-    <h2>Research Interests & Focus Areas</h2>
-    <div class="interests-grid">
-      <div class="interest-card">
-        <h3>🤖 Machine Learning</h3>
-        <p>Classical ML, graph neural networks, and deep learning. Particularly interested in understanding how models learn representations and why certain architectures work so well.</p>
-      </div>
-      <div class="interest-card">
-        <h3>⚽ Sports Analytics</h3>
-        <p>Applying statistical models and deep learning to football—from player performance analysis to match predictions and spatial data analysis on the pitch.</p>
-      </div>
-      <div class="interest-card">
-        <h3>📊 Decision Sciences</h3>
-        <p>Operations research, optimization, and decision-making under uncertainty. Building systems that help make better choices in complex, real-world scenarios.</p>
-      </div>
-      <div class="interest-card">
-        <h3>ℹ️ Information Theory</h3>
-        <p>The mathematical foundations of data, entropy, divergences, and how information flows through systems. Fascinated by the elegance of Shannon's work.</p>
-      </div>
-    </div>
-  </section>
 
   <section>
     <h2>Contents</h2>
     <ol>
-      <li><a href="research_and_exp.html">Research and Experience</a> — My academic journey, internships, and research projects</li>
-      <li><a href="projects_and_interests.html">Projects and Interests</a> — Projects I've worked on and topics that fascinate me</li>
-      <li><a href="blogs.html">Blogs</a> — Technical deep dives and life at IISER Bhopal</li>
-      <li><a href="beyond_work.html">Beyond Work</a> — Books, football, running, and random thoughts</li>
+      <li><a href="research_and_exp.html">Research and Experience</a></li>
+      <li><a href="projects_and_interests.html">Projects and Interests</a></li>
+      <li><a href="blogs.html">Blogs</a></li>
+      <li><a href="beyond_work.html">Beyond Work</a></li>
     </ol>
   </section>
 
