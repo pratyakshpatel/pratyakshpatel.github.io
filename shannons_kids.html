@@ -91,15 +91,15 @@
   <h1>Shannon's Kids</h1>
   <p>15 July, 2025</p>
 
-  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank">math club</a> fest of Continuum. This year, one of the events was a 7-minute symposium where you could present any topic — as long as you used mathematics. I chose Shannon's kids: KL and JS divergences. It won me second prize and a sipper, now employed for iced tea on lazy afternoons.</p>
+  <p>One of the things I love about IISERB is the annual <a href="https://sites.google.com/view/maths-club-iiser-bhopal/home?authuser=0" target="_blank">math club</a> fest of Continuum. This year, one of the events was a 7-minute symposium where you could present any topic - as long as you used mathematics. I chose Shannon's kids: KL and JS divergences. It won me second prize and a sipper, now employed for iced tea on lazy afternoons.</p>
 
-  <p>Imagine two professors grading differently. BIO101 has Gaussian-like scores — balanced and symmetric. ECS201 or MTH202, however, reveal skewed results. It’s obvious visually — but how can we measure this difference rigorously and quantitatively? That's where information theory enters.</p>
+  <p>Imagine two professors grading differently. BIO101 has Gaussian-like scores - balanced and symmetric. ECS201 or MTH202, however, reveal skewed results. It's obvious visually - but how can we measure this difference rigorously and quantitatively? That's where information theory enters.</p>
 
   <h2>The Hassle: Uneven Grading Distributions</h2>
   <p>Here's what these distributions might look like:</p>
   <img src="output1.png" alt="It's bad, isn't it?" style="width:100%;"/>
 
-  <p>Not all distributions describe reality equally well. KL divergence tells us how inefficient one distribution is in describing data generated from another. This inefficiency — in bits — is the cost of using the wrong model.</p>
+  <p>Not all distributions describe reality equally well. KL divergence tells us how inefficient one distribution is in describing data generated from another. This inefficiency - in bits - is the cost of using the wrong model.</p>
 
   <h2>KL Divergence: The First, Asymmetric Kid</h2>
   <p>Kullback-Leibler divergence quantifies the discrepancy between two probability distributions:</p>
@@ -110,7 +110,7 @@
 
   <ul>
     <li>Measures the expected number of extra bits to encode samples from \(P\) using a code optimized for \(Q\).</li>
-    <li>Not symmetric — it matters which distribution is the reference.</li>
+    <li>Not symmetric - it matters which distribution is the reference.</li>
     <li>Infinite if \(Q(x) = 0\) and \(P(x) > 0\), due to division by zero inside the logarithm.</li>
   </ul>
 
@@ -145,7 +145,7 @@
     <li>\(D_{KL}(\text{Math} || \text{Bio}) = 2.6962\)</li>
   </ul>
 
-  <p>This tells us assuming Math is Bio is much worse than the reverse — there’s more inefficiency, more surprise.</p>
+  <p>This tells us assuming Math is Bio is much worse than the reverse - there's more inefficiency, more surprise.</p>
 
   <h2>Understanding Information</h2>
   <p>Think of guessing a number from 1 to 8. Each binary question like “Is it > 4?” gives 1 bit of information. Since there are 8 options, you need:</p>
@@ -165,7 +165,7 @@
   <h2>Why KL Isn’t Enough</h2>
   <p>While powerful, KL divergence has limitations:</p>
   <ul>
-    <li><strong>Asymmetry:</strong> direction matters — switching \(P\) and \(Q\) gives different results.</li>
+    <li><strong>Asymmetry:</strong> direction matters - switching \(P\) and \(Q\) gives different results.</li>
     <li><strong>Undefined for zeros:</strong> if \(Q(x) = 0\) and \(P(x) > 0\), then KL diverges to infinity.</li>
   </ul>
 
@@ -180,7 +180,7 @@
 
   <ul>
     <li>Symmetric by construction.</li>
-    <li>Always finite — even if \(P\) or \(Q\) contain zeros.</li>
+    <li>Always finite - even if \(P\) or \(Q\) contain zeros.</li>
     <li>Bounded: \( 0 \leq D_{JS} \leq \log 2 \).</li>
   </ul>
 
@@ -193,7 +193,7 @@
 
   <p>This measures how much more uncertain the mixture \(M\) is compared to the average uncertainty of \(P\) and \(Q\).</p>
 
-  <p>It also has a nice interpretation: it is the mutual information between a sample and its origin label (whether it came from \(P\) or \(Q\)) — thus connecting information theory with classification.</p>
+  <p>It also has a nice interpretation: it is the mutual information between a sample and its origin label (whether it came from \(P\) or \(Q\)) - thus connecting information theory with classification.</p>
 
   <h2>Where I Learned This: Topic Modeling</h2>
   <p>In Latent Dirichlet Allocation (LDA), topics are distributions over words, and documents are mixtures of topics. KL divergence plays a central role:</p>
@@ -204,7 +204,7 @@
   </ul>
 
   <h2>Conclusion</h2>
-  <p>KL divergence gave us a powerful lens for measuring divergence between beliefs and reality — but it’s not perfect. Jensen-Shannon builds on it with symmetry and robustness. Behind them all, Shannon's insight remains foundational: information is uncertainty, and math can measure it.</p>
+  <p>KL divergence gave us a powerful lens for measuring divergence between beliefs and reality - but it's not perfect. Jensen-Shannon builds on it with symmetry and robustness. Behind them all, Shannon's insight remains foundational: information is uncertainty, and math can measure it.</p>
 
   <section class="references">
     <h2>References</h2>

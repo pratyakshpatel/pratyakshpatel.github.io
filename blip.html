@@ -93,15 +93,15 @@
   <h1>BLIP: Bootstrapping Language-Image Pretraining for Unified Vision-Language Understanding</h1>
   <p>5 July, 2025</p>
 
-  <p>While I was working at IIMN this summer, I had an idea—to compare the original captions of social media images versus what is actually happening in the image. Exploring this, I came across BLIP. It's by far one of the coolest things I've read. It refreshed my whole course of Deep Learning—it was a long afternoon that day.</p>
+  <p>While I was working at IIMN this summer, I had an idea - to compare the original captions of social media images versus what is actually happening in the image. Exploring this, I came across BLIP. It's by far one of the coolest things I've read. It refreshed my whole course of Deep Learning - it was a long afternoon that day.</p>
 
-  <p>In the world of artificial intelligence, the ability to jointly understand and generate visual and textual content has become an essential frontier. The emergence of vision-language models such as CLIP and ALIGN revealed that combining image and text modalities can unlock powerful capabilities in tasks like image captioning, visual question answering, and cross-modal retrieval. However, these earlier models heavily relied on enormous and noisy web-scraped datasets, raising concerns about scalability, quality control, and accessibility. To address these limitations, the BLIP model — Bootstrapped Language-Image Pretraining — was proposed by Salesforce Research as a more efficient and versatile alternative.</p>
+  <p>In the world of artificial intelligence, the ability to jointly understand and generate visual and textual content has become an essential frontier. The emergence of vision-language models such as CLIP and ALIGN revealed that combining image and text modalities can unlock powerful capabilities in tasks like image captioning, visual question answering, and cross-modal retrieval. However, these earlier models heavily relied on enormous and noisy web-scraped datasets, raising concerns about scalability, quality control, and accessibility. To address these limitations, the BLIP model - Bootstrapped Language-Image Pretraining - was proposed by Salesforce Research as a more efficient and versatile alternative.</p>
 
   <p>BLIP presents a unified vision-language pretraining framework capable of both understanding and generation. It combines three training objectives: contrastive learning, image-text matching, and caption generation. Central to its design is the Q-former module, a novel Transformer component with learnable query tokens that enable efficient interaction between visual and textual modalities. With the Q-former and a bootstrapped self-learning strategy, BLIP can use both curated and synthetic data to improve performance without requiring huge datasets.</p>
 
   <h2>Architecture and Learning Mechanism</h2>
 
-  <p>BLIP has three key components: a vision encoder, the Q-former, and a text encoder/decoder. The vision encoder (typically ViT) extracts patch-level image embeddings. Rather than feeding all these embeddings directly into the language module — which is expensive — BLIP introduces the Q-former. It contains a fixed number of learnable query tokens that attend to the visual embeddings via cross-attention, condensing only the most relevant features.</p>
+  <p>BLIP has three key components: a vision encoder, the Q-former, and a text encoder/decoder. The vision encoder (typically ViT) extracts patch-level image embeddings. Rather than feeding all these embeddings directly into the language module - which is expensive - BLIP introduces the Q-former. It contains a fixed number of learnable query tokens that attend to the visual embeddings via cross-attention, condensing only the most relevant features.</p>
 
   <p>The text module acts either as an encoder (like BERT) for understanding tasks, or as a decoder (like GPT) for generation tasks. This allows BLIP to perform both vision-language understanding and generation tasks effectively.</p>
 
@@ -130,7 +130,7 @@
 
   <h2>Bootstrapped Pretraining</h2>
 
-  <p>BLIP uses self-generated captions for unlabeled images. These are filtered using the ITM head and reused for training — a bootstrapped loop that improves performance and generalization without labeled datasets.</p>
+  <p>BLIP uses self-generated captions for unlabeled images. These are filtered using the ITM head and reused for training - a bootstrapped loop that improves performance and generalization without labeled datasets.</p>
 
   <h2>Conclusion</h2>
 
