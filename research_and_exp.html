@@ -72,9 +72,16 @@
       margin-bottom: 0.8rem;
     }
 
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
     .go-back {
       display: inline-block;
-      margin-bottom: 2rem;
+      margin-bottom: 0;
       padding: 0.5rem 1rem;
       background: #333;
       color: white !important;
@@ -112,7 +119,10 @@
 </head>
 
 <body>
-  <a href="index.html" class="go-back">← Go Back</a>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
 
   <main>
     <h1>Research and Experience</h1>

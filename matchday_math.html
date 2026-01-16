@@ -48,9 +48,16 @@
       font-size: 1.05em;
     }
 
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
     .go-back {
       display: inline-block;
-      margin-bottom: 2rem;
+      margin-bottom: 0;
       padding: 0.5rem 1rem;
       background: #333;
       color: white;
@@ -85,7 +92,10 @@
   </style>
 </head>
 <body>
-  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
 
   <h1>Matchday Math</h1>
   <p>15 July, 2025</p>
