@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    .result-box {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+
+      pre {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
+
+<main>
+  <h1>Player Compatibility Scoring with Graph Neural Networks</h1>
+
+  <article>
+    <p>28 January, 2026</p>
+
+    <p>
+      Football has this beautiful chaos to it. Twenty-two players, one ball, ninety minutes of decisions that cascade into each other. I've always been fascinated by what makes certain player partnerships click - why Messi and Neymar seemed to read each other's minds, while other expensive signings flounder despite individual brilliance. This question led me down a rabbit hole that combined my love for the game with everything I'd been learning about graph neural networks.
+    </p>
+
+    <p>
+      What started as a weekend project turned into something I'm genuinely proud of: a model that learns player compatibility directly from match data, no hand-tuned weights, no arbitrary formulas. Just patterns learned from how players actually move the ball together.
+    </p>
+
+    <h2>The Core Idea: Expected Threat</h2>
+
+    <p>
+      Before we can talk about compatibility, we need a way to measure whether a pass actually mattered. Not all completed passes are created equal - a sideways pass between centre-backs is fundamentally different from a through ball that splits the defense. This is where Expected Threat (xT) comes in, and honestly, it's one of the most elegant ideas in football analytics.
+    </p>
+
+    <p>
+      The pitch gets divided into a 12×8 grid of 96 zones. Each zone has a "threat value" - essentially, how likely is possession in this zone to eventually result in a goal? Zones near the opponent's goal have high threat; zones in your own half have low threat.
+    </p>
+
+    <p>
+      Computing these values uses Bellman iteration (if you've done any reinforcement learning, this will feel familiar):
+    </p>
+
+    <p>
+      \[
+        \text{xT}(z) = P_{\text{shot}}(z) \cdot P_{\text{goal}}(z) + \sum_{z' \in Z} T(z \to z') \cdot \text{xT}(z')
+      \]
+    </p>
+
+    <p>
+      Here, \( P_{\text{shot}}(z) \) is the probability of shooting from zone \( z \), \( P_{\text{goal}}(z) \) is the probability of scoring if you do shoot, and \( T(z \to z') \) captures the likelihood of moving to zone \( z' \) via a pass. The equation says: the threat of a zone equals the immediate goal probability plus the expected threat of where you might pass next. Run this iteratively until convergence, and you get a threat map.
+    </p>
+
+    <p>
+      The change in threat for any pass is simply:
+    </p>
+
+    <p>
+      \[
+        \Delta \text{xT} = \text{xT}(\text{zone}_{\text{end}}) - \text{xT}(\text{zone}_{\text{start}})
+      \]
+    </p>
+
+    <p>
+      A forward pass into the box? Positive \( \Delta \)xT. A backpass to the keeper? Negative. This gives us a continuous measure of how much each action contributed to goal threat.
+    </p>
+
+<pre>
+xT Zone Grid (12 columns × 8 rows = 96 zones):
+
+y=1.0  |----|----|----|----|----|----|----|----|----|----|----|----|
+       | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 |
+y=0.875|----|----|----|----|----|----|----|----|----|----|----|----|
+       | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 |
+y=0.75 |----|----|----|----|----|----|----|----|----|----|----|----|
+       | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 |
+y=0.0  |----|----|----|----|----|----|----|----|----|----|----|----|
+       | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 | 11 |
+       |----|----|----|----|----|----|----|----|----|----|----|----|
+       x=0  ...                                              x=1.0
+
+High xT zones: Central attacking areas (zones 79-80, 91-92)
+Medium xT zones: Midfield and flanks (zones 73-74, 81-82)
+Low xT zones: Defensive areas (zones 0-3, 10-11)
+</pre>
+
+    <h2>Representing Players: The 23 Dimensions</h2>
+
+    <p>
+      I spent way too long thinking about what features actually capture a player's "style." Eventually, I settled on 23 dimensions that span four categories:
+    </p>
+
+    <table>
+      <tr>
+        <th>Dims</th>
+        <th>Category</th>
+        <th>What It Captures</th>
+      </tr>
+      <tr>
+        <td>1-9</td>
+        <td>Core Activity</td>
+        <td>Passes, accuracy, dribbles, tackles, interceptions, clearances, key passes, xT created, xT received</td>
+      </tr>
+      <tr>
+        <td>10-16</td>
+        <td>Position Encoding</td>
+        <td>One-hot: GK, DEF, MID, FWD, WB, etc.</td>
+      </tr>
+      <tr>
+        <td>17-21</td>
+        <td>Pass Signature</td>
+        <td>Avg distance, avg angle, short/long/aerial pass percentages</td>
+      </tr>
+      <tr>
+        <td>22-23</td>
+        <td>Pressure Profile</td>
+        <td>How often under pressure, accuracy when pressed</td>
+      </tr>
+    </table>
+
+    <p>
+      The intuition is straightforward: dimensions 1-9 capture <em>what</em> a player does, 10-16 encode <em>where</em> they play, 17-21 describe their passing style, and 22-23 measure composure. Together, these 23 values give us a pretty complete behavioral fingerprint.
+    </p>
+
+    <p>
+      Each player vector lives in \( \mathbb{R}^{23} \):
+    </p>
+
+    <p>
+      \[
+        \mathbf{x}_p = \begin{bmatrix}
+        \mathbf{c} & \mathbf{p} & \mathbf{s} & \mathbf{pr}
+        \end{bmatrix} \in \mathbb{R}^{23}
+      \]
+    </p>
+
+    <p>
+      where \( \mathbf{c} \in \mathbb{R}^9 \) (core metrics), \( \mathbf{p} \in \mathbb{R}^7 \) (position), \( \mathbf{s} \in \mathbb{R}^5 \) (pass signature), \( \mathbf{pr} \in \mathbb{R}^2 \) (pressure). All normalized to [0,1] so no single feature dominates.
+    </p>
+
+    <h2>Passes as Graph Edges</h2>
+
+    <p>
+      Here's where it gets interesting. Every pass between two players isn't just a connection - it carries information. I encode each pass as a 10-dimensional edge:
+    </p>
+
+    <p>
+      \[
+        \mathbf{e} = \begin{bmatrix}
+        x_{\text{start}} \\
+        y_{\text{start}} \\
+        x_{\text{end}} \\
+        y_{\text{end}} \\
+        \Delta xT \\
+        \text{pass length} \\
+        \text{pass angle} \\
+        \text{pass height} \\
+        \text{body part} \\
+        \text{outcome}
+        \end{bmatrix} \in \mathbb{R}^{10}
+      \]
+    </p>
+
+    <p>
+      Dimensions 1-4 tell us where on the pitch the pass happened. Dimension 5 is the threat change. Dimensions 6-7 describe the geometry. Dimensions 8-10 capture execution details - was it a header? Which foot? Did it complete?
+    </p>
+
+    <p>
+      Now, each possession becomes a graph. Nodes are players (with their 23-D features), edges are passes (with their 10-D attributes), and the whole structure captures who's connecting with whom and how.
+    </p>
+
+    <h2>Graph Neural Networks: Learning from Structure</h2>
+
+    <p>
+      The magic of GNNs is that they can learn representations that encode both individual player attributes AND how those players fit into the team structure. Each layer does "message passing" - every node aggregates information from its neighbors.
+    </p>
+
+    <p>
+      \[
+        h_i^{(\ell+1)} = \sigma \left( \mathbf{W}^{(\ell)} \left( h_i^{(\ell)} + \sum_{j \in \mathcal{N}(i)} \frac{1}{\sqrt{d_i d_j}} h_j^{(\ell)} \right) \right)
+      \]
+    </p>
+
+    <p>
+      In layer 1, each player learns about their direct passing partners. Layer 2 extends to partners' partners. By layer 3, the representation captures global team structure. The result: a 128-dimensional embedding for each player that encodes not just what they do, but how they fit into the collective.
+    </p>
+
+<pre>
+GNN Architecture:
+
+Input: Graph (22 nodes × 23-D, |E| edges × 10-D attributes)
+  |
+  v
+Edge Encoder: 10-D → 32 → 16-D (preprocess edge features)
+  |
+  v
+GCN Layer 1: 23-D node features → 128-D (message passing + ReLU)
+  |
+  v
+GCN Layer 2: 128-D → 128-D (deeper node interactions)
+  |
+  v
+GCN Layer 3: 128-D → 128-D (final node representations)
+  |
+  v
+Global Pool: Average all 22 node embeddings → 128-D graph summary
+  |
+  v
+Readout MLP:
+  128 → [Dropout(0.2)] → 64 → [ReLU] → [Dropout(0.1)] → 32 → [ReLU] → 1
+  |
+  v
+Output: Predicted ΔxT (scalar)
+</pre>
+
+    <p>
+      I train this network to predict the \( \Delta \)xT of each possession. The supervision signal forces the embeddings to capture offensive chemistry, positioning, and threat awareness. After training on ~100K possession graphs, I extract the layer-2 hidden states as player embeddings.
+    </p>
+
+    <h2>The Compatibility Scorer</h2>
+
+    <p>
+      Now comes the fun part. Given two player embeddings, how do we score their compatibility?
+    </p>
+
+    <p>
+      My first attempt used hand-crafted signals: direct pass success rate (35% weight), co-presence frequency (30%), position complementarity (15%), and so on. It worked okay, but required constant tuning and didn't generalize well across different leagues.
+    </p>
+
+    <p>
+      The better approach: learn it end-to-end. I concatenate two player embeddings into a 256-D vector and feed it through a multi-task neural network:
+    </p>
+
+<pre>
+Compatibility Scorer:
+
+Input: Concatenated embeddings [h_A || h_B] ∈ ℝ^256
+  |
+  v
+Shared Trunk MLP:
+  256 → [ReLU, Dropout(0.2)] → 128 → [ReLU, Dropout(0.1)] → 64
+  |
+  ├──→ Main Head (Compatibility):     64 → [ReLU] → 32 → [Sigmoid] → 1
+  ├──→ Aux Head 1 (Pass Quality):     64 → [ReLU] → 32 → [Sigmoid] → 1
+  ├──→ Aux Head 2 (Threat Flow):      64 → [ReLU] → 32 → [Sigmoid] → 1
+  └──→ Aux Head 3 (Position Synergy): 64 → [ReLU] → 32 → [Sigmoid] → 1
+
+Output: 4 scores ∈ [0, 1]
+</pre>
+
+    <p>
+      The training labels come from co-occurrence: players who frequently touch the ball in the same possessions are more likely compatible. I use percentile bucketing to spread labels across [0,1]:
+    </p>
+
+    <p>
+      \[
+        \ell(c_{ij}) = \begin{cases}
+        0.7 + 0.3 \cdot \frac{c_{ij} - P_{75}}{P_{90} - P_{75}} & \text{if } c_{ij} \geq P_{75} \\
+        0.4 + 0.3 \cdot \frac{c_{ij}}{P_{75}} & \text{if } 0 < c_{ij} < P_{75} \\
+        U(0.0, 0.3) & \text{if } c_{ij} = 0
+        \end{cases}
+      \]
+    </p>
+
+    <p>
+      The multi-task setup is crucial. The three auxiliary heads - pass quality, threat flow, position synergy - regularize learning and provide interpretable diagnostics. When someone asks "why is this pair compatible?", I can point to specific factors.
+    </p>
+
+    <p>
+      The total loss combines everything:
+    </p>
+
+    <p>
+      \[
+        \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{main}} + \lambda \left( \mathcal{L}_{\text{pass}} + \mathcal{L}_{\text{threat}} + \mathcal{L}_{\text{synergy}} \right)
+      \]
+    </p>
+
+    <p>
+      with \( \lambda = 0.1 \) to downweight auxiliaries.
+    </p>
+
+    <h2>The Results</h2>
+
+    <p>
+      Let me cut to the chase. Messi → Neymar (Barcelona 2014-2017):
+    </p>
+
+    <div class="result-box">
+      <table>
+        <tr>
+          <th>Output</th>
+          <th>Score</th>
+        </tr>
+        <tr>
+          <td>Compatibility</td>
+          <td>0.87</td>
+        </tr>
+        <tr>
+          <td>Pass Quality</td>
+          <td>0.82</td>
+        </tr>
+        <tr>
+          <td>Threat Flow</td>
+          <td>0.78</td>
+        </tr>
+        <tr>
+          <td>Position Synergy</td>
+          <td>0.69</td>
+        </tr>
+      </table>
+    </div>
+
+    <p>
+      That 0.87 puts them in the 95th percentile globally. For comparison, a random defender-striker pair scores around 0.12. The 7× difference is what convinced me this actually works.
+    </p>
+
+    <p>
+      More broadly: known same-squad partnerships score median 0.64; random cross-squad pairs score 0.18. That 3.6× separation demonstrates the model captures real signals, not noise.
+    </p>
+
+    <h2>Why It Works (And Why I Think It's Cool)</h2>
+
+    <p>
+      A few things came together that I didn't fully appreciate until the end:
+    </p>
+
+    <p>
+      <strong>1. Learned, not tuned.</strong> The neural network discovers what makes players compatible. No manual parameter tweaking, no "I think pass success should be 35%." The data decides.
+    </p>
+
+    <p>
+      <strong>2. GCNs capture context.</strong> A player's embedding isn't just about their individual stats - it encodes how they fit into team structure. A creative midfielder looks different when surrounded by pacey wingers versus target men.
+    </p>
+
+    <p>
+      <strong>3. xT as supervision.</strong> Training on threat prediction forces embeddings to capture offensive chemistry. The network can't cheat; it has to learn what actually moves the ball toward goal.
+    </p>
+
+    <p>
+      <strong>4. Generalizes to sparse pairs.</strong> Two players who've rarely passed directly still get meaningful scores because their embeddings encode playing style. Hardcoded heuristics fail without data; learned embeddings don't.
+    </p>
+
+    <h2>The Pipeline</h2>
+
+    <p>
+      For completeness, here's the full data flow:
+    </p>
+
+    <table>
+      <tr>
+        <th>Stage</th>
+        <th>Input</th>
+        <th>Output</th>
+        <th>Dimensions</th>
+      </tr>
+      <tr>
+        <td>1-2</td>
+        <td>StatsBomb CSV</td>
+        <td>Events + Possession IDs</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Events</td>
+        <td>xT map (ΔxT per zone)</td>
+        <td>96 zones</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Events</td>
+        <td>Player feature vectors</td>
+        <td>23-D</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Features + events</td>
+        <td>Pass graphs</td>
+        <td>22 nodes, 10-D edges</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Graphs</td>
+        <td>Trained GCN</td>
+        <td>~400K params</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>GCN + graphs</td>
+        <td>Player embeddings</td>
+        <td>128-D</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>Embeddings</td>
+        <td>Labeled pairs</td>
+        <td>~28K pairs</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Pairs</td>
+        <td>Trained scorer</td>
+        <td>~200K params</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>Embeddings + scorer</td>
+        <td>Compatibility scores</td>
+        <td>1 main + 3 aux</td>
+      </tr>
+    </table>
+
+    <p>
+      Complete execution takes about 60 seconds. The final model is 2.3 MB. Single-pair inference is under 1 millisecond - fast enough to score all 55 outfield player pairs in a match in under 100ms.
+    </p>
+
+    <h2>What's Next</h2>
+
+    <p>
+      I've been thinking about extending this to temporal dynamics - how does compatibility evolve over a season as players gel or drift apart? There's also the question of counterfactuals: given a squad, which signing would maximize overall compatibility?
+    </p>
+
+    <p>
+      But honestly, the most satisfying part was seeing Messi-Neymar light up the model. Numbers confirming what the eye test already knew. Sometimes that's exactly what good analytics should do.
+    </p>
+
+    <p>
+      The <a href="https://github.com/statsbomb/open-data">StatsBomb open data</a> made this project possible. If you want to dig into football analytics, that's the place to start.
+    </p>
+
+  </article>
+</main>
+
+</body>
+</html>
