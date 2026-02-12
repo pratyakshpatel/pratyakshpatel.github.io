@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    /* Additional slight styling for block math to match readability */
+    .MathJax_Display {
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
+
+<main>
+  <h1>The Geometric Trace: A Deep Dive into the Signature Method</h1>
+
+  <article>
+    <p>12 February, 2026</p>
+
+    <p>
+        The way I got introduced to these were while researching for my thesis project. Its one of the coolest shit I have ever come across. Yet.
+    </p>
+
+    <p>
+      In the realm of standard Machine Learning, we have a habit of viewing data as static points in a high-dimensional space. A vector is a point. An image is a point. But recently, while diving into a paper by Chevyrev and Kormilitzin, I realized how limiting this view is. Reality isn't static. Financial markets tick irregularly, handwriting flows with varying speed, and biological vitals oscillate. Reality is a <strong>path</strong>.
+    </p>
+
+    <p>
+      The question is: How do we teach a machine to understand a continuous path—where order matters just as much as value—without getting bogged down by sampling rates? The answer lies in rigorous integration theory, specifically <strong>The Signature Method</strong>. It is, effectively, the Taylor expansion of a path.
+    </p>
+
+    <h2>The Path Integral Construction</h2>
+
+    <p>
+      Let's start with the raw material. Consider a path \( X \) defined as a continuous mapping from an interval \( [a, b] \) to \( \mathbb{R}^d \). We generally assume \( X \) is of bounded variation, which allows us to use Riemann-Stieltjes integration. The signature is essentially a sequence of iterated integrals.
+    </p>
+
+    <p>
+      <strong>Level 0:</strong> By mathematical convention, the "zeroth" term is the scalar 1.
+    </p>
+    
+    <p>
+      \[ S(X)_{a,b}^\emptyset = 1 \]
+    </p>
+
+    <p>
+      <strong>Level 1:</strong> This is simply the increment of the path. It tells us <em>where</em> we went, but not <em>how</em> we got there. For any coordinate index \( i \in \{1, \dots, d\} \):
+    </p>
+
+    <p>
+      \[ S(X)^i_{a,b} = \int_{a < t < b} dX^i_t = X^i_b - X^i_a \]
+    </p>
+
+    <h2>Level 2: Where Physics Meets Geometry</h2>
+
+    <p>
+      Level 1 is blind to the shape of the path. To capture the geometry, we need double-iterated integrals. For indices \( i, j \), we look at the interaction between two coordinates:
+    </p>
+
+    <p>
+      \[ S(X)^{i,j}_{a,b} = \int_{a < s < b} \left( \int_{a < r < s} dX^i_r \right) dX^j_s = \int_{a < r < s < b} dX^i_r dX^j_s \]
+    </p>
+
+    <p>
+      Why is this profound? Consider the relationship between \( S(X)^{1,2} \) and \( S(X)^{2,1} \). From classical integration by parts, we know that:
+    </p>
+
+    <p>
+      \[ S(X)^{1,2} + S(X)^{2,1} = (X^1_b - X^1_a)(X^2_b - X^2_a) \]
+    </p>
+
+    <p>
+      The sum is just the area of the rectangle defined by the endpoints. However, the <em>difference</em> between these terms corresponds to the <strong>Lévy Area</strong>, denoted by \( \mathcal{A} \). This represents the signed area enclosed by the path and the chord connecting its start and end points:
+    </p>
+
+    <p>
+      \[ \mathcal{A} = \frac{1}{2}(S(X)^{1,2} - S(X)^{2,1}) \]
+    </p>
+
+    <p>
+      This is the first true geometric invariant. It captures curvature and orientation—something a standard coordinate vector misses completely.
+    </p>
+
+    <h2>The Recursive Definition</h2>
+
+    <p>
+      We can generalize this to any level \( k \). For a "word" (multi-index) \( I = (i_1, \dots, i_k) \), the signature term is defined recursively:
+    </p>
+
+    <p>
+      \[ S(X)^{i_1, \dots, i_k}_{a,t} = \int_{a < s < t} S(X)^{i_1, \dots, i_{k-1}}_{a,s} \, dX^{i_k}_s \]
+    </p>
+
+    <p>
+      Explicitly expanded over the simplex, this becomes:
+    </p>
+
+    <p>
+      \[ S(X)^I_{a,b} = \int_{a < t_1 < \dots < t_k < b} dX^{i_1}_{t_1} \dots dX^{i_k}_{t_k} \]
+    </p>
+
+    <p>
+      The full <strong>Signature of X</strong> is the infinite collection of all such terms:
+      \[ S(X)_{a,b} = \left( 1, \ S(X)^1, \dots, S(X)^d, \ S(X)^{1,1}, S(X)^{1,2}, \dots \right) \]
+    </p>
+
+    <h2>The Algebra: The Shuffle Product</h2>
+
+    <p>
+      The signature exists in the tensor algebra space \( T((\mathbb{R}^d)) \), but it behaves like a polynomial system. When you multiply two polynomials, you get another polynomial. When you multiply two signature terms, you get a linear combination of other signature terms. This is governed by the <strong>Shuffle Product</strong>.
+    </p>
+
+    <p>
+      For multi-indices \( I \) and \( J \), the product of their integrals is the sum over all "shuffles" of their indices:
+    </p>
+
+    <p>
+      \[ S(X)^I \cdot S(X)^J = \sum_{K \in I \sqcup J} S(X)^K \]
+    </p>
+
+    <p>
+      Intuitively, imagine \( I \) and \( J \) are two decks of cards. A "shuffle" preserves the relative order of cards within deck \( I \) and deck \( J \), but interleaves them. For example, if \( I=(1) \) and \( J=(2) \), the shuffles are \( \{(1,2), (2,1)\} \). This immediately recovers the Integration by Parts identity we derived earlier:
+    </p>
+
+    <p>
+      \[ S(X)^1 S(X)^2 = S(X)^{1,2} + S(X)^{2,1} \]
+    </p>
+
+    <h2>Stitching Paths: Chen’s Identity</h2>
+
+    <p>
+      One of the most powerful properties of the signature is how it handles concatenation. Suppose path \( X \) runs from \( a \to b \), and path \( Y \) runs from \( b \to c \). Their concatenation is \( X * Y \). <strong>Chen's Identity</strong> states that the signature is a homomorphism from the monoid of paths to the tensor algebra:
+    </p>
+
+    <p>
+      \[ S(X * Y) = S(X) \otimes S(Y) \]
+    </p>
+
+    <p>
+      For a specific coefficient, this looks remarkably like a convolution:
+    </p>
+
+    <p>
+      \[ S(X*Y)^{i_1, \dots, i_k} = \sum_{m=0}^k S(X)^{i_1, \dots, i_m} S(Y)^{i_{m+1}, \dots, i_k} \]
+    </p>
+
+    <p>
+      This is massive for parallelization. It means you can chop a long time-series data stream into small windows, compute the signature for each window locally, and then stitch them together using tensor products.
+    </p>
+
+    <h2>Compression: The Log-Signature</h2>
+
+    <p>
+      Because of the shuffle product identities, the standard signature contains redundant information. We want a more compact representation. We introduce the <strong>Log-Signature</strong>, defined by taking the logarithm in the formal power series sense:
+    </p>
+
+    <p>
+      \[ \log S(X) = \sum_{n \geq 1} \frac{(-1)^{n-1}}{n} (S(X) - 1)^{\otimes n} \]
+    </p>
+
+    <p>
+      Using the expansion \( \log(1+x) \approx x - x^2/2 \), let's look at Level 2. The terms cancel out nicely to reveal the Lie Bracket:
+    </p>
+
+    <p>
+      \[ [e_i, e_j] = e_i \otimes e_j - e_j \otimes e_i \]
+    </p>
+
+    <p>
+      The coefficient of this Lie Bracket in the log-signature is exactly the Lévy Area we discussed earlier. The Log-Signature effectively removes the redundancy, compressing the information into the minimal set of geometric invariants needed to describe the path.
+    </p>
+
+    <h2>Practicality: Lead-Lag Transformations</h2>
+
+    <p>
+      In the real world, we deal with discrete time series \( (t_i, x_i) \), not continuous paths. The simplest approach is piecewise linear interpolation, where the signature of a segment \( v \) is \( \exp(v) \). But often, we care about the relationship between "now" and "before."
+    </p>
+
+    <p>
+      The <strong>Lead-Lag</strong> embedding transforms a 1D stream \( X \) into a 2D path in \( \mathbb{R}^2 \):
+    </p>
+    <ul>
+        <li><strong>Lead:</strong> \( X^{\text{Lead}}_t \) is the value at the current step.</li>
+        <li><strong>Lag:</strong> \( X^{\text{Lag}}_t \) is the value at the previous step.</li>
+    </ul>
+
+    <p>
+      Mathematically, the signed area (Level 2 signature) of this Lead-Lag path captures the quadratic variation, or volatility, of the signal:
+    </p>
+
+    <p>
+      \[ S(\text{Lead-Lag})^{1,2} \approx \sum (X_{t_i} - X_{t_{i-1}})^2 \]
+    </p>
+
+    <p>
+      This proves that the signature naturally extracts higher-order statistical moments, like variance, purely through geometric features—no manual feature engineering required.
+    </p>
+
+  </article>
+</main>
+
+</body>
+</html>
