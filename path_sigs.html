@@ -1,244 +1,304 @@
-<article>
-  <p>12 February, 2026</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
 
-  <p>
-    I first encountered the Signature Method while researching for my thesis. It remains one of the most elegant mathematical frameworks I’ve come across — a perspective shift that fundamentally changes how we think about sequential data.
-  </p>
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
 
-  <p>
-    In standard machine learning, we often treat data as static points in high-dimensional space. A vector is a point. An image is a point. But reality is rarely static. Financial markets tick irregularly, handwriting flows with varying velocity, biological signals oscillate continuously. Reality is a <strong>path</strong>.
-  </p>
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
 
-  <p>
-    The central question becomes: how can we represent a continuous path — where order matters just as much as magnitude — in a way that is invariant to sampling and mathematically principled? The answer lies in rough path theory and the <strong>Signature Transform</strong>. In a precise sense, the signature is the Taylor expansion of a path.
-  </p>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
 
-  <h2>The Path Integral Construction</h2>
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
 
-  <p>
-    Let \( X : [a,b] \to \mathbb{R}^d \) be a continuous path of bounded variation. The bounded variation assumption ensures that Riemann–Stieltjes integrals are well-defined. The <em>signature</em> of \( X \) over \([a,b]\) is the infinite collection of its iterated integrals.
-  </p>
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
 
-  <p><strong>Level 0:</strong></p>
-  <p>\[ S(X)_{a,b}^\emptyset = 1 \]</p>
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
 
-  <p><strong>Level 1:</strong></p>
-  <p>
-    The first level captures the total increment of each coordinate:
-  </p>
-  <p>
-    \[ S(X)^i_{a,b} = \int_a^b dX^i_t = X^i_b - X^i_a \]
-  </p>
+    a:hover {
+      font-size: 1.05em;
+    }
 
-  <p>
-    This tells us where the path ended relative to where it began — but not how it travelled.
-  </p>
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
 
-  <h2>Level 2: Geometry Emerges</h2>
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
 
-  <p>
-    To capture geometry, we consider second-order iterated integrals:
-  </p>
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
 
-  <p>
-    \[ S(X)^{i,j}_{a,b} = \int_a^b \left( \int_a^s dX^i_r \right) dX^j_s
-       = \int_{a < r < s < b} dX^i_r \, dX^j_s \]
-  </p>
+    p {
+      margin-bottom: 1rem;
+    }
 
-  <p>
-    A classical integration-by-parts argument shows:
-  </p>
+    .MathJax_Display {
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
 
-  <p>
-    \[ S(X)^{1,2} + S(X)^{2,1}
-       = (X^1_b - X^1_a)(X^2_b - X^2_a) \]
-  </p>
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
 
-  <p>
-    The sum corresponds to the rectangle defined by the endpoints. The <em>difference</em> encodes genuine geometry:
-  </p>
+      h1 {
+        font-size: 1.4rem;
+      }
 
-  <p>
-    \[ \mathcal{A}
-       = \frac{1}{2}\big(S(X)^{1,2} - S(X)^{2,1}\big) \]
-  </p>
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
 
-  <p>
-    This quantity is the <strong>Lévy area</strong> — the signed area enclosed by the path and the chord joining its endpoints. This is the first truly geometric invariant of the path.
-  </p>
+<body>
 
-  <h2>Higher Levels</h2>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
 
-  <p>
-    For a multi-index (word) \( I = (i_1,\dots,i_k) \), the signature component is
-  </p>
+<main>
+  <h1>The Geometric Trace: A Deep Dive into the Signature Method</h1>
 
-  <p>
-    \[ S(X)^I_{a,b}
-       = \int_{a < t_1 < \dots < t_k < b}
-         dX^{i_1}_{t_1} \cdots dX^{i_k}_{t_k} \]
-  </p>
+  <article>
 
-  <p>
-    Equivalently, recursively:
-  </p>
+    <p><em>12 February, 2026</em></p>
 
-  <p>
-    \[ S(X)^{i_1,\dots,i_k}_{a,t}
-       = \int_a^t S(X)^{i_1,\dots,i_{k-1}}_{a,s}
-         \, dX^{i_k}_s \]
-  </p>
+    <p>
+      I first encountered the Signature Method while researching for my thesis. It remains one of the most elegant mathematical frameworks I’ve come across — a perspective shift that fundamentally changes how we think about sequential data.
+    </p>
 
-  <p>
-    The full signature is the infinite tensor series
-  </p>
+    <p>
+      In standard machine learning, we often treat data as static points in high-dimensional space. A vector is a point. An image is a point. But reality is rarely static. Financial markets tick irregularly, handwriting flows with varying velocity, biological signals oscillate continuously. Reality is a <strong>path</strong>.
+    </p>
 
-  <p>
-    \[ S(X)_{a,b}
-       = \left(1, S^1, \dots, S^d,
-         S^{1,1}, S^{1,2}, \dots \right) \]
-  </p>
+    <p>
+      The central question becomes: how can we represent a continuous path — where order matters just as much as magnitude — in a way that is invariant to sampling and mathematically principled? The answer lies in rough path theory and the <strong>Signature Transform</strong>. In a precise sense, the signature is the Taylor expansion of a path.
+    </p>
 
-  <p>
-    It lives in the tensor algebra \( T((\mathbb{R}^d)) \).
-  </p>
+    <h2>The Path Integral Construction</h2>
 
-  <h2>The Algebraic Structure: The Shuffle Product</h2>
+    <p>
+      Let \( X : [a,b] \to \mathbb{R}^d \) be a continuous path of bounded variation. The bounded variation assumption ensures that Riemann–Stieltjes integrals are well-defined. The <em>signature</em> of \( X \) over \([a,b]\) is the infinite collection of its iterated integrals.
+    </p>
 
-  <p>
-    The signature is not merely a collection of numbers — it satisfies deep algebraic identities. The key identity is the <strong>shuffle product</strong>.
-  </p>
+    <p><strong>Level 0:</strong></p>
+    <p>\[ S(X)_{a,b}^\emptyset = 1 \]</p>
 
-  <p>
-    For words \( I \) and \( J \),
-  </p>
+    <p><strong>Level 1:</strong></p>
+    <p>
+      \[ S(X)^i_{a,b} = \int_a^b dX^i_t = X^i_b - X^i_a \]
+    </p>
 
-  <p>
-    \[ S(X)^I S(X)^J
-       = \sum_{K \in I \shuffle J} S(X)^K \]
-  </p>
+    <p>
+      This captures the total increment of each coordinate.
+    </p>
 
-  <p>
-    where \( I \shuffle J \) denotes all shuffles that preserve the internal order of both words.
-  </p>
+    <h2>Level 2: Geometry Emerges</h2>
 
-  <p>
-    For example:
-  </p>
+    <p>
+      \[ S(X)^{i,j}_{a,b}
+         = \int_{a < r < s < b}
+           dX^i_r \, dX^j_s \]
+    </p>
 
-  <p>
-    \[ S(X)^1 S(X)^2
-       = S(X)^{1,2} + S(X)^{2,1} \]
-  </p>
+    <p>
+      Integration by parts yields:
+    </p>
 
-  <p>
-    This algebraic redundancy motivates a compressed representation.
-  </p>
+    <p>
+      \[ S(X)^{1,2} + S(X)^{2,1}
+         = (X^1_b - X^1_a)(X^2_b - X^2_a) \]
+    </p>
 
-  <h2>Chen’s Identity</h2>
+    <p>
+      The antisymmetric component defines the Lévy area:
+    </p>
 
-  <p>
-    Suppose \( X \) runs from \( a \to b \) and \( Y \) from \( b \to c \). Their concatenation \( X * Y \) satisfies:
-  </p>
+    <p>
+      \[ \mathcal{A}
+         = \frac{1}{2}\big(S(X)^{1,2} - S(X)^{2,1}\big) \]
+    </p>
 
-  <p>
-    \[ S(X * Y) = S(X) \otimes S(Y) \]
-  </p>
+    <p>
+      This captures curvature and orientation — true geometric information.
+    </p>
 
-  <p>
-    At the coefficient level:
-  </p>
+    <h2>Higher Levels</h2>
 
-  <p>
-    \[ S(X*Y)^{i_1,\dots,i_k}
-       = \sum_{m=0}^k
-         S(X)^{i_1,\dots,i_m}
-         S(Y)^{i_{m+1},\dots,i_k} \]
-  </p>
+    <p>
+      For a multi-index \( I = (i_1,\dots,i_k) \):
+    </p>
 
-  <p>
-    This property makes the signature computationally modular — long streams can be split, processed independently, and recombined exactly.
-  </p>
+    <p>
+      \[ S(X)^I_{a,b}
+         = \int_{a < t_1 < \dots < t_k < b}
+           dX^{i_1}_{t_1} \cdots dX^{i_k}_{t_k} \]
+    </p>
 
-  <h2>The Log-Signature</h2>
+    <p>
+      The full signature is:
+    </p>
 
-  <p>
-    The signature contains algebraic redundancy due to shuffle identities. The <strong>log-signature</strong> removes this redundancy and lives in the free Lie algebra.
-  </p>
+    <p>
+      \[ S(X)_{a,b}
+         = \left(1, S^1, \dots, S^d,
+           S^{1,1}, S^{1,2}, \dots \right) \]
+    </p>
 
-  <p>
-    Formally:
-  </p>
+    <h2>The Shuffle Product</h2>
 
-  <p>
-    \[ \log S(X)
-       = \sum_{n \ge 1}
-         \frac{(-1)^{n-1}}{n}
-         (S(X) - 1)^{\otimes n} \]
-  </p>
+    <p>
+      The signature satisfies:
+    </p>
 
-  <p>
-    At level 2, the antisymmetric component corresponds precisely to the Lie bracket
-  </p>
+    <p>
+      \[ S(X)^I S(X)^J
+         = \sum_{K \in I \shuffle J} S(X)^K \]
+    </p>
 
-  <p>
-    \[ [e_i, e_j]
-       = e_i \otimes e_j - e_j \otimes e_i \]
-  </p>
+    <p>
+      Example:
+    </p>
 
-  <p>
-    whose coefficient equals the Lévy area. Thus, the log-signature isolates intrinsic geometric invariants.
-  </p>
+    <p>
+      \[ S(X)^1 S(X)^2
+         = S(X)^{1,2} + S(X)^{2,1} \]
+    </p>
 
-  <h2>Discrete Data and Lead–Lag Embedding</h2>
+    <h2>Chen’s Identity</h2>
 
-  <p>
-    Real data is discrete. A common approach is piecewise linear interpolation, for which the signature of a straight segment \( v \) is
-  </p>
+    <p>
+      For concatenated paths:
+    </p>
 
-  <p>
-    \[ S = \exp(v) \]
-  </p>
+    <p>
+      \[ S(X * Y) = S(X) \otimes S(Y) \]
+    </p>
 
-  <p>
-    To capture quadratic variation from a one-dimensional stream, one uses the <strong>lead–lag transform</strong>, embedding \( X \) into \( \mathbb{R}^2 \).
-  </p>
+    <p>
+      Component-wise:
+    </p>
 
-  <p>
-    The second-level term then approximates:
-  </p>
+    <p>
+      \[ S(X*Y)^{i_1,\dots,i_k}
+         = \sum_{m=0}^k
+           S(X)^{i_1,\dots,i_m}
+           S(Y)^{i_{m+1},\dots,i_k} \]
+    </p>
 
-  <p>
-    \[ S^{1,2} \approx \sum_i (X_{t_i} - X_{t_{i-1}})^2 \]
-  </p>
+    <h2>The Log-Signature</h2>
 
-  <p>
-    Thus, volatility emerges as a geometric quantity — no manual feature engineering required.
-  </p>
+    <p>
+      \[ \log S(X)
+         = \sum_{n \ge 1}
+           \frac{(-1)^{n-1}}{n}
+           (S(X) - 1)^{\otimes n} \]
+    </p>
 
-  <h2>References</h2>
+    <p>
+      The level-2 antisymmetric part corresponds to:
+    </p>
 
-  <ol>
-    <li>
-      I. Chevyrev and A. Kormilitzin (2016).
-      <em>A Primer on the Signature Method in Machine Learning.</em>
-      arXiv:1603.03788.
-      <a href="https://arxiv.org/abs/1603.03788" target="_blank">
-        https://arxiv.org/abs/1603.03788
-      </a>
-    </li>
+    <p>
+      \[ [e_i, e_j]
+         = e_i \otimes e_j - e_j \otimes e_i \]
+    </p>
 
-    <li>
-      T. Lyons, M. Caruana, T. Lévy (2007).
-      <em>Differential Equations Driven by Rough Paths.</em>
-      Springer.
-    </li>
+    <h2>Lead–Lag Embedding</h2>
 
-    <li>
-      T. Lyons (1998).
-      <em>Differential equations driven by rough signals.</em>
-      Revista Matemática Iberoamericana.
-    </li>
-  </ol>
+    <p>
+      For discrete data, piecewise linear interpolation gives:
+    </p>
 
-</article>
+    <p>
+      \[ S = \exp(v) \]
+    </p>
+
+    <p>
+      The lead–lag transform embeds 1D data into \( \mathbb{R}^2 \), where:
+    </p>
+
+    <p>
+      \[ S^{1,2}
+         \approx \sum_i (X_{t_i} - X_{t_{i-1}})^2 \]
+    </p>
+
+    <h2>References</h2>
+
+    <ol>
+      <li>
+        I. Chevyrev and A. Kormilitzin (2016).
+        <em>A Primer on the Signature Method in Machine Learning.</em>
+        <a href="https://arxiv.org/abs/1603.03788" target="_blank">
+          arXiv:1603.03788
+        </a>
+      </li>
+
+      <li>
+        T. Lyons, M. Caruana, T. Lévy (2007).
+        <em>Differential Equations Driven by Rough Paths.</em>
+        Springer.
+      </li>
+
+      <li>
+        T. Lyons (1998).
+        <em>Differential equations driven by rough signals.</em>
+        Revista Matemática Iberoamericana.
+      </li>
+    </ol>
+
+  </article>
+</main>
+
+</body>
+</html>
