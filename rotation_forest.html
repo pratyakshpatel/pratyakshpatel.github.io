@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="javascript:history.back()" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>Rotating the Feature Space: A Gentle Journey into Rotation Forests</h1>
+
+<article>
+
+<p>13 March, 2026</p>
+
+<p>
+A few years ago I was playing around with tree-based machine learning models. Random forests, gradient boosted trees, extremely randomized trees – these models show up everywhere. They dominate Kaggle competitions, they run many financial prediction systems, and they quietly power a lot of industrial forecasting pipelines. For tabular data especially, tree ensembles are still some of the strongest models we have.
+</p>
+
+<p>
+But while experimenting with them, I noticed something slightly odd. Decision trees make decisions in a very particular way. They split data along one feature at a time. In mathematical terms, a typical decision rule inside a tree looks like:
+</p>
+
+<p>
+\[
+x_j > \tau
+\]
+</p>
+
+<p>
+Here \(x_j\) is one specific feature and \(\tau\) is a threshold. If the feature value is larger than the threshold the tree moves to one branch, otherwise it moves to another.
+</p>
+
+<p>
+Geometrically this means something very specific. If we imagine our data points living in a multi–dimensional space, every split made by a decision tree is aligned with one of the coordinate axes. In two dimensions this means the tree can only draw vertical or horizontal lines.
+</p>
+
+<p>
+At first this seems harmless. But it turns out this restriction can be surprisingly limiting.
+</p>
+
+<h2>A small geometric thought experiment</h2>
+
+<p>
+Imagine a simple classification problem with two variables \(x_1\) and \(x_2\). Suppose the true decision rule separating two classes is something like
+</p>
+
+<p>
+\[
+x_1 + x_2 > 0
+\]
+</p>
+
+<p>
+This rule creates a diagonal boundary across the plane. A linear classifier such as logistic regression would learn this instantly.
+</p>
+
+<p>
+But a decision tree cannot split on \(x_1 + x_2\). Instead it must approximate the diagonal boundary using many small axis-aligned rectangles. The resulting model may require many levels of splits to approximate something that is fundamentally very simple.
+</p>
+
+<p>
+This observation leads to a fascinating question.
+</p>
+
+<p>
+What if we rotated the coordinate system before training the trees?
+</p>
+
+<p>
+If we rotate the data by forty five degrees, that diagonal boundary suddenly becomes axis aligned. The tree can then capture it using a single split.
+</p>
+
+<p>
+This idea – rotating the feature space so trees can see different perspectives of the data – is the intuition behind an algorithm known as the Rotation Forest.
+</p>
+
+<h2>The birth of Rotation Forests</h2>
+
+<p>
+The Rotation Forest algorithm was introduced by Juan Rodriguez, Ludmila Kuncheva, and Carlos Alonso in a 2006 paper titled “Rotation Forest: A New Classifier Ensemble Method”. The motivation was to improve ensemble diversity while keeping each individual tree strong.
+</p>
+
+<p>
+Ensemble learning relies on a simple principle. Instead of training one model, we train many models and combine their predictions. If the models make different mistakes, their errors cancel out when averaged together.
+</p>
+
+<p>
+For an ensemble to work well two ingredients are needed. First, each model must be reasonably accurate on its own. Second, the models must be different from each other.
+</p>
+
+<p>
+Random forests achieve diversity by sampling different subsets of features and different subsets of training data. Each tree sees a slightly different version of the dataset.
+</p>
+
+<p>
+Rotation forests take a completely different approach.
+</p>
+
+<p>
+Instead of randomly removing features, they rotate the feature space using principal component analysis.
+</p>
+
+<h2>The core mechanism</h2>
+
+<p>
+Suppose our dataset contains \(d\) features. For example
+</p>
+
+<p>
+\[
+X = (x_1, x_2, \dots, x_d)
+\]
+</p>
+
+<p>
+The rotation forest algorithm proceeds through a sequence of steps for each tree in the ensemble.
+</p>
+
+<p>
+First, the set of features is randomly divided into several subsets. If we have ten features, we might create subsets such as
+</p>
+
+<p>
+\[
+\{x_1, x_4, x_7\}, \{x_2, x_5\}, \{x_3, x_6, x_8, x_9, x_{10}\}
+\]
+</p>
+
+<p>
+Each subset is treated independently. For each subset we apply principal component analysis.
+</p>
+
+<p>
+PCA transforms the original variables into new variables that are linear combinations of the originals. If a subset contains variables \(x_a\) and \(x_b\), PCA might produce new components such as
+</p>
+
+<p>
+\[
+z_1 = 0.8x_a + 0.6x_b
+\]
+</p>
+
+<p>
+\[
+z_2 = -0.6x_a + 0.8x_b
+\]
+</p>
+
+<p>
+These new variables represent rotated axes in the feature space.
+</p>
+
+<p>
+The PCA transformations from each subset are then combined into a single rotation matrix. If we denote this matrix by \(R\), the dataset is transformed as
+</p>
+
+<p>
+\[
+X_{rot} = X R
+\]
+</p>
+
+<p>
+The decision tree is then trained on this rotated dataset.
+</p>
+
+<p>
+For the next tree in the ensemble, a different random partition of features is chosen, leading to a different rotation matrix. As a result, every tree sees a unique orientation of the data.
+</p>
+
+<h2>Why rotations help</h2>
+
+<p>
+There are two main reasons why rotations can improve tree ensembles.
+</p>
+
+<p>
+The first reason is feature interaction. Many real world relationships involve combinations of variables rather than individual features. Rotations naturally produce linear combinations, allowing trees to split along directions that represent meaningful interactions.
+</p>
+
+<p>
+The second reason is ensemble diversity. Because each tree receives a differently rotated dataset, the models become less correlated with each other. Lower correlation among trees improves the effectiveness of averaging predictions.
+</p>
+
+<p>
+In fact, the original Rotation Forest paper reported strong improvements over random forests on many classification benchmarks.
+</p>
+
+<h2>A linear algebra perspective</h2>
+
+<p>
+To understand rotations more clearly it helps to look at the underlying linear algebra.
+</p>
+
+<p>
+A rotation in \(d\)-dimensional space can be represented by an orthogonal matrix \(R\) satisfying
+</p>
+
+<p>
+\[
+R^T R = I
+\]
+</p>
+
+<p>
+where \(I\) is the identity matrix.
+</p>
+
+<p>
+Multiplying a vector by this matrix rotates it while preserving distances and angles.
+</p>
+
+<p>
+In other words
+</p>
+
+<p>
+\[
+\|Rx\| = \|x\|
+\]
+</p>
+
+<p>
+This property means rotations do not distort the geometry of the data. They simply change the coordinate system.
+</p>
+
+<p>
+From the perspective of a decision tree however, the rotated data can look dramatically different. A boundary that was diagonal in the original coordinates may appear perfectly aligned in the rotated space.
+</p>
+
+<h2>The role of PCA</h2>
+
+<p>
+Rotation forests specifically use PCA to generate rotation matrices.
+</p>
+
+<p>
+PCA identifies directions in the data with maximum variance. If the covariance matrix of the data is
+</p>
+
+<p>
+\[
+\Sigma = \frac{1}{n} X^T X
+\]
+</p>
+
+<p>
+then PCA finds eigenvectors of this matrix. These eigenvectors form the principal components.
+</p>
+
+<p>
+Projecting data onto these components produces decorrelated features ordered by importance.
+</p>
+
+<p>
+The rotation forest algorithm keeps all principal components rather than discarding low variance ones. This ensures that information is not lost during the transformation.
+</p>
+
+<h2>Random rotations instead of PCA</h2>
+
+<p>
+While PCA is a natural way to generate rotations, it raises an interesting question.
+</p>
+
+<p>
+Is PCA actually necessary?
+</p>
+
+<p>
+After all, the primary purpose of the rotation step is to create diversity among trees. Perhaps any orthogonal transformation could achieve a similar effect.
+</p>
+
+<p>
+This leads to the idea of using completely random rotations.
+</p>
+
+<p>
+Instead of computing PCA, we generate a random orthogonal matrix \(R\) and transform the dataset using
+</p>
+
+<p>
+\[
+X_{rot} = X R
+\]
+</p>
+
+<p>
+Such matrices can be constructed by generating a random matrix and applying QR decomposition.
+</p>
+
+<p>
+Interestingly, random rotations preserve distances just like PCA rotations. From a geometric standpoint they are equally valid transformations.
+</p>
+
+<h2>Connections to random projection forests</h2>
+
+<p>
+Random rotations are closely related to another family of algorithms known as random projection forests.
+</p>
+
+<p>
+In these methods trees are allowed to split along random linear combinations of features. A split may look like
+</p>
+
+<p>
+\[
+w^T x > \tau
+\]
+</p>
+
+<p>
+where \(w\) is a randomly chosen direction.
+</p>
+
+<p>
+This effectively allows the tree to create oblique decision boundaries rather than axis-aligned ones.
+</p>
+
+<p>
+Both random projection forests and rotation forests attempt to overcome the geometric limitations of traditional decision trees.
+</p>
+
+<h2>An interesting connection to time series</h2>
+
+<p>
+The idea of rotations becomes particularly intriguing when applied to time series forecasting.
+</p>
+
+<p>
+Time series models often convert past observations into lag features such as
+</p>
+
+<p>
+\[
+(y_{t-1}, y_{t-2}, y_{t-3}, \dots, y_{t-k})
+\]
+</p>
+
+<p>
+These lag variables tend to be highly correlated. For example yesterday’s temperature is strongly related to today’s temperature.
+</p>
+
+<p>
+When PCA is applied to such lag features it often produces components that resemble meaningful temporal patterns. One component may capture overall trend, another may capture short term momentum, and another may capture sudden shocks.
+</p>
+
+<p>
+Rotation forests trained on these transformed features can potentially detect patterns that ordinary trees struggle to capture.
+</p>
+
+<h2>Open questions</h2>
+
+<p>
+Despite their elegance, rotation forests remain relatively underexplored compared to other ensemble methods.
+</p>
+
+<p>
+Many interesting questions remain open. Does PCA provide significant advantages over random rotations? How do rotations interact with temporal autocorrelation in time series data? Can rotation based ensembles approximate oblique decision trees more efficiently than existing methods?
+</p>
+
+<p>
+These questions suggest that the geometry of feature spaces may still hold many surprises.
+</p>
+
+<h2>References</h2>
+
+<p>
+Rodriguez, J. J., Kuncheva, L. I., & Alonso, C. J. (2006). Rotation Forest: A New Classifier Ensemble Method.
+</p>
+
+<p>
+Breiman, L. (2001). Random Forests.
+</p>
+
+<p>
+Ho, T. (1998). The Random Subspace Method for Constructing Decision Forests.
+</p>
+
+<p>
+Dasgupta, S., & Freund, Y. (2008). Random Projection Trees.
+</p>
+
+</article>
+</main>
+
+</body>
+</html>
