@@ -74,6 +74,37 @@
       margin-bottom: 1rem;
     }
 
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
     @media (max-width: 500px) {
       body {
         font-size: 1rem;
@@ -104,14 +135,36 @@
 
 <article>
 
-<p>13 March, 2026</p>
+<p class="meta">13 March, 2026</p>
 
 <p>
-A few years ago I was playing around with tree-based machine learning models. Random forests, gradient boosted trees, extremely randomized trees – these models show up everywhere. They dominate Kaggle competitions, they run many financial prediction systems, and they quietly power a lot of industrial forecasting pipelines. For tabular data especially, tree ensembles are still some of the strongest models we have.
+I should confess this right at the beginning: I have been obsessed with forests for a while now. Not the kind with pine trees and fog, though I love those too, but algorithmic forests—the kind that split, recurse, aggregate, vote, and somehow turn noisy features into surprisingly reliable decisions. A lot of this obsession became very concrete last year when I implemented <a href="https://ieeexplore.ieee.org/document/4781136" target="_blank">Isolation Forest</a> from scratch and published it in my project archive. If you have seen my <a href="projects_and_interests.html">Projects and Interests</a> page, you may remember the entry, and if you want the implementation directly, here is the repository link: <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/Isolation%20Forest" target="_blank">Isolation Forest project</a>.
 </p>
 
 <p>
-But while experimenting with them, I noticed something slightly odd. Decision trees make decisions in a very particular way. They split data along one feature at a time. In mathematical terms, a typical decision rule inside a tree looks like:
+Working on Isolation Forest changed the way I looked at decision trees. I had always treated forests as black-box workhorses: strong baselines, robust performance, practical defaults. But while writing that code, line by line, I started noticing their geometry. Every split was axis-aligned. Every partition was a rectangle in disguise. Every path length depended on repeated one-dimensional cuts. That realization stayed with me. And once a geometric idea enters my head, it starts whispering in the background until I chase it fully.
+</p>
+
+<p>
+This post is that chase.
+</p>
+
+<p>
+In this essay, I want to tell a long story: how I moved from ordinary random forests, to anomaly isolation, to the question of oblique structure, and eventually toward Rotation Forests. I will keep this first-person and candid because that is honestly how I think about models. I am not trying to present an encyclopedic survey. I am trying to document a journey: confusion, geometric intuition, linear algebra detours, coding realities, practical tradeoffs, and a bunch of open questions I still carry with me.
+</p>
+
+<h2>Where the obsession began</h2>
+
+<p>
+My earliest attraction to tree models was not mathematical elegance. It was emotional reliability. In classroom projects and side experiments, whenever a fancy neural network overfit or a linear baseline collapsed under nonlinearity, a random forest would quietly show up and produce a sensible answer. It became my fallback model. Then fallback became habit. Habit became preference. Preference became curiosity.
+</p>
+
+<p>
+During my Isolation Forest build, I spent a lot of time looking at synthetic point clouds: inlier blobs, uniform noise, sparse edge anomalies. Since I was implementing everything from scratch, I had to compute path lengths manually, control subsampling, and inspect the recursive tree logic step by step. I watched how random splits isolate obvious outliers quickly and take longer for dense central points. That was satisfying. But another thought appeared: the algorithm is random in split location, yes, but still axis-oriented in split direction. Why should the coordinate system be sacred?
+</p>
+
+<p>
+Once I noticed that, I started seeing the same limitation in ordinary decision forests. We often describe tree ensembles as highly nonlinear and flexible, which is true. But each individual split is still very rigid. A rule like
 </p>
 
 <p>
@@ -121,358 +174,1186 @@ x_j > \tau
 </p>
 
 <p>
-Here \(x_j\) is one specific feature and \(\tau\) is a threshold. If the feature value is larger than the threshold the tree moves to one branch, otherwise it moves to another.
+does one thing only: it cuts orthogonally to axis \(j\). If the true structure in data aligns with a different direction—say \(x_1 + x_2\), or \(2x_3 - x_7\), or some latent mixed mode—then a tree has to approximate that with staircase boundaries. It can do it, but not elegantly.
 </p>
 
 <p>
-Geometrically this means something very specific. If we imagine our data points living in a multi–dimensional space, every split made by a decision tree is aligned with one of the coordinate axes. In two dimensions this means the tree can only draw vertical or horizontal lines.
+That was the first time I started thinking about rotations not as an abstract linear algebra operation, but as a practical lens. Change the lens, and the same tree might suddenly become expressive in fewer levels.
 </p>
 
-<p>
-At first this seems harmless. But it turns out this restriction can be surprisingly limiting.
-</p>
-
-<h2>A small geometric thought experiment</h2>
+<h2>A geometric diary entry</h2>
 
 <p>
-Imagine a simple classification problem with two variables \(x_1\) and \(x_2\). Suppose the true decision rule separating two classes is something like
+I remember sketching this in my notebook with two axes, \(x_1\) and \(x_2\). Suppose the true class boundary is
 </p>
 
 <p>
 \[
-x_1 + x_2 > 0
+x_1 + x_2 = 0.
 \]
 </p>
 
 <p>
-This rule creates a diagonal boundary across the plane. A linear classifier such as logistic regression would learn this instantly.
+That is a clean diagonal line. A linear model learns it immediately. A tree, however, makes a checkerboard approximation unless it grows deeper and deeper. So the issue is not whether a tree can represent the boundary—it can—but whether it can represent it compactly and stably.
+</p>
+
+<div class="viz" role="img" aria-label="Axis-aligned splits versus rotated coordinate split">
+  <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="280" fill="#ffffff"/>
+    <text x="120" y="24" font-size="14" fill="#333">Original coordinates (tree staircase)</text>
+    <line x1="40" y1="240" x2="340" y2="240" stroke="#666" stroke-width="1.5"/>
+    <line x1="40" y1="240" x2="40" y2="40" stroke="#666" stroke-width="1.5"/>
+    <line x1="40" y1="220" x2="80" y2="220" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="80" y1="220" x2="80" y2="180" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="80" y1="180" x2="130" y2="180" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="130" y1="180" x2="130" y2="140" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="130" y1="140" x2="180" y2="140" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="180" y1="140" x2="180" y2="100" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="180" y1="100" x2="230" y2="100" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="230" y1="100" x2="230" y2="60" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="230" y1="60" x2="300" y2="60" stroke="#2d6cdf" stroke-width="2"/>
+    <line x1="50" y1="230" x2="300" y2="60" stroke="#e05252" stroke-dasharray="6 4" stroke-width="2"/>
+    <text x="210" y="40" font-size="12" fill="#e05252">true boundary</text>
+
+    <text x="500" y="24" font-size="14" fill="#333">Rotated coordinates (single split)</text>
+    <line x1="420" y1="240" x2="720" y2="240" stroke="#666" stroke-width="1.5"/>
+    <line x1="420" y1="240" x2="420" y2="40" stroke="#666" stroke-width="1.5"/>
+    <line x1="450" y1="235" x2="690" y2="75" stroke="#888" stroke-width="1.5"/>
+    <line x1="450" y1="75" x2="690" y2="235" stroke="#888" stroke-width="1.5"/>
+    <line x1="560" y1="240" x2="560" y2="40" stroke="#2d6cdf" stroke-width="2.5"/>
+    <text x="572" y="145" font-size="12" fill="#2d6cdf">one split</text>
+  </svg>
+  <p class="viz-caption">Figure 1. Same data, different coordinate systems. In the original basis, a diagonal rule becomes a staircase for axis-aligned trees; after rotation, the same structure can be captured by one clean threshold.</p>
+</div>
+
+<p>
+If I rotate the coordinate system by \(45^{\circ}\), that diagonal boundary aligns with an axis in the rotated basis. Suddenly, a split that looked impossible in one frame becomes trivial in another. That cognitive switch—same data, different frame—was probably the exact moment I became interested in Rotation Forests.
+</p>
+
+<h2>From random forests to rotation forests</h2>
+
+<p>
+When I first read the original <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1" target="_blank">Rotation Forest paper by Rodriguez, Kuncheva, and Alonso (2006)</a>, what struck me was not just the mechanism but the philosophy: keep base learners strong while also increasing ensemble diversity. Random forests typically induce diversity by bagging samples and subsampling features. Rotation forests use a different trick: transform the feature space itself so each tree sees a different orientation.
 </p>
 
 <p>
-But a decision tree cannot split on \(x_1 + x_2\). Instead it must approximate the diagonal boundary using many small axis-aligned rectangles. The resulting model may require many levels of splits to approximate something that is fundamentally very simple.
-</p>
-
-<p>
-This observation leads to a fascinating question.
-</p>
-
-<p>
-What if we rotated the coordinate system before training the trees?
-</p>
-
-<p>
-If we rotate the data by forty five degrees, that diagonal boundary suddenly becomes axis aligned. The tree can then capture it using a single split.
-</p>
-
-<p>
-This idea – rotating the feature space so trees can see different perspectives of the data – is the intuition behind an algorithm known as the Rotation Forest.
-</p>
-
-<h2>The birth of Rotation Forests</h2>
-
-<p>
-The Rotation Forest algorithm was introduced by Juan Rodriguez, Ludmila Kuncheva, and Carlos Alonso in a 2006 paper titled “Rotation Forest: A New Classifier Ensemble Method”. The motivation was to improve ensemble diversity while keeping each individual tree strong.
-</p>
-
-<p>
-Ensemble learning relies on a simple principle. Instead of training one model, we train many models and combine their predictions. If the models make different mistakes, their errors cancel out when averaged together.
-</p>
-
-<p>
-For an ensemble to work well two ingredients are needed. First, each model must be reasonably accurate on its own. Second, the models must be different from each other.
-</p>
-
-<p>
-Random forests achieve diversity by sampling different subsets of features and different subsets of training data. Each tree sees a slightly different version of the dataset.
-</p>
-
-<p>
-Rotation forests take a completely different approach.
-</p>
-
-<p>
-Instead of randomly removing features, they rotate the feature space using principal component analysis.
-</p>
-
-<h2>The core mechanism</h2>
-
-<p>
-Suppose our dataset contains \(d\) features. For example
+Concretely, for each tree, features are partitioned into subsets. PCA is run independently on each subset. The resulting component matrices are stitched together into a block-diagonal style transformation, then reassembled (with permutation) into a global rotation matrix \(R\). The transformed dataset is
 </p>
 
 <p>
 \[
-X = (x_1, x_2, \dots, x_d)
+X_{\text{rot}} = X R.
 \]
 </p>
 
 <p>
-The rotation forest algorithm proceeds through a sequence of steps for each tree in the ensemble.
+One detail I appreciate deeply: classical Rotation Forest usually keeps all principal components from each subset. That means we are rotating more than compressing; preserving information is part of the design. This is a subtle but important distinction from PCA as dimensionality reduction.
 </p>
 
 <p>
-First, the set of features is randomly divided into several subsets. If we have ten features, we might create subsets such as
+In my head, this feels like giving each tree a different pair of glasses. Not blurry glasses, not randomly deleted features—just a different camera angle.
+</p>
+
+<h2>Linear algebra, but with intuition</h2>
+
+<p>
+I like to remind myself that a rotation matrix is orthogonal:
 </p>
 
 <p>
 \[
-\{x_1, x_4, x_7\}, \{x_2, x_5\}, \{x_3, x_6, x_8, x_9, x_{10}\}
+R^T R = I.
 \]
 </p>
 
 <p>
-Each subset is treated independently. For each subset we apply principal component analysis.
-</p>
-
-<p>
-PCA transforms the original variables into new variables that are linear combinations of the originals. If a subset contains variables \(x_a\) and \(x_b\), PCA might produce new components such as
+So for any vector \(x\), norms are preserved:
 </p>
 
 <p>
 \[
-z_1 = 0.8x_a + 0.6x_b
+\|Rx\|_2 = \|x\|_2.
 \]
+</p>
+
+<p>
+This property matters because it means rotations do not warp distances; they only re-express coordinates. If two points are close before rotation, they remain close after rotation. If one point is an outlier in Euclidean terms, it stays an outlier in Euclidean terms. The geometry survives; the axis perspective changes.
+</p>
+
+<div class="viz" role="img" aria-label="Rotation matrix acting on vectors">
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#333"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="300" fill="#fff"/>
+    <text x="62" y="26" font-size="14" fill="#333">Vector before and after rotation</text>
+    <line x1="80" y1="250" x2="350" y2="250" stroke="#777"/>
+    <line x1="80" y1="250" x2="80" y2="50" stroke="#777"/>
+    <line x1="450" y1="250" x2="720" y2="250" stroke="#777"/>
+    <line x1="450" y1="250" x2="450" y2="50" stroke="#777"/>
+    <line x1="80" y1="250" x2="280" y2="130" stroke="#2d6cdf" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="286" y="128" font-size="12" fill="#2d6cdf">x</text>
+    <line x1="450" y1="250" x2="590" y2="85" stroke="#2d6cdf" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="596" y="84" font-size="12" fill="#2d6cdf">Rx</text>
+    <text x="360" y="165" font-size="26" fill="#444">R</text>
+    <line x1="330" y1="165" x2="420" y2="165" stroke="#444" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <circle cx="280" cy="130" r="66" fill="none" stroke="#b9c6ea" stroke-dasharray="5 4"/>
+    <circle cx="590" cy="85" r="66" fill="none" stroke="#b9c6ea" stroke-dasharray="5 4"/>
+    <text x="104" y="270" font-size="12" fill="#666">Original basis</text>
+    <text x="476" y="270" font-size="12" fill="#666">Rotated basis</text>
+  </svg>
+  <p class="viz-caption">Figure 2. Rotation preserves vector length and angles globally, but changes coordinate representation. Trees care about coordinates, so this change is algorithmically meaningful.</p>
+</div>
+
+<p>
+I used to underestimate how much this matters for trees specifically. Linear models are already oblique by default because they use weighted sums. Trees are not. Their expressive power emerges from composition of simple axis cuts. So any mechanism that changes what “axis” means changes what trees find easy.
+</p>
+
+<h2>Why this connects to my Isolation Forest phase</h2>
+
+<p>
+There is an emotional continuity between my Isolation Forest implementation and this Rotation Forest curiosity. Isolation Forest taught me to respect path geometry: anomalies are points that become isolated under recursive partitioning with fewer splits. Rotation Forest asks a related but distinct question: can we orient partitions so that structure appears earlier, cleaner, and with less depth?
+</p>
+
+<p>
+In anomaly detection, axis alignment can sometimes isolate odd points quickly anyway, so life is good. But in nuanced class boundaries and interacting signals, axis alignment can force forests to spend too much split budget approximating linear combinations. Rotation gives us a chance to spend that budget more efficiently.
+</p>
+
+<p>
+I do not see this as “rotation forests are better than random forests” in all settings. I see it as a geometric dial. If feature interactions are strong and orientation-sensitive, rotations may help a lot. If true structure is already axis-friendly, gains may be modest. This is why I like understanding algorithms as tools in a kit, not as ranked identities.
+</p>
+
+<h2>Mechanism in plain language</h2>
+
+<p>
+When I explain Rotation Forest to friends, I avoid matrix-heavy wording first. I say: imagine we have ten features and want one tree. We randomly split the ten features into small groups. For each group, we compute a local PCA basis. Then we replace original coordinates with coordinates measured in those local principal directions. We do this for all groups and combine the transformed columns. That transformed table trains one tree.
+</p>
+
+<p>
+For the second tree, we reshuffle groups and repeat. New grouping, new local PCA bases, new global orientation. Repeat for \(T\) trees. Finally average votes/probabilities.
+</p>
+
+<p>
+If I write this more formally, for tree \(t\):
 </p>
 
 <p>
 \[
-z_2 = -0.6x_a + 0.8x_b
+\mathcal{F} = \{1,2,\dots,d\}, \qquad
+\mathcal{F} = \bigsqcup_{k=1}^{K} S_k^{(t)}
 \]
 </p>
 
 <p>
-These new variables represent rotated axes in the feature space.
-</p>
-
-<p>
-The PCA transformations from each subset are then combined into a single rotation matrix. If we denote this matrix by \(R\), the dataset is transformed as
+Compute PCA basis \(P_k^{(t)}\) on feature subset \(S_k^{(t)}\), then compose
 </p>
 
 <p>
 \[
-X_{rot} = X R
+R^{(t)} = \text{assemble}(P_1^{(t)}, \dots, P_K^{(t)}), \qquad
+X^{(t)} = X R^{(t)}.
 \]
 </p>
 
 <p>
-The decision tree is then trained on this rotated dataset.
-</p>
-
-<p>
-For the next tree in the ensemble, a different random partition of features is chosen, leading to a different rotation matrix. As a result, every tree sees a unique orientation of the data.
-</p>
-
-<h2>Why rotations help</h2>
-
-<p>
-There are two main reasons why rotations can improve tree ensembles.
-</p>
-
-<p>
-The first reason is feature interaction. Many real world relationships involve combinations of variables rather than individual features. Rotations naturally produce linear combinations, allowing trees to split along directions that represent meaningful interactions.
-</p>
-
-<p>
-The second reason is ensemble diversity. Because each tree receives a differently rotated dataset, the models become less correlated with each other. Lower correlation among trees improves the effectiveness of averaging predictions.
-</p>
-
-<p>
-In fact, the original Rotation Forest paper reported strong improvements over random forests on many classification benchmarks.
-</p>
-
-<h2>A linear algebra perspective</h2>
-
-<p>
-To understand rotations more clearly it helps to look at the underlying linear algebra.
-</p>
-
-<p>
-A rotation in \(d\)-dimensional space can be represented by an orthogonal matrix \(R\) satisfying
+Train tree \(h_t\) on \(X^{(t)}\). Ensemble prediction is
 </p>
 
 <p>
 \[
-R^T R = I
+\hat{y} = \text{vote}\big(h_1(XR^{(1)}),\dots,h_T(XR^{(T)})\big).
 \]
 </p>
 
 <p>
-where \(I\) is the identity matrix.
+To me, the beauty is that base learners remain plain decision trees. The sophistication lives in data view generation.
+</p>
+
+<h2>Visualization of the pipeline</h2>
+
+<div class="viz" role="img" aria-label="Rotation forest pipeline from feature partition to transformed trees">
+  <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="340" fill="#fff"/>
+    <rect x="30" y="40" width="120" height="60" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="48" y="75" font-size="12" fill="#333">Original X</text>
+
+    <rect x="190" y="20" width="160" height="40" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="207" y="45" font-size="12" fill="#333">Random feature partition</text>
+    <rect x="190" y="80" width="160" height="40" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="222" y="106" font-size="12" fill="#333">PCA per subset</text>
+
+    <rect x="390" y="50" width="150" height="60" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="422" y="85" font-size="12" fill="#333">Build R^(t)</text>
+
+    <rect x="575" y="40" width="140" height="60" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="596" y="74" font-size="12" fill="#333">X R^(t)</text>
+
+    <rect x="575" y="140" width="140" height="60" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="614" y="176" font-size="12" fill="#333">Tree t</text>
+
+    <rect x="575" y="240" width="140" height="60" fill="#f8f8f8" stroke="#cfcfcf"/>
+    <text x="607" y="275" font-size="12" fill="#333">Vote/Average</text>
+
+    <line x1="150" y1="70" x2="190" y2="40" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="150" y1="70" x2="190" y2="100" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="350" y1="40" x2="390" y2="80" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="350" y1="100" x2="390" y2="80" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="540" y1="80" x2="575" y2="70" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="645" y1="100" x2="645" y2="140" stroke="#444" marker-end="url(#arr2)"/>
+    <line x1="645" y1="200" x2="645" y2="240" stroke="#444" marker-end="url(#arr2)"/>
+
+    <text x="30" y="325" font-size="12" fill="#666">Repeat this pipeline with a different random partition to create each tree in the ensemble.</text>
+  </svg>
+  <p class="viz-caption">Figure 3. Rotation Forest as a view-generation pipeline: random partitioning + local PCA + tree on transformed coordinates, repeated per tree.</p>
+</div>
+
+<h2>What I learned while implementing related systems</h2>
+
+<p>
+Even though this page is about Rotation Forests, my implementation instincts were shaped by writing models from scratch. One of the biggest practical lessons from my earlier forest work is that elegant math can hide messy engineering constraints: numerical stability, reproducibility, and data preprocessing can dominate outcomes.
 </p>
 
 <p>
-Multiplying a vector by this matrix rotates it while preserving distances and angles.
+For example, when applying PCA per subset, covariance conditioning matters. If subset size is tiny or feature variance is near-degenerate, eigenvectors can become unstable. In practice, centering and optional standardization are essential. A small regularization term in covariance (effectively \(\Sigma + \lambda I\)) can prevent bad surprises in edge cases.
 </p>
 
 <p>
-In other words
+Another practical issue is dataset leakage. If one performs global preprocessing carelessly before train/validation split, rotation steps can leak information from validation into train. The safe path is straightforward: fit transformations on training folds only, then apply to held-out folds.
+</p>
+
+<p>
+I also care about deterministic reproducibility. Because rotations rely on random feature partitions (and sometimes bootstrap samples), one should track random seeds at every stage. I have made this mistake before: setting one seed at experiment start but forgetting that downstream numpy calls in multiple functions consume random state unpredictably. Better to use scoped random generators.
+</p>
+
+<h2>A narrative detour: the day I trusted geometry more than metrics</h2>
+
+<p>
+There was a day in late evening when I had two experiments with nearly identical AUC. One used a conventional random forest baseline. The other used a rotation-inspired preprocessing route before a tree ensemble. Numerically they looked tied. If I had stopped there, I would have said “no major difference.”
+</p>
+
+<p>
+But then I plotted intermediate decision regions in 2D toy projections and inspected split depth distributions. The rotated setup reached useful purity with shallower average depth in some folds. That suggested a representational advantage even when top-level metric differences were small. This was a personal reminder: scalar benchmark metrics are not the whole story. Model geometry can reveal why two similar scores may behave differently under shift.
+</p>
+
+<p>
+I still do not claim universal superiority for rotations. I claim that they provide a principled way to align tree simplicity with interaction-heavy signal structure.
+</p>
+
+<h2>PCA rotations versus random rotations</h2>
+
+<p>
+A question I keep revisiting is whether PCA is strictly necessary for good rotations. Mathematically, any orthogonal matrix rotates coordinates and preserves distances. So one can generate a random matrix \(A\), perform QR decomposition \(A = QR\), and use \(Q\) as a random orthogonal transform.
 </p>
 
 <p>
 \[
-\|Rx\| = \|x\|
+A = QR, \qquad Q^TQ=I.
 \]
 </p>
 
 <p>
-This property means rotations do not distort the geometry of the data. They simply change the coordinate system.
+PCA-based rotation has a data-adaptive flavor: components align with variance directions. Random orthogonal rotations are data-agnostic: cheaper, simpler, and often surprisingly competitive when the goal is mostly decorrelation and diversity.
 </p>
 
 <p>
-From the perspective of a decision tree however, the rotated data can look dramatically different. A boundary that was diagonal in the original coordinates may appear perfectly aligned in the rotated space.
-</p>
-
-<h2>The role of PCA</h2>
-
-<p>
-Rotation forests specifically use PCA to generate rotation matrices.
+In my own thinking, I frame the choice this way:
 </p>
 
 <p>
-PCA identifies directions in the data with maximum variance. If the covariance matrix of the data is
+If I believe dominant covariance directions carry signal, PCA rotations are attractive.
+</p>
+
+<p>
+If I mostly want stochastic diversity with low overhead and fewer assumptions, random rotations become attractive.
+</p>
+
+<p>
+If computational budget is tight and feature count is high, random rotations can scale better because repeated subset-wise eigendecompositions are nontrivial.
+</p>
+
+<p>
+This is why I called this post “Rotation Forest with a twist.” The twist, for me, is not merely replacing PCA. The twist is treating orientation as a first-class hyperparameter, not an afterthought.
+</p>
+
+<h2>Connection to random projection forests and oblique trees</h2>
+
+<p>
+Rotation Forests are cousins of methods that directly enable oblique splits, such as random projection trees and related oblique decision forests. In those systems, each split may take the form
 </p>
 
 <p>
 \[
-\Sigma = \frac{1}{n} X^T X
+w^Tx > \tau,
 \]
 </p>
 
 <p>
-then PCA finds eigenvectors of this matrix. These eigenvectors form the principal components.
+with \(w\) not constrained to standard basis vectors. Conceptually, this lets one split capture mixed-feature structure immediately.
 </p>
 
 <p>
-Projecting data onto these components produces decorrelated features ordered by importance.
+I see an interesting spectrum here:
 </p>
 
 <p>
-The rotation forest algorithm keeps all principal components rather than discarding low variance ones. This ensures that information is not lost during the transformation.
-</p>
-
-<h2>Random rotations instead of PCA</h2>
-
-<p>
-While PCA is a natural way to generate rotations, it raises an interesting question.
+At one end, classic trees with axis splits in original coordinates.
 </p>
 
 <p>
-Is PCA actually necessary?
+In the middle, axis splits after global or local rotations (Rotation Forest style).
 </p>
 
 <p>
-After all, the primary purpose of the rotation step is to create diversity among trees. Perhaps any orthogonal transformation could achieve a similar effect.
+At the other end, fully oblique split optimization per node.
 </p>
 
 <p>
-This leads to the idea of using completely random rotations.
+Moving rightward usually increases expressivity and optimization complexity together. Rotation methods sit in a sweet spot: better directional flexibility than plain trees, while preserving simple node optimization.
 </p>
 
+<h2>Time series features made me care even more</h2>
+
 <p>
-Instead of computing PCA, we generate a random orthogonal matrix \(R\) and transform the dataset using
+A big reason I keep returning to this topic is time series tabularization. In forecasting tasks, we often construct lag features:
 </p>
 
 <p>
 \[
-X_{rot} = X R
+(y_{t-1}, y_{t-2}, \dots, y_{t-k}).
 \]
 </p>
 
 <p>
-Such matrices can be constructed by generating a random matrix and applying QR decomposition.
+These lags are strongly correlated. Trees can use them, but correlated coordinates sometimes produce redundant split patterns. PCA or rotation-based transforms can reveal latent temporal modes: level, slope, short-cycle oscillation, shock response. Even if labels remain noisy, the transformed basis can make split behavior less brittle.
 </p>
 
 <p>
-Interestingly, random rotations preserve distances just like PCA rotations. From a geometric standpoint they are equally valid transformations.
-</p>
-
-<h2>Connections to random projection forests</h2>
-
-<p>
-Random rotations are closely related to another family of algorithms known as random projection forests.
+I saw echoes of this idea while working on forecasting projects in my archive, where feature engineering quality often mattered more than model class. Rotation is, in a way, feature engineering by coordinate perspective.
 </p>
 
 <p>
-In these methods trees are allowed to split along random linear combinations of features. A split may look like
+One idea I still want to investigate deeply is hybrid pipelines where lag blocks are rotated independently, then merged with exogenous variables left in original coordinates. It feels like a pragmatic compromise between interpretability and representational flexibility.
+</p>
+
+<h2>Interpretability: what we gain, what we lose</h2>
+
+<p>
+I cannot discuss rotated models without acknowledging interpretability tradeoffs. Plain decision trees are easy to explain partly because splits map to original features directly: “if age > 42,” “if pressure < 0.7,” and so on. Rotated features mix variables, so split semantics become linear combinations. You may end up with conditions like
 </p>
 
 <p>
 \[
-w^T x > \tau
+0.61x_2 - 0.37x_5 + 0.70x_8 > \tau.
 \]
 </p>
 
 <p>
-where \(w\) is a randomly chosen direction.
+Mathematically meaningful, yes. Business-friendly, not always.
 </p>
 
 <p>
-This effectively allows the tree to create oblique decision boundaries rather than axis-aligned ones.
+My way of coping with this is layered explanation. At model level, I explain that each tree sees a rotated basis to capture interactions. At feature level, I map influential components back to original loadings. At decision level, I show representative paths rather than pretending every node is directly interpretable.
 </p>
 
 <p>
-Both random projection forests and rotation forests attempt to overcome the geometric limitations of traditional decision trees.
+If strict per-rule interpretability is the top requirement, I would choose simpler models. If predictive robustness under interaction is the top requirement, I am more willing to accept rotated semantics.
 </p>
 
-<h2>An interesting connection to time series</h2>
+<h2>A compact pseudo-workflow I keep in mind</h2>
 
 <p>
-The idea of rotations becomes particularly intriguing when applied to time series forecasting.
+Whenever I prototype rotation-based ensembles, I keep the following checklist:
 </p>
 
 <p>
-Time series models often convert past observations into lag features such as
+1) Split train/validation first.<br/>
+2) Standardize numeric features (carefully, fold-safe).<br/>
+3) For each tree, sample a feature partition.<br/>
+4) Fit PCA on each subset using only training fold.<br/>
+5) Build rotated matrix and train tree.<br/>
+6) Aggregate predictions across trees.<br/>
+7) Track calibration, not only rank metrics.<br/>
+8) Stress-test under mild feature shift.
+</p>
+
+<p>
+This process is not novel, but it protects me from common experimental illusions.
+</p>
+
+<h2>What I still find open and exciting</h2>
+
+<p>
+I keep circling back to a few unresolved questions. Is PCA rotation truly better than random orthogonal rotation across broad tabular benchmarks, or does its advantage concentrate in specific covariance regimes? How sensitive are gains to feature subset size \(K\), tree depth, and sample size? Can we design adaptive partitioning strategies where feature grouping is informed by mutual information rather than pure randomness? And in time-dependent tabular settings, can we combine lag-block rotations with monotonicity constraints for stable extrapolation?
+</p>
+
+<p>
+These questions are not rhetorical to me. They are the next experiments I want to run.
+</p>
+
+<p>
+Another open thread is bridging anomaly detection and supervised rotation ensembles. Isolation Forest gives anomaly scores from path length. Rotation Forest gives classification/regression predictions under transformed coordinates. I suspect there is a useful middle ground where rotated isolation-style structures may improve anomaly sensitivity for interaction-shaped anomalies.
+</p>
+
+<h2>A personal closing note</h2>
+
+<p>
+When I started coding tree models, I thought of them as practical tools. Then I thought of them as geometric objects. Now I think of them as both: practical geometry.
+</p>
+
+<p>
+I opened this post by saying I am obsessed with forests. That is still true, maybe more than ever. But the obsession is no longer about leaderboard performance alone. It is about representation: how coordinate choices influence simplicity, how ensembles balance strength and diversity, and how a small mathematical operation like rotation can quietly change what a model is capable of seeing.
+</p>
+
+<p>
+If you are also curious about forests, and especially if you enjoy building things from scratch, I genuinely recommend implementing one variation yourself. Nothing beats watching the geometry unfold in your own code.
+</p>
+
+<p>
+I am planning follow-up notes where I compare PCA rotations, random orthogonal rotations, and plain random forest baselines on the same curated datasets, with identical split criteria and transparent runtime accounting. If those experiments are interesting enough, I will publish them as a continuation.
+</p>
+
+<p>
+Until then, this is where I am: still rotating feature spaces in my head, still looking for the cleanest split, still convinced that model design gets better when we respect geometry.
+</p>
+
+<h2>A worked toy example I keep returning to</h2>
+
+<p>
+When I want to test whether I really understand an algorithm, I force myself to walk through a tiny dataset manually. No autopilot, no abstraction, no hand-waving. Just numbers. Rotation Forest becomes much less mysterious when I do that.
+</p>
+
+<p>
+Imagine I have four features \((x_1, x_2, x_3, x_4)\) and a binary label. Suppose I partition features into two subsets: \(S_1 = \{x_1, x_3\}\) and \(S_2 = \{x_2, x_4\}\). For each subset, I compute PCA on the training fold. Let the learned local rotation blocks be
 </p>
 
 <p>
 \[
-(y_{t-1}, y_{t-2}, y_{t-3}, \dots, y_{t-k})
+P_1 =
+\begin{bmatrix}
+0.82 & -0.57 \\
+0.57 & 0.82
+\end{bmatrix},
+\qquad
+P_2 =
+\begin{bmatrix}
+0.91 & -0.41 \\
+0.41 & 0.91
+\end{bmatrix}.
 \]
 </p>
 
 <p>
-These lag variables tend to be highly correlated. For example yesterday’s temperature is strongly related to today’s temperature.
+Then I embed these as blocks in a full \(4\times4\) transform, respecting feature ordering. If my final assembled matrix is \(R\), each training point \(x\in\mathbb{R}^4\) becomes \(xR\). I then train a plain decision tree on these transformed vectors. Nothing exotic at node level: same impurity criterion, same threshold search, same stopping rules.
 </p>
 
 <p>
-When PCA is applied to such lag features it often produces components that resemble meaningful temporal patterns. One component may capture overall trend, another may capture short term momentum, and another may capture sudden shocks.
+Now I repeat the process for tree two, but with a different partition: \(S_1' = \{x_1, x_2\}\), \(S_2' = \{x_3, x_4\}\). New PCA blocks, new matrix \(R'\), new coordinate frame, new tree. What fascinates me is that each tree remains individually competent because information is preserved, yet trees become naturally decorrelated because each frame emphasizes different mixed directions.
 </p>
 
 <p>
-Rotation forests trained on these transformed features can potentially detect patterns that ordinary trees struggle to capture.
-</p>
-
-<h2>Open questions</h2>
-
-<p>
-Despite their elegance, rotation forests remain relatively underexplored compared to other ensemble methods.
+In this tiny setup, if one class is largely separated by \(x_1 + x_3\) and the other by \(x_2 - x_4\), at least some trees will get lucky and align with one relation early. Across an ensemble, that luck aggregates into reliability.
 </p>
 
 <p>
-Many interesting questions remain open. Does PCA provide significant advantages over random rotations? How do rotations interact with temporal autocorrelation in time series data? Can rotation based ensembles approximate oblique decision trees more efficiently than existing methods?
+This manual walk-through also helps me see where things can go wrong. If a subset has almost no variance, PCA orientation can become noisy. If subset size is too large relative to sample count, covariance estimation can get unstable. If partitions are too fine, each local PCA may capture little meaningful structure. If partitions are too coarse, you may pay heavy compute for limited diversity gain. The algorithm works best when these dials are set with care.
+</p>
+
+<h2>On choosing subset sizes: a practical meditation</h2>
+
+<p>
+I used to think subset sizing in Rotation Forest was a minor implementation detail. It is not. It quietly controls bias, variance, correlation, and runtime all at once.
 </p>
 
 <p>
-These questions suggest that the geometry of feature spaces may still hold many surprises.
-</p>
-
-<h2>References</h2>
-
-<p>
-Rodriguez, J. J., Kuncheva, L. I., & Alonso, C. J. (2006). Rotation Forest: A New Classifier Ensemble Method.
+When subset size is very small, each local PCA captures only narrow interactions. Transformations are cheap and diverse, but perhaps too myopic. Trees stay close to axis behavior with slight tilts. When subset size is very large, each PCA sees broad global covariance. Rotations may become powerful but expensive, and tree diversity can reduce if many trees end up sharing similarly dominant directions.
 </p>
 
 <p>
-Breiman, L. (2001). Random Forests.
+What I have started to prefer is a middle regime: subsets large enough to encode meaningful interactions but small enough to keep block transforms distinct and computationally friendly. If feature space is heterogeneous—say numerical sensor blocks, engineered ratios, and periodic indicators—I sometimes align subsets with those semantic groups rather than pure random slicing. Strictly speaking, that departs from canonical randomness, but in practice it can improve stability without killing diversity.
 </p>
 
 <p>
-Ho, T. (1998). The Random Subspace Method for Constructing Decision Forests.
+This is one of those areas where algorithm papers give a scaffold, but implementation intuition does the real work. I no longer expect one universal subset rule. I expect tradeoffs and tune accordingly.
+</p>
+
+<h2>Bias, variance, and correlation in my own words</h2>
+
+<p>
+There is a sentence I revisit often when thinking about ensembles: we do not only want accurate members; we want members that fail differently. For years I repeated that sentence without fully feeling it. Rotation methods made me feel it.
 </p>
 
 <p>
-Dasgupta, S., & Freund, Y. (2008). Random Projection Trees.
+If I write a rough decomposition mindset for ensemble mean squared error, correlation between base predictors appears as a tax. Lower correlation helps averaging. Bagging lowers variance by perturbing samples. Feature subsampling lowers correlation by changing candidate split sets. Rotations lower correlation by changing the coordinate system itself.
 </p>
+
+<p>
+To be precise, assume base learners have similar variance \(\sigma^2\) and average pairwise correlation \(\rho\). Variance of their average scales like
+</p>
+
+<p>
+\[
+\mathrm{Var}(\bar{h}) \approx \rho\sigma^2 + \frac{1-\rho}{T}\sigma^2.
+\]
+</p>
+
+<p>
+I do not treat this formula as exact gospel in every finite regime, but as intuition it is invaluable: when \(T\) grows, the \((1-\rho)/T\) term shrinks, but the \(\rho\sigma^2\) floor remains. So lowering correlation is structurally important.
+</p>
+
+<p>
+Rotation Forest is compelling because it can lower correlation without making each tree weak. In fact, each tree can remain quite strong due to full-information transformed inputs. That combination is rare and useful.
+</p>
+
+<h2>My implementation sketch for a clean prototype</h2>
+
+<p>
+If I were to implement a research-grade prototype this week, this is how I would structure it in code architecture terms:
+</p>
+
+<p>
+First, I would define a transformer object that takes feature partitions and stores per-subset centering means and PCA bases. This object exposes fit and transform methods and guarantees no data leakage by design.
+</p>
+
+<p>
+Second, I would define a tree-wrapper estimator that binds one fitted transformer to one tree model. Prediction flows: transform incoming sample using that estimator’s transformer, then call tree predict_proba.
+</p>
+
+<p>
+Third, I would define an ensemble manager that creates \(T\) wrappers with independent RNG seeds, trains them in parallel where possible, and aggregates predictions with optional calibration.
+</p>
+
+<p>
+Fourth, I would log metadata per tree: partition pattern, explained variance ratios per subset, training depth distribution, node counts, and OOB score when applicable. These diagnostics become extremely valuable when performance fluctuates.
+</p>
+
+<p>
+Fifth, I would add a debug mode that freezes one sample and traces its transformed coordinates and decision paths across trees. This is a small feature with huge interpretability payoff.
+</p>
+
+<p>
+Even before benchmarking, such architecture enforces conceptual clarity. I learned this from writing algorithms from scratch in earlier projects: if code structure mirrors math structure, bugs surface faster.
+</p>
+
+<h2>The reproducibility rules I now refuse to break</h2>
+
+<p>
+Past mistakes taught me humility. I once celebrated a gain that vanished the next day because random seeds were not properly controlled and cross-validation folds were regenerated differently. Since then, I follow strict rules when evaluating rotation-based methods.
+</p>
+
+<p>
+Rule one: fixed split objects, saved to disk if needed.
+</p>
+
+<p>
+Rule two: independent RNG streams for partition sampling, bootstrapping, and any random rotations.
+</p>
+
+<p>
+Rule three: repeated CV with confidence intervals, not single-run claims.
+</p>
+
+<p>
+Rule four: include runtime, memory, and fit-time variance in results tables.
+</p>
+
+<p>
+Rule five: stress under mild feature drift and missingness patterns, because tabular production data drifts quietly.
+</p>
+
+<p>
+If an improvement survives all five, I trust it. If not, I treat it as exploratory curiosity.
+</p>
+
+<h2>A long reflection on visuals and model intuition</h2>
+
+<p>
+I am convinced that visualization is not decoration in machine learning. It is a debugging instrument. During my forest experiments, plotting transformed axes and approximate decision slices often gave me more insight than another decimal in AUC. When I see staircase boundaries become cleaner under rotation, I can reason about why depth and impurity dynamics changed.
+</p>
+
+<p>
+In higher dimensions, direct boundary plotting is impossible, but there are still useful visual probes: pairwise projections before and after transformation, per-tree feature loading heatmaps, and path length histograms across class groups. Even simple plots of split-feature frequencies in rotated coordinate indices can reveal whether ensemble diversity is genuinely increasing.
+</p>
+
+<p>
+I have become especially fond of inspecting component loadings semantically. If a rotated component heavily combines lag-1, lag-2, and lag-7 features in a demand dataset, that often reflects meaningful weekly memory patterns. The model is not magically inventing structure; it is exposing one that axis-aligned views obscured.
+</p>
+
+<p>
+This is why I wanted clean visuals in this write-up. They force me to commit to geometric explanation instead of vague claims.
+</p>
+
+<h2>What happens in classification versus regression</h2>
+
+<p>
+Most classic Rotation Forest discussion emphasizes classification, but I find regression equally interesting. In regression, tree variance can be high when local partitions overfit noise. Rotated coordinates can sometimes smooth split allocation by aligning with dominant signal gradients, leading to better bias-variance tradeoffs.
+</p>
+
+<p>
+That said, regression targets often suffer from heteroscedastic noise. PCA directions maximize feature variance, not target relevance. This mismatch means rotation can occasionally emphasize directions that are statistically energetic but weakly predictive. In such cases, random rotations might perform similarly, or selective supervised rotations might do better.
+</p>
+
+<p>
+If I were deploying a regression Rotation Forest in production, I would monitor residual distribution shift carefully. Gains in RMSE may hide instability in tails, and tail stability usually matters operationally.
+</p>
+
+<h2>Calibration and uncertainty: the underrated frontier</h2>
+
+<p>
+In classification, I have noticed that improved discrimination does not automatically imply better probability calibration. Rotated ensembles can rank examples well yet remain slightly overconfident in certain regions. That is not unique to rotations; it is common in ensemble models generally. Still, I now consider calibration mandatory in evaluation.
+</p>
+
+<p>
+I usually check reliability curves, expected calibration error, and classwise confidence histograms. If needed, I apply post-hoc calibration like isotonic regression or temperature-like scaling variants for tree outputs. The key is to measure this explicitly, not assume.
+</p>
+
+<p>
+When I built anomaly pipelines previously, calibration mattered even more because thresholding decisions had asymmetric costs. A model that ranks anomalies correctly but miscalibrates score magnitudes can still create painful operational false positives.
+</p>
+
+<h2>A comparative lens: Rotation Forest and boosted trees</h2>
+
+<p>
+People often ask me: if gradient boosting systems are so strong on tabular data, why bother with Rotation Forest at all? I think this is a fair question. My answer is not adversarial. Boosted trees and rotated forests optimize different instincts.
+</p>
+
+<p>
+Boosting focuses on sequential error correction, often extracting excellent performance with careful regularization. Rotation Forest emphasizes view diversity with strong parallel base learners. In some tasks, boosting will dominate. In others, especially where correlated interactions are awkward for axis-aligned weak learners, rotation-based diversity can be competitive and sometimes more stable under parameter drift.
+</p>
+
+<p>
+From an experimentation perspective, I like having both in my toolkit. Rotated forests are also conceptually easier for me to reason about when I want to isolate geometric effects.
+</p>
+
+<h2>Failure modes I have seen or expect to see</h2>
+
+<p>
+No honest narrative is complete without failure modes. Here are cases where I would be cautious.
+</p>
+
+<p>
+If dataset size is tiny and feature count is high, local PCA blocks may be unstable and noisy.
+</p>
+
+<p>
+If most features are categorical encoded with sparse high-dimensional one-hot vectors, naive rotations can blur interpretability and may not help split logic meaningfully.
+</p>
+
+<p>
+If target signal is largely monotonic along original features, rotating may unnecessarily complicate learning and interpretation.
+</p>
+
+<p>
+If compute budget is tight, repeated per-tree PCA can be expensive compared to standard random forest pipelines.
+</p>
+
+<p>
+If data preprocessing is inconsistent across folds, rotation pipelines can leak badly and produce fake gains.
+</p>
+
+<p>
+These are not theoretical caveats for me; they are practical warnings I now keep at the top of my notebook.
+</p>
+
+<h2>My preferred experimental protocol for this topic</h2>
+
+<p>
+When I eventually publish the follow-up comparison, I plan to keep a strict protocol that mirrors how I now evaluate most tabular methods.
+</p>
+
+<p>
+I will choose datasets spanning low-dimensional clean structure, medium-dimensional correlated features, and high-dimensional noisy regimes.
+</p>
+
+<p>
+I will benchmark plain random forest, random-subspace variants, PCA-based Rotation Forest, and random-orthogonal-rotation forests.
+</p>
+
+<p>
+I will tune each model under matched budget constraints: same search count, same CV design, same metric family.
+</p>
+
+<p>
+I will report not just mean metric but variability, runtime, calibration, and simple stress robustness.
+</p>
+
+<p>
+I will include qualitative geometry probes where possible to explain why wins happen, not just that they happen.
+</p>
+
+<p>
+This protocol may sound procedural, but I find it liberating. It protects me from storytelling bias.
+</p>
+
+<h2>A note on first principles: coordinates are a modeling choice</h2>
+
+<p>
+One philosophical takeaway from this entire journey is that coordinates are not neutral. We often pretend raw tabular columns are the “natural” representation. They are not. They are one representation among many. Scaling changes representation. Encoding changes representation. Interaction terms change representation. Rotations change representation.
+</p>
+
+<p>
+Tree algorithms are not invariant to these choices. So if a model underperforms, sometimes the answer is not a more complex learner, but a better representation of the same signal.
+</p>
+
+<p>
+This sounds obvious once stated, yet I ignored it for years.
+</p>
+
+<h2>How this links back to my broader project journey</h2>
+
+<p>
+Looking across my own project pages, I can see a recurring pattern. Whether I was implementing ARIMA components from scratch, experimenting with transformers, or building Isolation Forest, I kept returning to one question: what structure does the model assume, and does that structure match the data geometry?
+</p>
+
+<p>
+Rotation Forest fits this pattern naturally. It takes a familiar model family and modifies the representational geometry without abandoning the computational pragmatism that made forests useful in the first place.
+</p>
+
+<p>
+I also like that it sits at the intersection of topics I care about: linear algebra, stochastic ensembles, and practical implementation. It is both elegant and hackable.
+</p>
+
+<h2>If I had to teach this in one lecture</h2>
+
+<p>
+If I had sixty minutes to teach Rotation Forest to students who already know random forests, I would structure it like this.
+</p>
+
+<p>
+First ten minutes: revisit axis-aligned splits and show diagonal-boundary inefficiency visually.
+</p>
+
+<p>
+Next ten minutes: explain orthogonal transforms and why trees care about coordinate frames.
+</p>
+
+<p>
+Next fifteen minutes: walk through feature partition + local PCA + per-tree transformed training.
+</p>
+
+<p>
+Next fifteen minutes: compare PCA rotations versus random orthogonal rotations conceptually and computationally.
+</p>
+
+<p>
+Final ten minutes: discuss pitfalls, interpretability, and evaluation protocol.
+</p>
+
+<p>
+I would end with one message: forests are not just collections of trees; they are collections of perspectives.
+</p>
+
+<h2>A deeper mathematical aside I personally enjoy</h2>
+
+<p>
+There is a small mathematical detail that gives me joy. For linear separators, changing basis by an invertible transform is equivalent to reparameterizing the separator weights. If a classifier in original coordinates uses normal vector \(w\), then in rotated coordinates \(z = Rx\), equivalent boundary can be represented by \(\tilde{w} = R^{-T}w\). For orthogonal \(R\), this simplifies to \(\tilde{w}=Rw\).
+</p>
+
+<p>
+So in a sense, rotations do not create new linear separability. What they change is how axis-restricted learners approximate these boundaries. Trees are exactly such learners at node level. That is why rotations can be powerful for trees while being trivial for fully linear models.
+</p>
+
+<p>
+I love this because it reconciles two truths: geometry is unchanged globally, but optimization behavior of a specific model class can change dramatically.
+</p>
+
+<h2>What I would build next</h2>
+
+<p>
+I want to build a small open comparison toolkit around this idea. Not huge, just focused. A reproducible package that lets me toggle among: plain random forest, random subspace forest, Rotation Forest with PCA blocks, and Rotation Forest with random orthogonal blocks. Same tree backend, same metrics, same logging.
+</p>
+
+<p>
+Then I want a companion notebook that produces consistent visual diagnostics: component loading plots, split depth histograms, per-tree disagreement matrices, and calibration curves. If this tool is clean enough, it can become a teaching artifact as much as a research artifact.
+</p>
+
+<p>
+And if the findings are interesting, I will write part two of this post with empirical tables rather than pure conceptual narrative.
+</p>
+
+<h2>Final long-form reflection</h2>
+
+<p>
+I started this piece by admitting an obsession, and after writing all this I realize it is a very specific kind of obsession: I like algorithms that reward both intuition and rigor. Forest methods do that for me. You can reason visually about splits and partitions, and you can reason formally about variance and correlation. You can code them from scratch with basic tools, and you can still connect them to deep geometric ideas.
+</p>
+
+<p>
+Rotation Forest embodies that duality beautifully. It is neither a flashy architectural revolution nor a tiny cosmetic tweak. It is a structural nudge at the representation level, with meaningful implications for what trees discover easily.
+</p>
+
+<p>
+The more I work in machine learning, the more I trust these structural nudges. They are often where robust gains hide—less dramatic than giant model swaps, but more reliable once understood.
+</p>
+
+<p>
+If you have read this far, thank you for following my long narrative detour through geometry, implementation habits, and personal model philosophy. I wrote this partly for readers, partly for my future self. Whenever I revisit forests months later, I want to remember not only equations but also the reasoning path that made those equations meaningful.
+</p>
+
+<p>
+And yes, I am still obsessed with forests.
+</p>
+
+<h2>Extended case study narrative: how I would test this on a noisy tabular problem</h2>
+
+<p>
+To make this concrete, let me walk through a fictional but realistic experiment I often imagine. Suppose I am modeling customer churn in a subscription product. I have around 120 numeric and encoded behavioral features: usage frequency, session gaps, support interactions, payment delays, plan switches, and rolling aggregates over multiple windows. Labels are moderately imbalanced. There is obvious correlation all over the place: recent activity blocks, billing blocks, and support blocks each have strong internal dependencies.
+</p>
+
+<p>
+If I start with a plain random forest, I know I will get a strong baseline quickly. But I also know the model might need deeper trees to approximate mixed interactions like "declining usage + rising support friction + payment irregularity." Those interactions are not always axis-friendly. This is exactly the regime where I want to test rotation-based ensembles.
+</p>
+
+<p>
+My first step is feature hygiene, not model heroics. I remove near-constant columns, cap extreme outliers where domain logic supports it, and standardize continuous blocks fold-safely. I keep one-hot features but treat sparse high-cardinality regions cautiously; I may exclude them from rotation and let trees handle them in original form.
+</p>
+
+<p>
+Then I define three pipelines:
+</p>
+
+<p>
+Pipeline A: standard random forest.
+</p>
+
+<p>
+Pipeline B: Rotation Forest with PCA blocks.
+</p>
+
+<p>
+Pipeline C: Rotation Forest with random orthogonal blocks.
+</p>
+
+<p>
+All three share the same tree depth search range, same minimum leaf settings, same cross-validation folds, and same scoring metrics. I include ROC-AUC, PR-AUC, Brier score, and calibration diagnostics.
+</p>
+
+<p>
+Now comes the part I care about most: not just which model wins, but why. For each pipeline, I inspect split depth distributions and path statistics for true positives versus false positives. If rotations reduce depth needed to isolate high-risk churners, that is a structural signal. I also inspect per-tree disagreement maps. If rotated ensembles disagree more in healthy ways while preserving per-tree competence, that supports the diversity story.
+</p>
+
+<p>
+Suppose results show something like this pattern: random forest is strong and stable, PCA-rotation improves PR-AUC slightly with better recall in rare churn segments, random-orthogonal rotation is close behind but faster to train. In this scenario, decision depends on business constraints. If every point of recall matters and compute is acceptable, PCA rotation might win. If deployment speed and simplicity matter more, random orthogonal rotation could be the pragmatic choice.
+</p>
+
+<p>
+I also care about behavior under drift. So I simulate temporal shift by training on earlier months and validating on later months with changed customer behavior distributions. Sometimes a model with the best IID CV score is not the most stable under drift. If rotated representations reduce overfitting to narrow coordinate artifacts, they can occasionally degrade more gracefully.
+</p>
+
+<p>
+This case-study framing keeps me grounded. Algorithms are never “best” in abstract. They are best relative to objective, constraints, and data geometry.
+</p>
+
+<h2>Another narrative experiment: lagged demand forecasting with rotated blocks</h2>
+
+<p>
+Here is a second experiment idea that feels close to my interests. Consider short-term demand forecasting where I engineer lags \(y_{t-1}\) to \(y_{t-28}\), rolling means, weekly seasonality indicators, promotions, and weather covariates. Classic tree ensembles already perform well, but lag correlations are intense. Rotated lag blocks might help reduce redundant split behavior.
+</p>
+
+<p>
+I would partition features into semantically meaningful blocks: short lags (1–7), medium lags (8–14), long lags (15–28), and exogenous variables. Then I would apply block-wise rotations only within lag groups, leaving some exogenous features untouched for interpretability.
+</p>
+
+<p>
+This hybrid strategy matters to me because full global rotations can make business interpretation painful. By rotating only lag blocks, I get directional flexibility where correlation is strongest while preserving simpler semantics elsewhere.
+</p>
+
+<p>
+In such forecasting systems, I do not just evaluate RMSE. I check seasonality-aware error slices, peak-day error behavior, and signed error drift around promotional windows. A method that slightly improves average error but worsens peak underprediction may be unacceptable in supply planning contexts.
+</p>
+
+<p>
+If rotations consistently improve peak sensitivity without destabilizing calibration of predictive intervals (or quantile estimates if using adapted frameworks), I would consider them a meaningful production candidate.
+</p>
+
+<p>
+I am emphasizing this because I have learned not to trust aggregate metrics blindly in time-dependent systems. Rotated structure can help, but only if it helps where it operationally counts.
+</p>
+
+<h2>Frequently asked questions I ask myself</h2>
+
+<p>
+Over time, I noticed I keep asking the same internal questions whenever I test rotation-based forests. I am listing them here almost as a pre-flight checklist.
+</p>
+
+<p>
+Do I actually have interaction-heavy signal, or am I forcing geometry where none is needed?
+</p>
+
+<p>
+Is covariance structure stable enough for PCA to be meaningful across folds?
+</p>
+
+<p>
+Is my sample size sufficient for repeated local covariance estimation?
+</p>
+
+<p>
+Would random orthogonal blocks give 90% of gains at 50% of complexity?
+</p>
+
+<p>
+Am I preserving interpretability requirements for stakeholders?
+</p>
+
+<p>
+Have I checked calibration and drift robustness, not just rank metrics?
+</p>
+
+<p>
+If answers are mostly yes, I proceed confidently. If not, I scale back.
+</p>
+
+<h2>A longer practical guide: when I would choose what</h2>
+
+<p>
+If I need a dependable baseline fast, I start with plain random forest. It is hard to beat for speed-to-signal.
+</p>
+
+<p>
+If performance plateaus and feature interactions are visibly mixed and correlated, I try Rotation Forest with moderate subset sizes.
+</p>
+
+<p>
+If I care about speed and broad stochastic diversity more than data-adaptive covariance alignment, I try random orthogonal rotations.
+</p>
+
+<p>
+If interpretability per split is mandatory, I avoid full rotations or use block-constrained/hybrid approaches.
+</p>
+
+<p>
+If data is small and high-dimensional, I either regularize aggressively or skip rotation to avoid unstable transforms.
+</p>
+
+<p>
+If categorical sparsity dominates, I keep those sections out of dense rotation blocks unless I have a very specific reason.
+</p>
+
+<p>
+This decision chart is not perfect, but it has saved me from both overengineering and underexploring.
+</p>
+
+<h2>How I think about complexity budget</h2>
+
+<p>
+A hidden part of model design is complexity budget: not only computational complexity, but cognitive and maintenance complexity. Rotation methods ask for additional preprocessing machinery, metadata tracking, and careful evaluation. I ask whether expected gains justify that budget.
+</p>
+
+<p>
+In research mode, the answer is often yes because insight itself is valuable. In production mode, the answer depends on operating constraints: latency, retraining cadence, failure tolerance, and team familiarity.
+</p>
+
+<p>
+One compromise I like is a two-tier system: deploy a simpler baseline with robust monitoring, and keep a rotation-enhanced challenger model running in shadow mode. If challenger demonstrates stable improvements over meaningful windows, promote it gradually.
+</p>
+
+<p>
+This strategy aligns with my broader philosophy: ambitious experimentation, conservative deployment.
+</p>
+
+<h2>A conceptual bridge to representation learning</h2>
+
+<p>
+Sometimes I think of Rotation Forest as a lightweight cousin of representation learning. Deep models learn latent representations end-to-end. Rotation Forest injects representation changes in a handcrafted, structured way using linear transformations. Different world, similar spirit: better coordinates can make downstream prediction easier.
+</p>
+
+<p>
+This bridge is useful for my intuition because it reminds me not to treat tabular preprocessing as merely mechanical. Representation is the model, in part.
+</p>
+
+<p>
+At the same time, linear rotations are intentionally humble. They do not create nonlinear manifolds. They simply reorient linear structure. This humility is a strength: fewer moving parts, clearer failure analysis, easier debugging.
+</p>
+
+<h2>An implementation appendix I would hand to my future self</h2>
+
+<p>
+If future me forgets details, here is the compact implementation appendix I would want to reread.
+</p>
+
+<p>
+Data pipeline: split first, fit scalers per fold, lock transforms, and persist fold artifacts.
+</p>
+
+<p>
+Partition sampler: generate balanced feature subsets with optional semantic constraints.
+</p>
+
+<p>
+PCA module: center data, use SVD-based PCA for numerical stability, keep all components unless explicitly testing truncation.
+</p>
+
+<p>
+Orthogonal random module: sample Gaussian matrix, QR factorize, correct sign for deterministic orientation if needed.
+</p>
+
+<p>
+Transformer assembly: place block transforms into a consistent global mapping with explicit index bookkeeping.
+</p>
+
+<p>
+Estimator core: train tree on transformed matrix; store both tree and transformer together.
+</p>
+
+<p>
+Ensemble aggregator: mean probabilities for classification or mean predictions for regression; optionally weighted by validation quality.
+</p>
+
+<p>
+Diagnostics: log per-tree depth, leaf count, OOB metrics, disagreement rates, and calibration snapshots.
+</p>
+
+<p>
+Testing: unit-test shape consistency, transform invertibility assumptions where applicable, and fold-isolation guarantees.
+</p>
+
+<p>
+This may look verbose, but every line here corresponds to a bug category I have seen at least once.
+</p>
+
+<h2>Ethical and operational note I try not to skip</h2>
+
+<p>
+Any powerful tabular model can amplify bias if training data encodes historical inequities. Rotations do not remove that risk. In fact, transformed components may make it harder to spot problematic feature pathways directly. So fairness checks cannot be optional.
+</p>
+
+<p>
+In practical terms, I would evaluate subgroup metrics, false positive/negative asymmetries, and calibration parity where relevant. If a rotation-enhanced model improves aggregate performance but worsens protected-group error gaps, I would not consider that progress.
+</p>
+
+<p>
+I include this here because I want my own technical writing to reflect the full responsibility of model deployment, not only mathematical elegance.
+</p>
+
+<h2>Long closing: what this journey means to me now</h2>
+
+<p>
+When I look back at my path—from first random forest baselines, to coding Isolation Forest from scratch, to obsessing over rotated perspectives—I see a consistent thread. I am not just learning algorithms. I am learning how to ask better questions about representation and structure.
+</p>
+
+<p>
+Early on, I used to ask: “Which model gives the best score?”
+</p>
+
+<p>
+Now I ask: “What assumptions about geometry does this model make, and do those assumptions fit the signal I care about?”
+</p>
+
+<p>
+That shift has made my experiments slower, but much more meaningful. I spend less time chasing random gains and more time understanding mechanisms.
+</p>
+
+<p>
+Rotation Forest, for me, symbolizes that maturity. It is not just a technique to try; it is a reminder that coordinate systems are design choices, and design choices matter.
+</p>
+
+<p>
+I still enjoy the thrill of squeezing extra performance from a benchmark. But I now value something else more: being able to explain, with conceptual honesty, why a method should work, when it should fail, and what tradeoffs I am accepting.
+</p>
+
+<p>
+If there is one sentence I want to keep from this very long post, it is this: forests are strong not only because they are many, but because they can be made to see the same world from many meaningful angles.
+</p>
+
+<p>
+That is why I keep coming back.
+</p>
+
+<h2>A final appendix of intuitions, analogies, and mental models</h2>
+
+<p>
+Before I close, I want to leave a set of mental models that helped me most while understanding rotated ensembles. These are not formal theorems; they are intuition scaffolds I use while designing and debugging.
+</p>
+
+<p>
+Mental model one: forests as committees with different maps. Imagine a city that is hard to navigate. If every committee member uses the same map orientation, they all miss the same alleyways. If each member uses a different rotated map, routes discovered by one may compensate for blind spots of others. Rotation Forest is this map-diversification trick.
+</p>
+
+<p>
+Mental model two: representation before optimization. We often argue about split criteria, depth, and regularization while forgetting that optimization quality depends on representation quality. Rotations do not change split criterion, but they change the coordinate substrate on which split search occurs. Better substrate, easier optimization.
+</p>
+
+<p>
+Mental model three: compressed complexity. A deep axis-aligned staircase can approximate an oblique relation, but complexity gets spread across many nodes. Rotations can compress that complexity into fewer, cleaner decisions. When this happens, variance often drops and generalization may improve.
+</p>
+
+<p>
+Mental model four: diversity with dignity. Some ensemble diversity tricks weaken base learners too much. Rotation methods often preserve base strength because transformed features still carry full information. This balance—difference without excessive weakness—is one reason I find them elegant.
+</p>
+
+<p>
+Mental model five: coordinate humility. Raw features feel “real” because they come from source systems, but that does not make them sacred. Any model has an implicit worldview. Rotations simply make the worldview choice explicit.
+</p>
+
+<p>
+I also keep a few analogies for explaining this to non-ML audiences. One analogy is photography: if a subject is backlit in one angle, rotating the camera can reveal detail without changing the subject. Another is music mixing: equalizer settings can surface structure buried in a flat mix. Same underlying signal, different access to structure.
+</p>
+
+<p>
+There is also an analogy from sport that I personally like. In football, the same players can look average in one formation and brilliant in another because spacing changes available passing lanes. Rotation in feature space is similar: same variables, different tactical geometry, different opportunities for clean decision boundaries.
+</p>
+
+<p>
+Of course, analogies can oversimplify. So I pair them with practical guardrails. If I cannot justify a rotated model with clear diagnostics, reproducible gains, and acceptable interpretability tradeoffs, I do not ship it. Curiosity should drive experiments, not bypass discipline.
+</p>
+
+<p>
+I want to be explicit about something else too: this post is long because my own understanding took time to mature. A short summary might say “Rotation Forest uses PCA to rotate features for each tree.” That statement is true but incomplete. It misses why this matters, when it helps, where it fails, and how it connects to implementation practice.
+</p>
+
+<p>
+For me, the long version matters because model-building is not only about obtaining answers. It is about building reliable judgment. Reliable judgment comes from connecting math, code, diagnostics, and domain context—not from any single leaderboard number.
+</p>
+
+<p>
+So if someone asks me today whether Rotation Forest is worth learning, my answer is yes, even beyond immediate deployment value. It trains a useful way of thinking: treat geometry as part of model design; treat diversity as a measurable object; treat preprocessing as principled representation work; and treat evaluation as an argument, not a score.
+</p>
+
+<p>
+If someone asks whether it should replace random forest everywhere, my answer is no. Baselines are baselines for a reason. But if your data has correlated interactions and your trees feel like they are doing too much staircase approximation, rotations are absolutely worth exploring.
+</p>
+
+<p>
+And if someone asks why I keep writing about forests, the answer is simple: they are one of the best classrooms for learning the relationship between elegant ideas and practical systems. They are simple enough to implement, rich enough to surprise, and useful enough to matter.
+</p>
+
+<p>
+I started with obsession. I end with appreciation.
+</p>
+
+<p>
+Appreciation for the original researchers who proposed these methods.
+</p>
+
+<p>
+Appreciation for the open tools that make experimentation accessible.
+</p>
+
+<p>
+Appreciation for every failed run that taught me not to trust easy conclusions.
+</p>
+
+<p>
+And appreciation for the simple insight that keeps proving true: sometimes the fastest way to improve a model is not to make it bigger, but to help it look at the same data from a better angle.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Rodriguez, J. J., Kuncheva, L. I., &amp; Alonso, C. J. (2006). Rotation Forest: A New Classifier Ensemble Method. <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1" target="_blank">Paper link</a>.</li>
+  <li>Breiman, L. (2001). Random Forests. <a href="https://link.springer.com/article/10.1023/A:1010933404324" target="_blank">Paper link</a>.</li>
+  <li>Liu, F. T., Ting, K. M., &amp; Zhou, Z.-H. (2008). Isolation Forest. <a href="https://ieeexplore.ieee.org/document/4781136" target="_blank">Paper link</a>.</li>
+  <li>Ho, T. K. (1998). The Random Subspace Method for Constructing Decision Forests. <a href="https://ieeexplore.ieee.org/document/709601" target="_blank">Paper link</a>.</li>
+  <li>Dasgupta, S., &amp; Freund, Y. (2008). Random Projection Trees and Low Dimensional Manifolds. <a href="https://dl.acm.org/doi/10.1145/1390156.1390288" target="_blank">Paper link</a>.</li>
+  <li>My site entry on Isolation Forest implementation: <a href="projects_and_interests.html">Projects and Interests</a>.</li>
+  <li>My implementation repository for Isolation Forest: <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/Isolation%20Forest" target="_blank">GitHub project link</a>.</li>
+</ol>
 
 </article>
 </main>
