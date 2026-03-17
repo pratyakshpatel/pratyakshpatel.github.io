@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Pratyaksh Patel | Technical Blog</title>
+
+	<link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+	<script id="MathJax-script" async
+		src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+	</script>
+
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		gtag('config', 'G-69CER33QN8');
+	</script>
+
+	<style>
+		body {
+			font-size: 1.1rem;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 2rem 1.5rem;
+			background: #f9f9f9;
+			color: #333;
+			line-height: 1.7;
+		}
+
+		h1 {
+			font-size: 1.6rem;
+			margin-bottom: 1rem;
+			text-align: center;
+		}
+
+		h2 {
+			font-size: 1.3rem;
+			margin-top: 2rem;
+			margin-bottom: 0.6rem;
+		}
+
+		a:hover {
+			font-size: 1.05em;
+		}
+
+		.nav-links {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 2rem;
+		}
+
+		.go-back {
+			display: inline-block;
+			margin-bottom: 0;
+			padding: 0.5rem 1rem;
+			background: #333;
+			color: white;
+			text-decoration: none;
+			border-radius: 4px;
+			transition: background 0.3s;
+		}
+
+		.go-back:hover {
+			background: #555;
+			font-size: 1.05em;
+		}
+
+		p {
+			margin-bottom: 1rem;
+		}
+
+		.meta {
+			color: #666;
+			font-size: 0.95rem;
+			margin-bottom: 1.2rem;
+		}
+
+		ol.references {
+			margin-top: 0.6rem;
+			padding-left: 1.1rem;
+		}
+
+		@media (max-width: 500px) {
+			body {
+				font-size: 1rem;
+				padding: 1rem;
+			}
+
+			h1 {
+				font-size: 1.4rem;
+			}
+
+			h2 {
+				font-size: 1.15rem;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="nav-links">
+	<a href="javascript:history.back()" class="go-back">← Go Back</a>
+	<a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>Martingales in Optimization: Why SGD Doesn’t Drift Randomly</h1>
+
+<article>
+
+<p class="meta">17 March, 2026</p>
+
+<p>
+I ran into martingales in the least planned way. I was reading a Wikipedia page about betting systems, trying to understand why doubling bets after losses feels convincing and still breaks in practice. The word “martingale” kept showing up, and at first it sounded like pure gambling vocabulary. Later that night, while looking at SGD notes, I noticed the same structure hiding in optimization. That was the paradox that pulled me in: SGD looks noisy step to step, but in aggregate it often behaves with discipline.
+</p>
+
+<h2>Hook: SGD looks random, yet it works</h2>
+
+<p>
+When I train a model with SGD, the updates jump. One mini-batch pushes weights left, the next pushes them right. If I only watch a short window, it looks like a drunk walk. But after enough iterations, training loss usually trends down, and parameters settle into a useful region. So what is going on? If this were truly uncontrolled randomness, it should drift away as often as it converges.
+</p>
+
+<p>
+My first analogy is walking in fog with a compass: each step is noisy because the ground is uneven, but the compass still gives a direction on average. SGD has that flavor. The mini-batch noise is real, yet it is not directionless.
+</p>
+
+<h2>Stochastic gradients and where randomness enters</h2>
+
+<p>
+For empirical risk, I write the full objective as
+</p>
+
+<p>
+\[
+L(w) = \frac{1}{N}\sum_{i=1}^{N}\ell_i(w).
+\]
+</p>
+
+<p>
+In words: the loss is the average of per-sample losses. Full-batch gradient descent uses \(\nabla L(w_t)\), but SGD replaces it with a mini-batch estimate \(g_t\). The update is
+</p>
+
+<p>
+\[
+w_{t+1}=w_t-\eta g_t.
+\]
+</p>
+
+<p>
+This means each step depends on sampled data, so it is random. Still, under standard sampling assumptions, \(g_t\) is unbiased given the current iterate:
+</p>
+
+<p>
+\[
+\mathbb{E}[g_t\mid w_t] = \nabla L(w_t).
+\]
+</p>
+
+<p>
+That sentence is the whole story in compact form: noisy estimate, correct center.
+</p>
+
+<h2>Conditional expectation and filtration, without heavy machinery</h2>
+
+<p>
+I used to find filtration notation intimidating, but the intuition is simple. Let \(\mathcal{F}_t\) mean “everything known up to time \(t\)”: past mini-batches, past gradients, and all past iterates. Conditional expectation \(\mathbb{E}[\cdot\mid \mathcal{F}_t]\) is then just the best average prediction using that information.
+</p>
+
+<p>
+Second analogy: imagine pausing a football match at minute 60. You cannot know the exact final score, but you can form a fair expectation using what you have seen so far. That is conditional expectation.
+</p>
+
+<h2>Martingale difference sequence in plain language</h2>
+
+<p>
+Define gradient noise as
+</p>
+
+<p>
+\[
+\xi_t = g_t-\nabla L(w_t).
+\]
+</p>
+
+<p>
+So \(\xi_t\) is the mini-batch error relative to the true gradient. Because of unbiasedness,
+</p>
+
+<p>
+\[
+\mathbb{E}[\xi_t\mid \mathcal{F}_t]=0.
+\]
+</p>
+
+<p>
+In words: once I know the past, the next noise term has no preferred sign. This is a martingale difference sequence. Not “no noise,” but “no predictable drift in the noise.” Third analogy: it is like a fair referee error; calls can be wrong either way, but not systematically for one side if the process is fair.
+</p>
+
+<h2>Rewriting SGD to expose structure</h2>
+
+<p>
+Now rewrite the update exactly as
+</p>
+
+<p>
+\[
+w_{t+1}=w_t-\eta\nabla L(w_t)-\eta\xi_t.
+\]
+</p>
+
+<p>
+This decomposition separates deterministic descent from stochastic disturbance. The first term points downhill in the loss landscape. The second term jitters around that path. I find this split more informative than saying “SGD is noisy.” It says where the signal is and where randomness sits.
+</p>
+
+<h2>Why the noise has zero conditional mean</h2>
+
+<p>
+Suppose the mini-batch indices are sampled uniformly (with replacement, for simplicity). Then the mini-batch gradient is an average of unbiased sample gradients at fixed \(w_t\). Averaging unbiased estimators keeps unbiasedness, so conditioned on \(\mathcal{F}_t\), its mean is the full gradient. Subtracting \(\nabla L(w_t)\) gives zero.
+</p>
+
+<p>
+The key point is subtle: \(\xi_t\) is random, but its conditional expectation is anchored at zero. That anchor is exactly what prevents random walk drift from dominating training.
+</p>
+
+<h2>From descent lemma to a supermartingale view of loss</h2>
+
+<p>
+Assume \(L\) has \(\beta\)-Lipschitz gradient. The standard smoothness bound gives
+</p>
+
+<p>
+\[
+L(w_{t+1}) \le L(w_t) + \nabla L(w_t)^\top (w_{t+1}-w_t) + \frac{\beta}{2}\|w_{t+1}-w_t\|^2.
+\]
+</p>
+
+<p>
+Plug in the SGD step and take conditional expectation. The cross-term with \(\xi_t\) disappears because \(\mathbb{E}[\xi_t\mid \mathcal{F}_t]=0\). What remains is roughly
+</p>
+
+<p>
+\[
+\mathbb{E}[L(w_{t+1})\mid \mathcal{F}_t]
+\le L(w_t)-\eta\left(1-\frac{\beta\eta}{2}\right)\|\nabla L(w_t)\|^2 + \frac{\beta\eta^2}{2}\,\mathbb{E}[\|\xi_t\|^2\mid \mathcal{F}_t].
+\]
+</p>
+
+<p>
+Read this in words: expected next loss is current loss minus a descent term plus a variance penalty. With small enough step size, the descent term dominates often enough, so a corrected version of loss behaves like a supermartingale (expected to not increase). That is the formal resolution of the paradox.
+</p>
+
+<h2>Convergence intuition through martingale ideas</h2>
+
+<p>
+Martingale convergence theorems tell us that processes with bounded below values and controlled increments tend to stabilize in a probabilistic sense. In SGD language, if step sizes are chosen to control accumulated noise, the updates do not wander forever with bias. Instead, they keep spending time near critical regions where gradients are small.
+</p>
+
+<p>
+I think of it as hiking downhill with wind gusts. Gusts push me around locally, but if the hill keeps descending and gusts have no net direction, I still end up in the valley neighborhood.
+</p>
+
+<h2>SDE view and why noise is not pure Gaussian</h2>
+
+<p>
+In small-step limits, SGD is often approximated by an SDE:
+</p>
+
+<p>
+\[
+dW_t = -\nabla L(W_t)\,dt + \Sigma(W_t)^{1/2} dB_t.
+\]
+</p>
+
+<p>
+This says deterministic drift follows the true gradient, while diffusion captures gradient noise covariance. But mini-batch noise in deep learning is usually state-dependent, anisotropic, and sometimes heavy-tailed, so the Gaussian picture is a local approximation, not exact truth. The noise has structure from data order, architecture, and batch composition.
+</p>
+
+<h2>Common misconceptions</h2>
+
+<p>
+1) “Martingale means independent increments.” Not required. Martingale differences can be dependent through \(w_t\).<br/>
+2) “Zero mean noise means no variance problem.” False. Variance controls how tight convergence is.<br/>
+3) “SGD randomness is just bad approximation.” Not always. Noise can help escape sharp basins and improve generalization.
+</p>
+
+<h2>Why this matters in deep learning</h2>
+
+<p>
+This view changes practical choices. Learning-rate schedules are not just heuristics; they tune the drift-noise balance over time. Batch size is not only a throughput parameter; it reshapes noise scale and geometry. Regularization methods interact with the same stochastic dynamics. If I understand SGD noise as structured martingale noise, optimizer behavior becomes less mysterious and more designable.
+</p>
+
+<h2>Three simple diagram ideas</h2>
+
+<p>
+1) A 2D loss contour with one full-gradient arrow and several mini-batch arrows around it, showing unbiased spread.<br/>
+2) A timeline panel of \(\mathcal{F}_t\): past information on the left, next noise term on the right with conditional mean zero.<br/>
+3) Two training trajectories on the same landscape: pure random walk versus SGD with drift, highlighting why one converges and the other meanders.
+</p>
+
+<h2>Optional bridge: continuous-time models and Neural CDEs</h2>
+
+<p>
+This also nudged me toward continuous-time thinking. Neural CDEs model hidden-state evolution driven by a control path, and the SDE lens on SGD similarly treats learning as path dynamics under drift plus noise. Different objects, same mindset: trajectories carry the core information.
+</p>
+
+<h2>Closing thought</h2>
+
+<p>
+The sentence I keep returning to is simple: SGD randomness is structured, not drift. Martingale language gave me a way to say that precisely. Once I saw that, SGD stopped looking like lucky noise and started looking like controlled uncertainty around a reliable direction.
+</p>
+
+<h2>References</h2>
+<ol class="references">
+	<li>Robbins, H., &amp; Monro, S. (1951). A Stochastic Approximation Method.</li>
+	<li>Bottou, L., Curtis, F. E., &amp; Nocedal, J. (2018). Optimization Methods for Large-Scale Machine Learning.</li>
+	<li>Shreve, S. E. (2004). Stochastic Calculus for Finance II.</li>
+	<li>Mandt, S., Hoffman, M. D., &amp; Blei, D. M. (2017). SGD as Approximate Bayesian Inference.</li>
+	<li>Li, Q., Chen, L., Tai, C., &amp; E, W. (2017). Stochastic Modified Equations and Adaptive Methods.</li>
+</ol>
+
+</article>
+
+</main>
+
+<footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.95rem; color: #555;">
+	&copy; 2025 Pratyaksh Patel
+</footer>
+
+</body>
+</html>
