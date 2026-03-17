@@ -128,7 +128,7 @@ When I train a model with SGD, the updates jump. One mini-batch pushes weights l
 </p>
 
 <p>
-My first analogy is walking in fog with a compass: each step is noisy because the ground is uneven, but the compass still gives a direction on average. SGD has that flavor. The mini-batch noise is real, yet it is not directionless.
+My first analogy is walking in fog with a compass: each step is noisy, but the compass still gives direction on average. SGD has that flavor.
 </p>
 
 <h2>Stochastic gradients and where randomness enters</h2>
@@ -174,7 +174,7 @@ I used to find filtration notation intimidating, but the intuition is simple. Le
 </p>
 
 <p>
-Second analogy: imagine pausing a football match at minute 60. You cannot know the exact final score, but you can form a fair expectation using what you have seen so far. That is conditional expectation.
+Second analogy: pause a football match at minute 60. You cannot know the final score, but you can form a fair expectation from what you have seen.
 </p>
 
 <h2>Martingale difference sequence in plain language</h2>
@@ -253,13 +253,13 @@ Plug in the SGD step and take conditional expectation. The cross-term with \(\xi
 </p>
 
 <p>
-Read this in words: expected next loss is current loss minus a descent term plus a variance penalty. With small enough step size, the descent term dominates often enough, so a corrected version of loss behaves like a supermartingale (expected to not increase). That is the formal resolution of the paradox.
+Read this in words: expected next loss is current loss minus a descent term plus a variance penalty. With a small enough step size, a corrected loss process behaves like a supermartingale (expected to not increase).
 </p>
 
 <h2>Convergence intuition through martingale ideas</h2>
 
 <p>
-Martingale convergence theorems tell us that processes with bounded below values and controlled increments tend to stabilize in a probabilistic sense. In SGD language, if step sizes are chosen to control accumulated noise, the updates do not wander forever with bias. Instead, they keep spending time near critical regions where gradients are small.
+Martingale convergence ideas tell us that processes with lower bounds and controlled increments stabilize in a probabilistic sense. In SGD language, if step sizes control accumulated noise, updates keep returning to regions where gradients are small.
 </p>
 
 <p>
@@ -279,7 +279,7 @@ dW_t = -\nabla L(W_t)\,dt + \Sigma(W_t)^{1/2} dB_t.
 </p>
 
 <p>
-This says deterministic drift follows the true gradient, while diffusion captures gradient noise covariance. But mini-batch noise in deep learning is usually state-dependent, anisotropic, and sometimes heavy-tailed, so the Gaussian picture is a local approximation, not exact truth. The noise has structure from data order, architecture, and batch composition.
+This says deterministic drift follows the true gradient, while diffusion captures gradient noise covariance. But mini-batch noise in deep learning is state-dependent and anisotropic, so the Gaussian picture is only a local approximation.
 </p>
 
 <h2>Common misconceptions</h2>
@@ -301,13 +301,13 @@ This view changes practical choices. Learning-rate schedules are not just heuris
 <p>
 1) A 2D loss contour with one full-gradient arrow and several mini-batch arrows around it, showing unbiased spread.<br/>
 2) A timeline panel of \(\mathcal{F}_t\): past information on the left, next noise term on the right with conditional mean zero.<br/>
-3) Two training trajectories on the same landscape: pure random walk versus SGD with drift, highlighting why one converges and the other meanders.
+3) Two trajectories on the same landscape: pure random walk versus SGD with drift.
 </p>
 
 <h2>Optional bridge: continuous-time models and Neural CDEs</h2>
 
 <p>
-This also nudged me toward continuous-time thinking. Neural CDEs model hidden-state evolution driven by a control path, and the SDE lens on SGD similarly treats learning as path dynamics under drift plus noise. Different objects, same mindset: trajectories carry the core information.
+This also nudged me toward continuous-time thinking. Neural CDEs model hidden-state evolution as path-driven dynamics, and the SDE lens on SGD treats learning similarly as drift plus noise.
 </p>
 
 <h2>Closing thought</h2>
