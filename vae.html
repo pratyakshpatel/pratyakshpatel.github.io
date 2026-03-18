@@ -152,7 +152,7 @@
 </head>
 <body>
   <div class="nav-links">
-    <a href="projects_and_interests.html" onclick="history.back(); return false;" class="go-back">← Go Back</a>
+    <a href="projects_and_interests.html" onclick="if (history.length > 1) { history.back(); return false; }" class="go-back">← Go Back</a>
     <a href="index.html" class="go-back">Home</a>
   </div>
 
