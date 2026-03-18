@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Variance-Controlled SGD Report</title>
+
+  <!-- LaTeX.css -->
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    section {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white !important;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      color: white !important;
+      text-decoration: none;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 1rem 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    ul, ol {
+      margin-left: 1.4rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .metric-box {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 4px;
+      border-left: 4px solid #0066cc;
+    }
+
+    .metric-box strong {
+      color: #0066cc;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #ddd;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+        font-size: 1rem;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .metric-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-links">
+    <a href="javascript:history.back()" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
+
+  <main>
+    <h1>Variance-Controlled SGD: Adaptive Batch Size via Gradient Noise</h1>
+    <p style="text-align: center; font-size: 1rem; color: #666;">March 2026</p>
+
+    <section>
+      <h2>Why This Problem Matters</h2>
+      <p>Stochastic gradient descent (SGD) is the workhorse of deep learning, but it suffers from a fundamental trade-off: larger batches reduce gradient noise but increase memory cost; smaller batches are cheaper but noisier and less stable.</p>
+
+      <p>This project asks: can we automatically adapt batch size during training to control gradient variance without manual tuning? The motivation is straightforward:</p>
+
+      <ul>
+        <li>Early in training, we can use small batches (cheap, exploratory).</li>
+        <li>Later in training, larger batches stabilize convergence and reduce final noise.</li>
+        <li>An adaptive policy based on observed gradient variance could strike this balance automatically.</li>
+      </ul>
+
+      <p>This is particularly relevant for resource-constrained environments or large-scale training where batch size decisions impact both convergence and memory footprint.</p>
+    </section>
+
+    <section>
+      <h2>The Method</h2>
+
+      <p>We implement a data-driven batch-size controller that adjusts batch size based on gradient variance estimates. At each step \(t\):</p>
+
+      <ol>
+        <li>Sample \(m\) micro-batches, each of size \(b_{\text{micro}}\).</li>
+        <li>Compute per-micro-batch gradients: \(g_1, g_2, \ldots, g_m\).</li>
+        <li>Estimate the mean gradient and variance:
+          $$\bar{g}_t = \frac{1}{m}\sum_{i=1}^{m} g_i, \quad \hat{\sigma}_t^2 = \frac{1}{m}\sum_{i=1}^{m}\lVert g_i - \bar{g}_t \rVert^2$$
+        </li>
+        <li>Propose a new batch size via the control rule:
+          $$b_t^{\text{target}} = C \cdot \frac{\hat{\sigma}_t^2}{\lVert\bar{g}_t\rVert^2 + \epsilon}$$
+        </li>
+        <li>Apply smoothing and clamp to bounds: \(b_{\min} \le b_t \le b_{\max}\).</li>
+        <li>Use \(\bar{g}_t\) as the gradient for the optimizer step.</li>
+      </ol>
+
+      <p><strong>Intuition:</strong> If gradient variance is high relative to the signal (gradient norm squared), increase batch size to reduce noise. If the signal is strong, maintain or decrease batch size to avoid over-smoothing.</p>
+
+      <p><strong>Signal-to-Noise Ratio:</strong> We log</p>
+      $$\text{SNR}_t = \frac{\lVert\bar{g}_t\rVert^2}{\hat{\sigma}_t^2 + \epsilon}$$
+      <p>to track the quality of gradient estimates over time.</p>
+    </section>
+
+    <section>
+      <h2>Experimental Setup</h2>
+
+      <h3>Dataset and Model</h3>
+      <ul>
+        <li>Dataset: CIFAR-10 (32×32 RGB images, 10 classes)</li>
+        <li>Model: Small CNN (3 conv layers + 2 FC layers)</li>
+        <li>Optimizer: SGD with momentum (0.9)</li>
+        <li>Learning rate: 0.05 (constant)</li>
+        <li>Steps: 300 iterations</li>
+      </ul>
+
+      <h3>Baseline (Fixed Batch)</h3>
+      <p>Three fixed batch sizes: 32, 128, 512. Same optimizer and learning rate, deterministic seeding.</p>
+
+      <h3>Adaptive Policy</h3>
+      <ul>
+        <li>Micro-batch size: 16 (used to estimate variance)</li>
+        <li>Control constant \(C\): 50, 100, 200 (varied to tune responsiveness)</li>
+        <li>Batch bounds: [16, 512]</li>
+        <li>Smoothing: 0.8 (exponential smoothing on target batch size)</li>
+        <li>Epsilon: 1e-8 (numerical stability)</li>
+      </ul>
+
+      <h3>Logging</h3>
+      <p>Every iteration, we log: loss, accuracy, gradient norm, gradient variance, effective batch size, and SNR.</p>
+    </section>
+
+    <section>
+      <h2>Results</h2>
+
+      <h3>Baseline (Fixed Batch)</h3>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <strong>Batch size 32:</strong><br>
+          Final loss: 2.0904<br>
+          Final accuracy: 21.88%<br>
+          Mean loss: 1.9460
+        </div>
+        <div class="metric-box">
+          <strong>Batch size 128:</strong><br>
+          Final loss: 1.2465<br>
+          Final accuracy: 53.12%<br>
+          Mean loss: 1.5027
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <strong>Batch size 512:</strong><br>
+          Final loss: 0.7483<br>
+          Final accuracy: 72.85%<br>
+          Mean loss: 1.2541
+        </div>
+      </div>
+
+      <p><strong>Key finding:</strong> Fixed batch size of 512 achieves the best performance, confirming that larger batches stabilize training in this regime.</p>
+
+      <h3>Adaptive Policy</h3>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <strong>C = 50:</strong><br>
+          Final loss: 2.1629<br>
+          Final accuracy: 6.25%<br>
+          Batch size: 288.64 → 16.00
+        </div>
+        <div class="metric-box">
+          <strong>C = 100:</strong><br>
+          Final loss: 0.7579<br>
+          Final accuracy: 72.32%<br>
+          Batch size: 395.52 → 443.84
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <strong>C = 200:</strong><br>
+          Final loss: 0.8500<br>
+          Final accuracy: 68.75%<br>
+          Batch size: 415.68 → 448.00
+        </div>
+      </div>
+
+      <p><strong>Key findings:</strong></p>
+      <ul>
+        <li><strong>C = 50 fails:</strong> The policy forced batch size to collapse to the minimum (16), severely degrading learning. This shows that the control constant is sensitive and must be calibrated.</li>
+        <li><strong>C = 100, 200 succeed:</strong> Both maintain large effective batch sizes (395–448) throughout training and match or near the best fixed-batch baseline.</li>
+        <li><strong>Batch size increases over time:</strong> Both successful adaptive runs show modest growth from early to late phases, suggesting the controller is correctly identifying and maintaining stability in later stages.</li>
+      </ul>
+
+      <h3>Variance and SNR Evolution</h3>
+
+      <p>For the best adaptive run (C = 100):</p>
+      <ul>
+        <li>Gradient variance (first 50 steps): 9.34</li>
+        <li>Gradient variance (last 50 steps): 32.61</li>
+        <li>SNR (first 50 steps): 0.159</li>
+        <li>SNR (last 50 steps): 0.130</li>
+      </ul>
+
+      <p><strong>Interpretation:</strong> SNR decreases (stays low) in later phases because the large batch size effectively reduces stochastic noise but the signal also becomes smaller as the network converges. The absolute variance grows because we're using larger batches, which report accumulated loss surface variability.</p>
+    </section>
+
+    <section>
+      <h2>Visual Results</h2>
+
+      <h3>Loss Curves: Baseline vs. Adaptive</h3>
+      <img src="assets/variance_controlled_sgd/baseline_vs_best_adaptive_loss.png" alt="Baseline vs. Best Adaptive Loss">
+      <p><em>Best fixed batch (512) vs. best adaptive (C=100). Nearly identical convergence profiles, demonstrating that the adaptive policy can match hand-tuned batch sizes.</em></p>
+
+      <h3>Baseline Loss Over Iterations</h3>
+      <img src="assets/variance_controlled_sgd/baseline_loss_vs_iterations.png" alt="Baseline Loss">
+      <p><em>All three baseline batch sizes. Larger batch sizes converge faster and to lower final loss.</em></p>
+
+      <h3>Adaptive Loss Comparison</h3>
+      <img src="assets/variance_controlled_sgd/adaptive_loss_comparison.png" alt="Adaptive Loss Comparison">
+      <p><em>All three adaptive runs (C=50, 100, 200). Only C=100 and C=200 converge successfully; C=50 diverges due to excessive batch-size reduction.</em></p>
+
+      <h3>Adaptive Batch Size Dynamics</h3>
+      <img src="assets/variance_controlled_sgd/adaptive_batch_comparison.png" alt="Adaptive Batch Size">
+      <p><em>Batch size over iterations for the three adaptive runs. C=100 and C=200 grow and stabilize around 400–450; C=50 collapses to minimum.</em></p>
+
+      <h3>Individual Adaptive Run (C=100)</h3>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+        <div>
+          <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_loss_vs_iterations.png" alt="C=100 Loss">
+          <p style="font-size: 0.9rem; text-align: center;"><em>Loss vs iterations (C=100)</em></p>
+        </div>
+        <div>
+          <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_batch_size_vs_iterations.png" alt="C=100 Batch Size">
+          <p style="font-size: 0.9rem; text-align: center;"><em>Batch size vs iterations (C=100)</em></p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+        <div>
+          <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_grad_variance_vs_iterations.png" alt="C=100 Gradient Variance">
+          <p style="font-size: 0.9rem; text-align: center;"><em>Gradient variance vs iterations (C=100)</em></p>
+        </div>
+        <div>
+          <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_snr_vs_iterations.png" alt="C=100 SNR">
+          <p style="font-size: 0.9rem; text-align: center;"><em>Signal-to-Noise Ratio vs iterations (C=100)</em></p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Key Takeaways</h2>
+
+      <ol>
+        <li><strong>Fixed larger batches are competitive:</strong> In this setting, simply using a large fixed batch (512) is hard to beat. Adaptive policies must be well-calibrated to match this.</li>
+
+        <li><strong>Control constant (C) is critical:</strong> Too small a \(C\) (e.g., 50) can lead to catastrophic batch-size collapse. This suggests that online variance estimation is sensitive and requires careful tuning or robust adaptation schemes.</li>
+
+        <li><strong>Successful adaptive runs match baselines:</strong> With \(C \in \{100, 200\}\), the adaptive policy maintains large batches and achieves final loss comparable to fixed batch 512.</li>
+
+        <li><strong>Practical implications:</strong>
+          <ul>
+            <li>In resource-constrained settings (e.g., limited memory), starting with small batches and growing them adaptively is a viable strategy.</li>
+            <li>For reproducibility, the control constant and smoothing hyperparameter must be tuned empirically on a validation set.</li>
+            <li>Micro-batch variance estimates are noisy; robust control laws (e.g., PID, Kalman filtering) might improve stability.</li>
+          </ul>
+        </li>
+
+        <li><strong>Future work:</strong>
+          <ul>
+            <li>Couple adaptive batch size with learning rate schedules.</li>
+            <li>Test on other datasets and architectures.</li>
+            <li>Incorporate Hessian information for curvature-aware batch sizing.</li>
+            <li>Compare with other adaptive methods (e.g., Adam, SAM).</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Code and Reproducibility</h2>
+
+      <p>All code is open-source and available at <a href="https://github.com/pratyakshpatel/Variance-Controlled-SGD" target="_blank">the project repository</a>.</p>
+
+      <p>To reproduce results:</p>
+
+      <pre><code># Install dependencies
+pip install -r requirements.txt
+
+# Run baseline experiments
+python experiments/run_baseline.py
+
+# Run adaptive experiments
+python experiments/run_adaptive.py
+
+# Generate summary and comparison plots
+python experiments/analyze_results.py</code></pre>
+
+      <p>All logs are saved as CSV in <code>logs/</code> and plots in <code>plots/</code>. The <code>logs/summary.csv</code> file aggregates all runs for easy comparison.</p>
+    </section>
+
+    <section>
+      <h2>Summary Statistics</h2>
+
+      <p>Experiment summary is available in the table below (or download <a href="assets/variance_controlled_sgd/summary.csv">summary.csv</a>):</p>
+
+      <table>
+        <tr>
+          <th>Run</th>
+          <th>Type</th>
+          <th>Final Loss</th>
+          <th>Mean Loss</th>
+          <th>Final Accuracy</th>
+          <th>Mean Batch Size</th>
+        </tr>
+        <tr>
+          <td>baseline_bs32</td>
+          <td>baseline</td>
+          <td>2.0904</td>
+          <td>1.9460</td>
+          <td>0.2188</td>
+          <td>32.00</td>
+        </tr>
+        <tr>
+          <td>baseline_bs128</td>
+          <td>baseline</td>
+          <td>1.2465</td>
+          <td>1.5027</td>
+          <td>0.5312</td>
+          <td>128.00</td>
+        </tr>
+        <tr>
+          <td>baseline_bs512</td>
+          <td>baseline</td>
+          <td>0.7483</td>
+          <td>1.2541</td>
+          <td>0.7285</td>
+          <td>512.00</td>
+        </tr>
+        <tr>
+          <td>adaptive_c50p0_b16-512</td>
+          <td>adaptive</td>
+          <td>2.1629</td>
+          <td>2.1208</td>
+          <td>0.0625</td>
+          <td>80.69</td>
+        </tr>
+        <tr>
+          <td>adaptive_c100p0_b16-512</td>
+          <td>adaptive</td>
+          <td>0.7579</td>
+          <td>1.2782</td>
+          <td>0.7232</td>
+          <td>431.20</td>
+        </tr>
+        <tr>
+          <td>adaptive_c200p0_b16-512</td>
+          <td>adaptive</td>
+          <td>0.8500</td>
+          <td>1.2889</td>
+          <td>0.6875</td>
+          <td>440.32</td>
+        </tr>
+      </table>
+    </section>
+
+  </main>
+
+  <footer>
+    &copy; 2026 Pratyaksh Patel
+  </footer>
+
+</body>
+</html>
+    img {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      margin-bottom: 0.6rem;
+      background: white;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.8rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div class="nav-links">
+    <a href="projects_and_interests.html" class="go-back">← Projects</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
+
+  <h1>Variance-Controlled SGD: Experiment Report</h1>
+
+  <section>
+    <h2>Why this project was done</h2>
+    <p>
+      Standard SGD is efficient, but its stochastic gradients are noisy, especially with small mini-batches.
+      This project studies whether controlling gradient noise through adaptive batch size can improve training stability while preserving efficiency.
+      The central idea is to grow or shrink batch size based on an online estimate of gradient variance.
+    </p>
+  </section>
+
+  <section>
+    <h2>Method summary</h2>
+    <p>
+      At each step, micro-batch gradients are used to estimate a mean gradient \(\bar g_t\) and variance \(\hat\sigma_t^2\):
+    </p>
+    <p>
+      \[
+      \bar g_t = \frac{1}{m}\sum_{i=1}^{m} g_i,
+      \qquad
+      \hat\sigma_t^2 = \frac{1}{m}\sum_{i=1}^{m}\lVert g_i - \bar g_t \rVert^2
+      \]
+    </p>
+    <p>
+      Batch size is updated using:
+    </p>
+    <p>
+      \[
+      b_t = \min\Big(b_{\max},\max\big(b_{\min}, C\,\frac{\hat\sigma_t^2}{\lVert \bar g_t\rVert^2 + \epsilon}\big)\Big)
+      \]
+    </p>
+    <p>
+      with smoothing to avoid abrupt oscillations.
+    </p>
+  </section>
+
+  <section>
+    <h2>Setup</h2>
+    <ul>
+      <li>Dataset: CIFAR-10</li>
+      <li>Model: small CNN</li>
+      <li>Optimizer: SGD with fixed learning rate</li>
+      <li>Baselines: fixed batch sizes 32, 128, 512</li>
+      <li>Adaptive runs: \(C\in\{50,100,200\}\), \(b_{\min}=16\), \(b_{\max}=512\)</li>
+      <li>Each run: 300 training iterations</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Main quantitative results</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Run</th>
+          <th>Final Loss</th>
+          <th>Final Accuracy</th>
+          <th>Batch (first 50)</th>
+          <th>Batch (last 50)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>baseline_bs32</td><td>2.0904</td><td>0.2188</td><td>32.00</td><td>32.00</td></tr>
+        <tr><td>baseline_bs128</td><td>1.2465</td><td>0.5312</td><td>128.00</td><td>128.00</td></tr>
+        <tr><td>baseline_bs512</td><td>0.7483</td><td>0.7285</td><td>512.00</td><td>512.00</td></tr>
+        <tr><td>adaptive_c50</td><td>2.1629</td><td>0.0625</td><td>288.64</td><td>16.00</td></tr>
+        <tr><td>adaptive_c100</td><td>0.7579</td><td>0.7232</td><td>395.52</td><td>443.84</td></tr>
+        <tr><td>adaptive_c200</td><td>0.8500</td><td>0.6875</td><td>415.68</td><td>448.00</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Data source: <a href="assets/variance_controlled_sgd/summary.csv" target="_blank">summary.csv</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Figures</h2>
+
+    <h3>Baseline loss comparison</h3>
+    <img src="assets/variance_controlled_sgd/baseline_loss_vs_iterations.png" alt="Baseline loss vs iterations"/>
+
+    <h3>Adaptive loss comparison across \(C\)</h3>
+    <img src="assets/variance_controlled_sgd/adaptive_loss_comparison.png" alt="Adaptive loss comparison"/>
+
+    <h3>Adaptive batch-size trajectories</h3>
+    <img src="assets/variance_controlled_sgd/adaptive_batch_comparison.png" alt="Adaptive batch size comparison"/>
+
+    <h3>Best fixed-batch vs best adaptive loss</h3>
+    <img src="assets/variance_controlled_sgd/baseline_vs_best_adaptive_loss.png" alt="Baseline versus adaptive loss"/>
+
+    <h3>Adaptive C=100 diagnostics</h3>
+    <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_grad_variance_vs_iterations.png" alt="Adaptive C100 gradient variance"/>
+    <img src="assets/variance_controlled_sgd/adaptive_c100p0_b16-512_snr_vs_iterations.png" alt="Adaptive C100 SNR"/>
+  </section>
+
+  <section>
+    <h2>Simplified interpretation</h2>
+    <ul>
+      <li>Increasing fixed batch size generally improved optimization stability and final performance in this run.</li>
+      <li>Adaptive batching worked when the control constant was calibrated: \(C=100\) and \(C=200\) increased batch size over time and achieved performance close to batch 512.</li>
+      <li>With \(C=50\), the controller became too aggressive in shrinking the batch, eventually hitting the minimum batch of 16 and losing performance.</li>
+      <li>This shows that variance control is useful, but hyperparameter calibration is critical.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Repository links</h2>
+    <p>
+      Code: <a href="https://github.com/pratyakshpatel/Variance-Controlled-SGD" target="_blank">Variance-Controlled-SGD</a>
+    </p>
+    <p>
+      Reproduction entrypoint: <code>python experiments/run_adaptive.py</code>
+    </p>
+  </section>
+
+</body>
+</html>
