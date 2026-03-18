@@ -135,6 +135,17 @@
 
   <section>
     <h2>Projects</h2>
+    <h3>Variance-Controlled SGD: Adaptive Batch Size via Gradient Noise</h3>
+    <p>Mar 2026 |
+      <a href="https://github.com/pratyakshpatel/Variance-Controlled-SGD" target="_blank">Project Link</a>
+    </p>
+    <ul>
+      <li>Implemented a reproducible PyTorch research pipeline comparing fixed-batch SGD with an adaptive batching policy driven by online gradient variance estimates.</li>
+      <li>Derived and deployed a control rule of the form \(b_t = \min(b_{\max}, \max(b_{\min}, C\,\sigma_t^2/(\|\bar g_t\|^2 + \epsilon)))\), with smoothing to reduce oscillatory batch-size updates.</li>
+      <li>Logged iteration-level metrics including loss, gradient norm, gradient variance, signal-to-noise ratio, and effective batch size; exported all runs as CSV for analysis.</li>
+      <li>Evaluated both naive per-sample and scalable micro-batch variance estimators, and generated comparison plots for convergence, variance decay, and SNR stabilization.</li>
+    </ul>
+
     <h3>Player compatibility scoring using GNNs</h3>
     <p>Oct–Nov 2025 | 
       <a href="https://github.com/pratyakshpatel/football-analytics-project" target="_blank">Project Link</a>
