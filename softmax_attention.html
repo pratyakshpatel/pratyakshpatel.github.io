@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>The Sigmoid Mistake: What a Midsem Blunder Taught Me About Why Softmax Is Not Optional</h1>
+
+<article>
+
+<p class="meta">19 March, 2026</p>
+
+<p>
+I still remember the exact moment. It was the Advanced Deep Learning midsemester, question three: derive the self-attention mechanism from scratch and explain each component. I was moving fast, confident, writing the query-key product, scaling by the square root of the key dimension, and then—without thinking—I wrote:
+</p>
+
+<p>
+\[
+A = \sigma\!\left(\frac{QK^\top}{\sqrt{d_k}}\right).
+\]
+</p>
+
+<p>
+Sigmoid. I wrote sigmoid.
+</p>
+
+<p>
+I realized it about forty minutes later, three questions down, when something nagged at the back of my mind and I flipped back. There it was: \(\sigma\) instead of softmax, sitting there, perfectly confident in its wrongness. I fixed it, added a note, moved on. The marks stung, but what lingered longer was the question I could not shake: how bad is it, really? What does sigmoid actually break in the attention mechanism, and is the choice of softmax just convention, or is there something mathematically deep going on?
+</p>
+
+<p>
+This post is the answer I eventually built for myself, and it is longer and stranger than I expected.
+</p>
+
+<h2>Two functions that look the same from a distance</h2>
+
+<p>
+Let me start with what I already knew, which was apparently not enough to save me on the exam. Both sigmoid and softmax take real numbers and map them into \((0,1)\). Both are smooth, differentiable, and well-behaved. If you squint, the formulas look related:
+</p>
+
+<p>
+\[
+\sigma(x) = \frac{1}{1 + e^{-x}}, \qquad \text{softmax}(x)_i = \frac{e^{x_i}}{\sum_j e^{x_j}}.
+\]
+</p>
+
+<p>
+But there is one structural difference that changes everything. Sigmoid is applied elementwise. Softmax is applied rowwise to vectors. When we write softmax inside attention, we mean: take each row of the \(L \times L\) score matrix \(QK^\top / \sqrt{d_k}\), and normalize that row so its entries sum to exactly one.
+</p>
+
+<p>
+With sigmoid, every entry gets independently squashed into \((0,1)\), with no interaction between entries, and no guarantee that any row sums to anything meaningful. With softmax, every row becomes a proper probability distribution over the \(L\) tokens in the sequence. That row of attention weights now says: when computing the output for token \(i\), here is how much weight to place on each other token, and those weights must sum to one.
+</p>
+
+<div class="viz" role="img" aria-label="Sigmoid applied elementwise versus softmax applied rowwise to attention score matrix">
+  <svg viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="310" fill="#ffffff"/>
+
+    <!-- Left panel: Sigmoid -->
+    <text x="140" y="26" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Sigmoid (element-wise)</text>
+
+    <rect x="30" y="40" width="220" height="100" fill="#f6f6f6" stroke="#ccc" rx="4"/>
+    <text x="140" y="62" font-size="11" fill="#777" text-anchor="middle">score matrix T</text>
+    <text x="140" y="82" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
+    <text x="140" y="100" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
+    <text x="140" y="118" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
+
+    <line x1="140" y1="145" x2="140" y2="168" stroke="#555" stroke-width="1.5" marker-end="url(#da1)"/>
+    <text x="155" y="162" font-size="10" fill="#555">σ(·)</text>
+
+    <rect x="30" y="172" width="220" height="110" fill="#fff8f0" stroke="#e0a060" rx="4"/>
+    <text x="140" y="193" font-size="11" fill="#777" text-anchor="middle">σ(T) — entries in (0,1)</text>
+    <text x="140" y="212" font-size="11" fill="#333" text-anchor="middle">0.89    0.40    0.79</text>
+    <text x="140" y="230" font-size="11" fill="#333" text-anchor="middle">0.23    0.69    0.94</text>
+    <text x="140" y="248" font-size="11" fill="#333" text-anchor="middle">0.62    0.87    0.43</text>
+    <text x="140" y="270" font-size="9" fill="#c0392b" text-anchor="middle">row sums: 2.08 · 1.86 · 1.92</text>
+    <text x="140" y="285" font-size="9" fill="#c0392b" text-anchor="middle">no normalization constraint</text>
+
+    <!-- Right panel: Softmax -->
+    <text x="580" y="26" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Softmax (row-wise)</text>
+
+    <rect x="430" y="40" width="300" height="100" fill="#f6f6f6" stroke="#ccc" rx="4"/>
+    <text x="580" y="62" font-size="11" fill="#777" text-anchor="middle">same score matrix T</text>
+    <text x="580" y="82" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
+    <text x="580" y="100" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
+    <text x="580" y="118" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
+
+    <line x1="580" y1="145" x2="580" y2="168" stroke="#555" stroke-width="1.5" marker-end="url(#da1)"/>
+    <text x="596" y="162" font-size="10" fill="#555">softmax row-wise</text>
+
+    <rect x="430" y="172" width="300" height="110" fill="#f0f4ff" stroke="#5c6bc0" rx="4"/>
+    <text x="580" y="193" font-size="11" fill="#777" text-anchor="middle">softmax(T) — rows normalized</text>
+    <text x="580" y="212" font-size="11" fill="#333" text-anchor="middle">0.68    0.06    0.26</text>
+    <text x="580" y="230" font-size="11" fill="#333" text-anchor="middle">0.03    0.19    0.78</text>
+    <text x="580" y="248" font-size="11" fill="#333" text-anchor="middle">0.22    0.59    0.19</text>
+    <text x="580" y="270" font-size="9" fill="#27ae60" text-anchor="middle">row sums: 1.00 · 1.00 · 1.00</text>
+    <text x="580" y="285" font-size="9" fill="#27ae60" text-anchor="middle">each row is a probability distribution</text>
+
+    <defs>
+      <marker id="da1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#555"/>
+      </marker>
+    </defs>
+  </svg>
+  <p class="viz-caption">Figure 1. Same score matrix, two different functions. Sigmoid squashes each entry independently: rows have no normalization and their sums vary freely. Softmax normalizes each row into a probability distribution over the sequence tokens, making each attention row a convex combination of the \(L\) positions.</p>
+</div>
+
+<p>
+That single property—rows sum to one—is what turns each row of the attention matrix into a distribution over the sequence. And that turns the weighted sum \(AXW_V\) into something geometrically meaningful: for each query token \(i\), the output is a convex combination of the value vectors, a properly weighted expectation. Sigmoid gives you no such structure. You are not computing an expectation under anything. You are just element-wise squashing followed by matrix multiplication.
+</p>
+
+<h2>Normalization is load-bearing structure</h2>
+
+<p>
+After the exam, I kept asking myself: so what? Empirically, sigmoid-based attention and various softmax alternatives have been explored in the literature. Why does the standard persist so firmly? The geometric answer is clear enough: softmax creates simplex-valued rows, a known compact manifold with well-understood properties. Sigmoid gives you an unconstrained hypercube. But I wanted something more precise than geometry. I wanted to know what softmax does to the optimization landscape of the whole model. That question led me somewhere I did not expect.
+</p>
+
+<h2>The paper I found a few weeks too late</h2>
+
+<p>
+While preparing for the final, I came across a paper published at ICLR 2025 by Ormaniec, Dangel, and Singh, titled "What Does It Mean to Be a Transformer? Insights from a Theoretical Hessian Analysis." The title felt like it had been written for my post-exam state of mind. The paper does something I had not seen done before: it derives the full, exact Hessian of the loss with respect to all weight matrices in a single self-attention layer, and then uses that Hessian structure to explain the standard training practices of Transformer models. Why Adam and not SGD. Why layer normalization. Why learning rate warmup. All from first principles, all traceable back to the specific mathematical structure of the self-attention mechanism.
+</p>
+
+<p>
+The Hessian of the loss, in case you have not spent time with it lately, is the matrix of all second-order derivatives of the loss with respect to the model parameters. It encodes the local curvature of the loss surface: how quickly gradients are changing, which directions are steep or flat, whether we are near a minimum or a saddle. For MLPs and CNNs, this object has been studied extensively going back decades. For Transformers, there was surprisingly little rigorous theoretical treatment before this work. The authors begin to fill that gap, and the main thing they find is that softmax is the core architectural ingredient responsible for what makes the Transformer's Hessian structurally unusual.
+</p>
+
+<h2>The Hessian has blocks, and they are not equal</h2>
+
+<p>
+The paper sets up a single self-attention layer: \(F(X) = A(X)XW_V\) where \(A(X) = \text{softmax}(XW_Q W_K^\top X^\top / \sqrt{d_K})\). The learnable parameters are \(W_Q, W_K, W_V \in \mathbb{R}^{d_V \times d_K}\) (or \(d_V \times d_V\) for the value matrix). The loss Hessian decomposes into blocks for each pair of parameter matrices, and further splits via the Gauss-Newton decomposition into an outer-product Hessian \(H_o\) and a functional Hessian \(H_f\):
+</p>
+
+<p>
+\[
+H = H_o + H_f.
+\]
+</p>
+
+<p>
+The outer-product Hessian is always positive semi-definite—it is built from outer products of Jacobians. The functional Hessian carries second-order derivatives of the network itself and can be indefinite. Now, naively, you might expect the diagonal Hessian blocks \(H(W_V, W_V)\) and \(H(W_Q, W_Q)\) to be roughly comparable in magnitude. They are not. They differ by approximately two orders of magnitude.
+</p>
+
+<p>
+This is the key empirical finding in the paper: when you look at histograms of the absolute entries of each diagonal block evaluated on a GPT-2 Transformer at initialization, the value block \(H(W_V, W_V)\) has entries concentrated around \(10^{-3}\), while the query block \(H(W_Q, W_Q)\) has entries concentrated around \(10^{-5}\). The two distributions barely overlap. The curvature experienced by the value parameters and the curvature experienced by the query parameters are completely different scales.
+</p>
+
+<div class="viz" role="img" aria-label="Schematic of Hessian block magnitude difference between value and query parameters">
+  <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="280" fill="#ffffff"/>
+
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Hessian diagonal block magnitudes at initialization</text>
+
+    <!-- Axes -->
+    <line x1="60" y1="230" x2="710" y2="230" stroke="#999" stroke-width="1.5"/>
+    <line x1="60" y1="230" x2="60" y2="48" stroke="#999" stroke-width="1.5"/>
+    <text x="385" y="260" font-size="11" fill="#666" text-anchor="middle">Absolute entry magnitude (log scale)</text>
+    <text x="22" y="140" font-size="11" fill="#666" text-anchor="middle" transform="rotate(-90 22 140)">Frequency</text>
+
+    <!-- X-axis ticks -->
+    <text x="115" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁷</text>
+    <text x="225" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁶</text>
+    <text x="340" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁵</text>
+    <text x="450" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁴</text>
+    <text x="565" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻³</text>
+    <text x="675" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻²</text>
+
+    <!-- Query block histogram — peaked near 10^-5, i.e. around x=340 -->
+    <rect x="285" y="195" width="18" height="12" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="303" y="170" width="18" height="37" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="321" y="115" width="18" height="92" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="339" y="68" width="18" height="139" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="357" y="100" width="18" height="107" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="375" y="155" width="18" height="52" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="393" y="205" width="18" height="12" fill="#2d6cdf" opacity="0.75"/>
+
+    <!-- Value block histogram — peaked near 10^-3, i.e. around x=565 -->
+    <rect x="510" y="200" width="18" height="10" fill="#e05252" opacity="0.75"/>
+    <rect x="528" y="172" width="18" height="38" fill="#e05252" opacity="0.75"/>
+    <rect x="546" y="112" width="18" height="98" fill="#e05252" opacity="0.75"/>
+    <rect x="564" y="60" width="18" height="150" fill="#e05252" opacity="0.75"/>
+    <rect x="582" y="98" width="18" height="112" fill="#e05252" opacity="0.75"/>
+    <rect x="600" y="158" width="18" height="52" fill="#e05252" opacity="0.75"/>
+    <rect x="618" y="205" width="18" height="10" fill="#e05252" opacity="0.75"/>
+
+    <!-- Gap annotation -->
+    <line x1="348" y1="145" x2="573" y2="145" stroke="#aaa" stroke-width="1.2" stroke-dasharray="5 3"/>
+    <text x="461" y="138" font-size="10" fill="#888" text-anchor="middle">≈ 2 orders of magnitude</text>
+
+    <!-- Legend -->
+    <rect x="78" y="60" width="13" height="13" fill="#2d6cdf" opacity="0.75"/>
+    <text x="97" y="71" font-size="11" fill="#333">H(W_Q, W_Q) — query block  ≈ 10⁻⁵</text>
+    <rect x="78" y="82" width="13" height="13" fill="#e05252" opacity="0.75"/>
+    <text x="97" y="93" font-size="11" fill="#333">H(W_V, W_V) — value block  ≈ 10⁻³</text>
+  </svg>
+  <p class="viz-caption">Figure 2. Schematic Hessian block magnitude distributions, following the empirical finding of Ormaniec et al. (2025, Figure 1), evaluated on a single-block GPT-2 Transformer at initialization. The query block entries are approximately two orders of magnitude smaller than the value block entries. This block heterogeneity is directly caused by the softmax nonlinearity.</p>
+</div>
+
+<h2>The root of the heterogeneity: data dependence</h2>
+
+<p>
+The theoretical heart of the paper is a precise characterization of how each Hessian block depends on the input data \(X\). Because \(X\) enters self-attention three times—as queries, keys, and values—the data dependence of the Hessian is highly nonlinear and varies significantly across blocks. Writing the dependence in big-\(\mathcal{O}\) notation (where \(\mathcal{O}(X^k)\) means all entries of the block scale as the \(k\)-th power of the entry magnitude of \(X\)), the outer-product Hessian satisfies:
+</p>
+
+<p>
+\[
+H_o \in \begin{array}{r|ccc}
+ & Q & K & V \\ \hline
+Q & \mathcal{O}(X^6) & \mathcal{O}(X^6) & \mathcal{O}(X^4) \\
+K & \cdot & \mathcal{O}(X^6) & \mathcal{O}(X^4) \\
+V & \cdot & \cdot & \mathcal{O}(X^2)
+\end{array}
+\]
+</p>
+
+<p>
+And for the functional Hessian, omitting a factor involving the residual:
+</p>
+
+<p>
+\[
+H_f \in \begin{array}{r|ccc}
+ & Q & K & V \\ \hline
+Q & \mathcal{O}(X^5) & \mathcal{O}(X^5 + X^3) & \mathcal{O}(X^3) \\
+K & \cdot & \mathcal{O}(X^5) & \mathcal{O}(X^3) \\
+V & \cdot & \cdot & \mathcal{O}(1)
+\end{array}
+\]
+</p>
+
+<p>
+Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2)\) from the outer-product Hessian (the functional Hessian's value block is exactly zero). The query and key diagonal blocks grow as \(\mathcal{O}(X^6)\) from the outer-product Hessian. At initialization, when token embeddings \(X\) have small magnitude—say standard deviation \(\sigma \approx 0.1\) or so—a term of order \(\sigma^6 \approx 10^{-6}\) is vastly smaller than a term of order \(\sigma^2 \approx 10^{-2}\). This is precisely why the query Hessian block is so much smaller than the value block at initialization: it lives in a higher-power regime that is numerically tiny when data magnitudes are small. The paper verifies this by systematically varying the initialization scale \(\sigma\) and measuring how the Frobenius norm of each block scales, finding clean agreement with the theoretical predictions.
+</p>
+
+<div class="viz" role="img" aria-label="Comparison of data dependence between softmax attention and linear attention">
+  <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="250" fill="#ffffff"/>
+
+    <text x="380" y="26" font-size="13" fill="#333" text-anchor="middle">Outer-product Hessian diagonal block data dependence: softmax vs. no softmax</text>
+
+    <!-- Headers -->
+    <text x="55" y="60" font-size="11" fill="#555" text-anchor="middle">Block</text>
+    <text x="265" y="60" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">Softmax Attention</text>
+    <text x="560" y="60" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">Linear Attention (sigmoid / no softmax)</text>
+
+    <!-- Dividers -->
+    <line x1="20" y1="68" x2="740" y2="68" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="113" x2="740" y2="113" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="158" x2="740" y2="158" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="203" x2="740" y2="203" stroke="#ddd" stroke-width="1"/>
+    <line x1="120" y1="68" x2="120" y2="203" stroke="#ddd" stroke-width="1"/>
+    <line x1="400" y1="68" x2="400" y2="203" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Row labels -->
+    <text x="70" y="97" font-size="12" fill="#333" text-anchor="middle">Q, K blocks</text>
+    <text x="70" y="142" font-size="12" fill="#333" text-anchor="middle">V block</text>
+
+    <!-- Softmax column -->
+    <rect x="124" y="72" width="272" height="38" fill="#fff0f0" rx="3"/>
+    <text x="260" y="95" font-size="13" fill="#c0392b" text-anchor="middle">𝒪(X⁶)  — steep growth</text>
+
+    <rect x="124" y="117" width="272" height="38" fill="#e8f5e9" rx="3"/>
+    <text x="260" y="140" font-size="13" fill="#27ae60" text-anchor="middle">𝒪(X²)  — gentle growth</text>
+
+    <!-- Linear attention column -->
+    <rect x="404" y="72" width="332" height="38" fill="#e8eaf6" rx="3"/>
+    <text x="570" y="95" font-size="13" fill="#3949ab" text-anchor="middle">𝒪(Σ³_XX) — uniform cubic</text>
+
+    <rect x="404" y="117" width="332" height="38" fill="#e8eaf6" rx="3"/>
+    <text x="570" y="140" font-size="13" fill="#3949ab" text-anchor="middle">𝒪(Σ³_XX) — uniform cubic</text>
+
+    <!-- Caption below -->
+    <text x="380" y="225" font-size="10" fill="#888" text-anchor="middle">Without softmax all blocks depend uniformly on the cube of the intra-sequence covariance Σ_XX = X⊤X/L.</text>
+    <text x="380" y="240" font-size="10" fill="#888" text-anchor="middle">Softmax breaks this symmetry, making Q/K blocks depend on the sixth power of data while V depends on the square.</text>
+  </svg>
+  <p class="viz-caption">Figure 3. Data dependence of the outer-product Hessian diagonal blocks for softmax attention versus linear attention. Softmax introduces extreme block heterogeneity: query and key blocks depend on \(\mathcal{O}(X^6)\) while the value block depends on \(\mathcal{O}(X^2)\). Removing softmax (linear or sigmoid attention) makes all blocks depend uniformly on the cube of the intra-sequence covariance, eliminating the heterogeneity entirely.</p>
+</div>
+
+<p>
+And this is the key point I had been missing. If you remove softmax—whether you replace it with sigmoid, with a linear identity, or with anything else that does not enforce row normalization—the heterogeneity disappears. The outer-product Hessian blocks all depend uniformly on \(\mathcal{O}(\Sigma_{XX}^3)\) where \(\Sigma_{XX} = X^\top X / L\) is the intra-sequence covariance. Every block grows at the same rate. No two-orders-of-magnitude spread. No structural asymmetry between query-key and value parameters.
+</p>
+
+<p>
+Softmax is what breaks the symmetry. The query and key matrices interact with the derivative of the softmax in ways that multiply the data dependence, because those matrices parameterize the argument of the softmax. The value matrix sits outside the softmax entirely and contributes only linearly. That distinction—inside versus outside the normalizing nonlinearity—is the structural cause of the entire block heterogeneity.
+</p>
+
+<h2>Softmax makes the Hessian more indefinite</h2>
+
+<p>
+There is a second consequence that I find even more conceptually striking. In the Gauss-Newton decomposition, the outer-product term \(H_o\) is always positive semi-definite: it is a sum of Gram matrices and can only have non-negative eigenvalues. The functional Hessian \(H_f\), which carries second derivatives of the network itself, can be indefinite.
+</p>
+
+<p>
+For MLPs with piecewise linear activations like ReLU, the functional Hessian has what the authors call a block-hollow structure: the diagonal blocks are zero. This means the Hessian diagonal blocks for MLP parameters are determined entirely by \(H_o\), and they are therefore positive semi-definite. Non-negative eigenvalues everywhere.
+</p>
+
+<p>
+For self-attention with softmax, this is no longer true. The functional Hessian \(H_f\) has non-zero diagonal blocks for the query and key parameters—specifically, the query diagonal block depends on second derivatives of the softmax, which are non-trivial. These blocks are indefinite, carrying both positive and negative eigenvalues. Park and Kim (2022) had already observed empirically that the Transformer Hessian is more indefinite than that of CNNs. This paper provides the precise theoretical mechanism: it is the softmax nonlinearity that prevents the block-hollow structure and introduces indefiniteness into the diagonal Hessian blocks.
+</p>
+
+<p>
+Removing softmax restores the block-hollow structure to the functional Hessian's diagonal, and the Hessian blocks become positive semi-definite again—structurally much more like an MLP. With my sigmoid mistake on the exam, I had essentially written down a model whose Hessian is qualitatively closer to an MLP's than to a proper Transformer's.
+</p>
+
+<h2>Attention moments: a statistical structure I had not seen before</h2>
+
+<p>
+One of the most elegant things in the paper is how the data terms in the Hessian are organized through what the authors call attention moment matrices. Because each row of the softmax attention matrix \(A\) is a probability distribution over the \(L\) input tokens, you can define statistical moments of those per-row distributions—just as you would define the mean and variance of a probability distribution over numbers.
+</p>
+
+<p>
+The first attention moment is the attention-weighted average of the token embeddings:
+</p>
+
+<p>
+\[
+M_1 := AX = \bigl[A_{i,:}^\top X\bigr]_{1 \le i \le L} \in \mathbb{R}^{L \times d_V}.
+\]
+</p>
+
+<p>
+This is exactly the context vector from the standard attention mechanism—the output before the value projection. It is also the quantity that appears in the value outer-product Hessian. The second central moment matrix \(M_2\) captures the attention-weighted covariance of the token embeddings around the attention mean, and the third central moment matrix \(M_3\) captures the corresponding skewness analogue.
+</p>
+
+<p>
+These three moment matrices appear in different parts of the Hessian in a beautifully stratified way:
+</p>
+
+<p>
+The value outer-product Hessian \(H_o(W_V, W_V)\) depends on \(M_1\), the first moment—the basic weighted average.
+</p>
+
+<p>
+The query-key outer-product Hessian depends on \(M_2\), the second central moment—which measures how spread out the attention distribution is across the token sequence.
+</p>
+
+<p>
+The query-key functional Hessian depends on \(M_3\), the third central moment—the most complex statistical structure of all.
+</p>
+
+<p>
+This means the curvature experienced by the query and key parameters is sensitive to higher-order statistics of the attention distribution than the value parameters. A model that has learned sharply peaked attention—mostly attending to one token—will have \(M_2 \approx 0\) and \(M_3 \approx 0\), giving near-zero curvature in the query-key directions. A model with diffuse, spread-out attention will have substantial \(M_2\) and non-trivial \(M_3\), giving meaningful curvature to the query-key parameters.
+</p>
+
+<p>
+None of this structure exists if you replace softmax with sigmoid. Sigmoid does not create probability distributions over rows. It does not define an attention mean, or attention covariance, or any higher moment in this precise statistical sense. The entire moment-theoretic characterization of the Hessian—arguably the paper's most elegant contribution—is a direct consequence of the row-normalization that softmax provides and sigmoid does not.
+</p>
+
+<div class="viz" role="img" aria-label="Attention moment matrices and which Hessian blocks they govern">
+  <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="ma1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#555"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="260" fill="#ffffff"/>
+
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Attention moments govern different Hessian blocks</text>
+
+    <!-- Moment boxes on the left -->
+    <rect x="20" y="50" width="190" height="50" fill="#e3f2fd" stroke="#1e88e5" rx="5"/>
+    <text x="115" y="69" font-size="12" fill="#1e88e5" text-anchor="middle" font-weight="bold">M₁ = AX</text>
+    <text x="115" y="88" font-size="10" fill="#555" text-anchor="middle">attention-weighted mean</text>
+
+    <rect x="20" y="120" width="190" height="50" fill="#e8f5e9" stroke="#43a047" rx="5"/>
+    <text x="115" y="139" font-size="12" fill="#43a047" text-anchor="middle" font-weight="bold">M₂ (2nd central moment)</text>
+    <text x="115" y="158" font-size="10" fill="#555" text-anchor="middle">attention-weighted covariance</text>
+
+    <rect x="20" y="190" width="190" height="50" fill="#fff3e0" stroke="#fb8c00" rx="5"/>
+    <text x="115" y="209" font-size="12" fill="#fb8c00" text-anchor="middle" font-weight="bold">M₃ (3rd central moment)</text>
+    <text x="115" y="228" font-size="10" fill="#555" text-anchor="middle">attention-weighted skewness</text>
+
+    <!-- Hessian block boxes on the right -->
+    <rect x="520" y="50" width="220" height="50" fill="#fce4ec" stroke="#e53935" rx="5"/>
+    <text x="630" y="72" font-size="12" fill="#e53935" text-anchor="middle">H_o(W_V, W_V)</text>
+    <text x="630" y="90" font-size="10" fill="#555" text-anchor="middle">value outer-product Hessian</text>
+
+    <rect x="520" y="120" width="220" height="50" fill="#f3e5f5" stroke="#8e24aa" rx="5"/>
+    <text x="630" y="142" font-size="12" fill="#8e24aa" text-anchor="middle">H_o(W_Q, W_Q)</text>
+    <text x="630" y="160" font-size="10" fill="#555" text-anchor="middle">query outer-product Hessian</text>
+
+    <rect x="520" y="190" width="220" height="50" fill="#e8eaf6" stroke="#3949ab" rx="5"/>
+    <text x="630" y="212" font-size="12" fill="#3949ab" text-anchor="middle">H_f(W_Q, W_K)</text>
+    <text x="630" y="230" font-size="10" fill="#555" text-anchor="middle">query-key functional Hessian</text>
+
+    <!-- Arrows -->
+    <line x1="212" y1="75" x2="518" y2="75" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
+    <line x1="212" y1="145" x2="518" y2="145" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
+    <line x1="212" y1="215" x2="518" y2="215" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
+
+    <text x="365" y="68" font-size="10" fill="#888" text-anchor="middle">governs</text>
+    <text x="365" y="138" font-size="10" fill="#888" text-anchor="middle">governs</text>
+    <text x="365" y="208" font-size="10" fill="#888" text-anchor="middle">governs</text>
+  </svg>
+  <p class="viz-caption">Figure 4. The self-attention Hessian is stratified by attention moment matrices. The value Hessian depends on the first moment (the familiar context vector). The query-key outer-product Hessian depends on the second central moment. The query-key functional Hessian involves the third central moment. This structure is unique to softmax attention and has no analogue when softmax is replaced by sigmoid or any element-wise function.</p>
+</div>
+
+<h2>What this implies for how Transformers are trained</h2>
+
+<p>
+Once you see the Hessian structure, a lot of standard Transformer training practice stops feeling like folklore and starts making sense from first principles.
+</p>
+
+<p>
+The block heterogeneity—query-key blocks at \(\mathcal{O}(X^6)\) versus value blocks at \(\mathcal{O}(X^2)\)—means that at initialization, with small token embedding magnitudes, the curvature in the query-key directions is orders of magnitude smaller than in the value directions. These are completely different optimization regimes within the same layer. An optimizer like SGD with a fixed learning rate for all parameters has no way to cope with this. A step size appropriate for the value parameters is either catastrophically large for the eventually-developing query landscape, or absurdly small for the value landscape. You cannot win.
+</p>
+
+<p>
+Adam, by maintaining per-parameter exponential moving averages of squared gradients and dividing by them, naturally assigns different effective learning rates to parameters with different gradient scales. It is not that Adam is theoretically superior for arbitrary optimization problems. It is that Adam is specifically well-matched to the heterogeneous curvature structure that softmax creates. Zhang et al. (2024) showed empirically that the Hessian spectra of Transformer blocks are far more heterogeneous across diagonal blocks than those of CNNs—precisely the block-heterogeneity that this paper explains theoretically.
+</p>
+
+<p>
+The case for layer normalization follows a similar logic. The paper shows that stacking \(D\) linear self-attention layers (no softmax) makes the Hessian diagonal blocks depend on \(\mathcal{O}(\Sigma_{XX}^{3^D})\): for \(D=2\) that is \(\mathcal{O}(X^{18})\), for \(D=3\) it is \(\mathcal{O}(X^{54})\). Super-exponential growth with depth. With softmax and proper pre-layer normalization, the block-heterogeneity in these growth rates is substantially reduced: the exponents across different blocks become more similar, making the problem more tractable. Layer normalization is not simply a variance stabilization trick. It actively counteracts a structural consequence of the softmax-induced Hessian dynamics.
+</p>
+
+<h2>Back to the exam mistake</h2>
+
+<p>
+So here is what I would have written, if I had understood all of this before question three.
+</p>
+
+<p>
+Sigmoid is not merely wrong in the sense of violating convention. Writing sigmoid instead of softmax in the attention computation breaks the row-normalization structure that makes each row of the attention matrix a probability distribution. It eliminates the attention moments—the precise statistical objects that govern the curvature of the loss surface for query and key parameters. It makes the Hessian blocks uniform across parameter groups rather than heterogeneous, qualitatively transforming the optimization landscape. A model with sigmoid attention does not need Adam in the same essential way a model with softmax attention does. Its Hessian is closer to an MLP's in structure: less indefinite, more homogeneous. Perhaps easier to train with simpler optimizers. But it is not a Transformer in the mathematically meaningful sense.
+</p>
+
+<p>
+The paper's title asks: "What does it mean to be a Transformer?" The Hessian answer is: it means having a loss landscape shaped by softmax in ways that propagate through three orders of attention moments, create heterogeneous curvature between parameter blocks by factors of hundreds at initialization, and make certain diagonal Hessian blocks indefinite in ways that make adaptive optimizers effectively necessary. Sigmoid gives you none of that. It gives you a simpler, more uniform curvature structure, and a model that is functionally something else.
+</p>
+
+<h2>A personal note on what bad answers teach you</h2>
+
+<p>
+I think I understand the attention mechanism better for having made this mistake than I would have if I had written softmax automatically and moved on. The automatic answer is "softmax because it normalizes rows and gives a probability distribution." The deeper answer is "softmax because it creates probability distributions over tokens, which induces attention moments, which create a stratified Hessian structure with heterogeneous curvature that is responsible for the characteristic training dynamics of every Transformer ever trained."
+</p>
+
+<p>
+Those are very different levels of understanding. The mistake pushed me toward the second one.
+</p>
+
+<p>
+I do not recommend failing exam questions as a general learning strategy. But I do think there is something to be said for tracing a wrong answer all the way to its structural roots. "How wrong was I, exactly?" turns out to be a much more productive question than "what was the right answer?" because the first question leads into the mathematics, and the second just leads to a formula that you write correctly next time without knowing why.
+</p>
+
+<p>
+The next time someone asks me why we use softmax in attention, I will not say convention, or normalization, or because it works empirically. I will say: softmax is the specific function that creates a probability distribution over tokens at each position, and that distribution generates a stratified Hessian landscape governed by first, second, and third attention moments, block-heterogeneous in curvature, partially indefinite, and requiring adaptive optimization in a structurally precise sense. That is what the choice of softmax actually means. It took writing the wrong symbol in an exam, and a few weeks of reading afterward, to make me see it clearly.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Ormaniec, W., Dangel, F., &amp; Singh, S. P. (2025). What Does It Mean to Be a Transformer? Insights from a Theoretical Hessian Analysis. <em>International Conference on Learning Representations (ICLR 2025)</em>. Code repository: <a href="https://github.com/dalab/transformer-hessian" target="_blank">github.com/dalab/transformer-hessian</a>.</li>
+  <li>Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., &amp; Polosukhin, I. (2017). Attention Is All You Need. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1706.03762" target="_blank">Paper link</a>.</li>
+  <li>Zhang, Y., Chen, C., Ding, T., Li, Z., Sun, R., &amp; Luo, Z.-Q. (2024). Why Transformers Need Adam: A Hessian Perspective. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2402.16788" target="_blank">Paper link</a>.</li>
+  <li>Park, N., &amp; Kim, S. (2022). How Do Vision Transformers Work? <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2202.06709" target="_blank">Paper link</a>.</li>
+  <li>Noci, L., Anagnostidis, S., Biggio, L., Orvieto, A., Singh, S. P., &amp; Lucchi, A. (2022). Signal Propagation in Transformers: Theoretical Perspectives and the Role of Rank Collapse. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2206.03126" target="_blank">Paper link</a>.</li>
+  <li>Singh, S. P., Bachmann, G., &amp; Hofmann, T. (2021). Analytic Insights into Structure and Rank of Neural Network Hessian Maps. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2106.16217" target="_blank">Paper link</a>.</li>
+  <li>Kingma, D. P., &amp; Ba, J. (2015). Adam: A Method for Stochastic Optimization. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/1412.6980" target="_blank">Paper link</a>.</li>
+  <li>Xiong, R., Yang, Y., He, D., Zheng, K., Zheng, S., Xing, C., Zhang, H., Lan, Y., Wang, L., &amp; Liu, T. (2020). On Layer Normalization in the Transformer Architecture. <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2002.04745" target="_blank">Paper link</a>.</li>
+</ol>
+
+</article>
+</main>
+
+</body>
+</html>
