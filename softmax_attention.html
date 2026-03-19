@@ -180,54 +180,53 @@ With sigmoid, every entry gets independently squashed into \((0,1)\), with no in
 </p>
 
 <div class="viz" role="img" aria-label="Sigmoid applied elementwise versus softmax applied rowwise to attention score matrix">
-  <svg viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="760" height="310" fill="#ffffff"/>
-
-    <!-- Left panel: Sigmoid -->
-    <text x="140" y="26" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Sigmoid (element-wise)</text>
-
-    <rect x="30" y="40" width="220" height="100" fill="#f6f6f6" stroke="#ccc" rx="4"/>
-    <text x="140" y="62" font-size="11" fill="#777" text-anchor="middle">score matrix T</text>
-    <text x="140" y="82" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
-    <text x="140" y="100" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
-    <text x="140" y="118" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
-
-    <line x1="140" y1="145" x2="140" y2="168" stroke="#555" stroke-width="1.5" marker-end="url(#da1)"/>
-    <text x="155" y="162" font-size="10" fill="#555">σ(·)</text>
-
-    <rect x="30" y="172" width="220" height="110" fill="#fff8f0" stroke="#e0a060" rx="4"/>
-    <text x="140" y="193" font-size="11" fill="#777" text-anchor="middle">σ(T) — entries in (0,1)</text>
-    <text x="140" y="212" font-size="11" fill="#333" text-anchor="middle">0.89    0.40    0.79</text>
-    <text x="140" y="230" font-size="11" fill="#333" text-anchor="middle">0.23    0.69    0.94</text>
-    <text x="140" y="248" font-size="11" fill="#333" text-anchor="middle">0.62    0.87    0.43</text>
-    <text x="140" y="270" font-size="9" fill="#c0392b" text-anchor="middle">row sums: 2.08 · 1.86 · 1.92</text>
-    <text x="140" y="285" font-size="9" fill="#c0392b" text-anchor="middle">no normalization constraint</text>
-
-    <!-- Right panel: Softmax -->
-    <text x="580" y="26" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">Softmax (row-wise)</text>
-
-    <rect x="430" y="40" width="300" height="100" fill="#f6f6f6" stroke="#ccc" rx="4"/>
-    <text x="580" y="62" font-size="11" fill="#777" text-anchor="middle">same score matrix T</text>
-    <text x="580" y="82" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
-    <text x="580" y="100" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
-    <text x="580" y="118" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
-
-    <line x1="580" y1="145" x2="580" y2="168" stroke="#555" stroke-width="1.5" marker-end="url(#da1)"/>
-    <text x="596" y="162" font-size="10" fill="#555">softmax row-wise</text>
-
-    <rect x="430" y="172" width="300" height="110" fill="#f0f4ff" stroke="#5c6bc0" rx="4"/>
-    <text x="580" y="193" font-size="11" fill="#777" text-anchor="middle">softmax(T) — rows normalized</text>
-    <text x="580" y="212" font-size="11" fill="#333" text-anchor="middle">0.68    0.06    0.26</text>
-    <text x="580" y="230" font-size="11" fill="#333" text-anchor="middle">0.03    0.19    0.78</text>
-    <text x="580" y="248" font-size="11" fill="#333" text-anchor="middle">0.22    0.59    0.19</text>
-    <text x="580" y="270" font-size="9" fill="#27ae60" text-anchor="middle">row sums: 1.00 · 1.00 · 1.00</text>
-    <text x="580" y="285" font-size="9" fill="#27ae60" text-anchor="middle">each row is a probability distribution</text>
-
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <marker id="da1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#555"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
       </marker>
     </defs>
+    <rect x="0" y="0" width="760" height="300" fill="#fff"/>
+
+    <!-- Left panel: Sigmoid -->
+    <text x="140" y="24" font-size="13" fill="#333" text-anchor="middle">Sigmoid (element-wise)</text>
+
+    <rect x="30" y="36" width="220" height="96" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="140" y="55" font-size="11" fill="#777" text-anchor="middle">score matrix T</text>
+    <text x="140" y="76" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
+    <text x="140" y="96" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
+    <text x="140" y="116" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
+
+    <line x1="140" y1="136" x2="140" y2="158" stroke="#444" stroke-width="1.5" marker-end="url(#da1)"/>
+    <text x="154" y="152" font-size="10" fill="#666">σ(·)</text>
+
+    <rect x="30" y="163" width="220" height="110" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="140" y="182" font-size="11" fill="#777" text-anchor="middle">σ(T) — entries in (0,1)</text>
+    <text x="140" y="202" font-size="11" fill="#333" text-anchor="middle">0.89    0.40    0.79</text>
+    <text x="140" y="220" font-size="11" fill="#333" text-anchor="middle">0.23    0.69    0.94</text>
+    <text x="140" y="238" font-size="11" fill="#333" text-anchor="middle">0.62    0.87    0.43</text>
+    <text x="140" y="260" font-size="9" fill="#e05252" text-anchor="middle">row sums: 2.08  ·  1.86  ·  1.92</text>
+    <text x="140" y="275" font-size="9" fill="#888" text-anchor="middle">no normalization constraint</text>
+
+    <!-- Right panel: Softmax -->
+    <text x="580" y="24" font-size="13" fill="#333" text-anchor="middle">Softmax (row-wise)</text>
+
+    <rect x="430" y="36" width="300" height="96" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="580" y="55" font-size="11" fill="#777" text-anchor="middle">same score matrix T</text>
+    <text x="580" y="76" font-size="11" fill="#333" text-anchor="middle">2.1    −0.4    1.3</text>
+    <text x="580" y="96" font-size="11" fill="#333" text-anchor="middle">−1.2    0.8    2.7</text>
+    <text x="580" y="116" font-size="11" fill="#333" text-anchor="middle">0.5    1.9    −0.3</text>
+
+    <line x1="580" y1="136" x2="580" y2="158" stroke="#444" stroke-width="1.5" marker-end="url(#da1)"/>
+    <text x="594" y="152" font-size="10" fill="#666">softmax row-wise</text>
+
+    <rect x="430" y="163" width="300" height="110" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="580" y="182" font-size="11" fill="#777" text-anchor="middle">softmax(T) — rows normalized</text>
+    <text x="580" y="202" font-size="11" fill="#333" text-anchor="middle">0.68    0.06    0.26</text>
+    <text x="580" y="220" font-size="11" fill="#333" text-anchor="middle">0.03    0.19    0.78</text>
+    <text x="580" y="238" font-size="11" fill="#333" text-anchor="middle">0.22    0.59    0.19</text>
+    <text x="580" y="260" font-size="9" fill="#2d6cdf" text-anchor="middle">row sums: 1.00  ·  1.00  ·  1.00</text>
+    <text x="580" y="275" font-size="9" fill="#888" text-anchor="middle">each row is a probability distribution</text>
   </svg>
   <p class="viz-caption">Figure 1. Same score matrix, two different functions. Sigmoid squashes each entry independently: rows have no normalization and their sums vary freely. Softmax normalizes each row into a probability distribution over the sequence tokens, making each attention row a convex combination of the \(L\) positions.</p>
 </div>
@@ -273,52 +272,52 @@ This is the key empirical finding in the paper: when you look at histograms of t
 </p>
 
 <div class="viz" role="img" aria-label="Schematic of Hessian block magnitude difference between value and query parameters">
-  <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="760" height="280" fill="#ffffff"/>
+  <svg viewBox="0 0 760 270" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="270" fill="#fff"/>
 
-    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Hessian diagonal block magnitudes at initialization</text>
+    <text x="380" y="22" font-size="13" fill="#333" text-anchor="middle">Hessian diagonal block magnitudes at initialization</text>
 
     <!-- Axes -->
-    <line x1="60" y1="230" x2="710" y2="230" stroke="#999" stroke-width="1.5"/>
-    <line x1="60" y1="230" x2="60" y2="48" stroke="#999" stroke-width="1.5"/>
-    <text x="385" y="260" font-size="11" fill="#666" text-anchor="middle">Absolute entry magnitude (log scale)</text>
-    <text x="22" y="140" font-size="11" fill="#666" text-anchor="middle" transform="rotate(-90 22 140)">Frequency</text>
+    <line x1="60" y1="218" x2="710" y2="218" stroke="#999" stroke-width="1.5"/>
+    <line x1="60" y1="218" x2="60" y2="42" stroke="#999" stroke-width="1.5"/>
+    <text x="385" y="248" font-size="11" fill="#666" text-anchor="middle">Absolute entry magnitude (log scale)</text>
+    <text x="22" y="134" font-size="11" fill="#666" text-anchor="middle" transform="rotate(-90 22 134)">Frequency</text>
 
     <!-- X-axis ticks -->
-    <text x="115" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁷</text>
-    <text x="225" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁶</text>
-    <text x="340" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁵</text>
-    <text x="450" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻⁴</text>
-    <text x="565" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻³</text>
-    <text x="675" y="246" font-size="10" fill="#888" text-anchor="middle">10⁻²</text>
+    <text x="115" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻⁷</text>
+    <text x="225" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻⁶</text>
+    <text x="340" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻⁵</text>
+    <text x="450" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻⁴</text>
+    <text x="565" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻³</text>
+    <text x="675" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻²</text>
 
-    <!-- Query block histogram — peaked near 10^-5, i.e. around x=340 -->
-    <rect x="285" y="195" width="18" height="12" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="303" y="170" width="18" height="37" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="321" y="115" width="18" height="92" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="339" y="68" width="18" height="139" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="357" y="100" width="18" height="107" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="375" y="155" width="18" height="52" fill="#2d6cdf" opacity="0.75"/>
-    <rect x="393" y="205" width="18" height="12" fill="#2d6cdf" opacity="0.75"/>
+    <!-- Query block histogram — peaked near 10^-5 -->
+    <rect x="285" y="185" width="18" height="10" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="303" y="160" width="18" height="35" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="321" y="106" width="18" height="89" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="339" y="60" width="18" height="135" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="357" y="94" width="18" height="101" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="375" y="150" width="18" height="45" fill="#2d6cdf" opacity="0.7"/>
+    <rect x="393" y="196" width="18" height="10" fill="#2d6cdf" opacity="0.7"/>
 
-    <!-- Value block histogram — peaked near 10^-3, i.e. around x=565 -->
-    <rect x="510" y="200" width="18" height="10" fill="#e05252" opacity="0.75"/>
-    <rect x="528" y="172" width="18" height="38" fill="#e05252" opacity="0.75"/>
-    <rect x="546" y="112" width="18" height="98" fill="#e05252" opacity="0.75"/>
-    <rect x="564" y="60" width="18" height="150" fill="#e05252" opacity="0.75"/>
-    <rect x="582" y="98" width="18" height="112" fill="#e05252" opacity="0.75"/>
-    <rect x="600" y="158" width="18" height="52" fill="#e05252" opacity="0.75"/>
-    <rect x="618" y="205" width="18" height="10" fill="#e05252" opacity="0.75"/>
+    <!-- Value block histogram — peaked near 10^-3 -->
+    <rect x="510" y="190" width="18" height="8" fill="#e05252" opacity="0.7"/>
+    <rect x="528" y="165" width="18" height="33" fill="#e05252" opacity="0.7"/>
+    <rect x="546" y="108" width="18" height="90" fill="#e05252" opacity="0.7"/>
+    <rect x="564" y="56" width="18" height="142" fill="#e05252" opacity="0.7"/>
+    <rect x="582" y="92" width="18" height="106" fill="#e05252" opacity="0.7"/>
+    <rect x="600" y="150" width="18" height="48" fill="#e05252" opacity="0.7"/>
+    <rect x="618" y="196" width="18" height="8" fill="#e05252" opacity="0.7"/>
 
     <!-- Gap annotation -->
-    <line x1="348" y1="145" x2="573" y2="145" stroke="#aaa" stroke-width="1.2" stroke-dasharray="5 3"/>
-    <text x="461" y="138" font-size="10" fill="#888" text-anchor="middle">≈ 2 orders of magnitude</text>
+    <line x1="348" y1="136" x2="573" y2="136" stroke="#bbb" stroke-width="1.2" stroke-dasharray="5 3"/>
+    <text x="461" y="129" font-size="10" fill="#888" text-anchor="middle">≈ 2 orders of magnitude</text>
 
     <!-- Legend -->
-    <rect x="78" y="60" width="13" height="13" fill="#2d6cdf" opacity="0.75"/>
-    <text x="97" y="71" font-size="11" fill="#333">H(W_Q, W_Q) — query block  ≈ 10⁻⁵</text>
-    <rect x="78" y="82" width="13" height="13" fill="#e05252" opacity="0.75"/>
-    <text x="97" y="93" font-size="11" fill="#333">H(W_V, W_V) — value block  ≈ 10⁻³</text>
+    <rect x="78" y="54" width="12" height="12" fill="#2d6cdf" opacity="0.7"/>
+    <text x="96" y="65" font-size="11" fill="#333">H(W_Q, W_Q) — query block  ≈ 10⁻⁵</text>
+    <rect x="78" y="74" width="12" height="12" fill="#e05252" opacity="0.7"/>
+    <text x="96" y="85" font-size="11" fill="#333">H(W_V, W_V) — value block  ≈ 10⁻³</text>
   </svg>
   <p class="viz-caption">Figure 2. Schematic Hessian block magnitude distributions, following the empirical finding of Ormaniec et al. (2025, Figure 1), evaluated on a single-block GPT-2 Transformer at initialization. The query block entries are approximately two orders of magnitude smaller than the value block entries. This block heterogeneity is directly caused by the softmax nonlinearity.</p>
 </div>
@@ -360,47 +359,45 @@ Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2
 </p>
 
 <div class="viz" role="img" aria-label="Comparison of data dependence between softmax attention and linear attention">
-  <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="760" height="250" fill="#ffffff"/>
+  <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="230" fill="#fff"/>
 
-    <text x="380" y="26" font-size="13" fill="#333" text-anchor="middle">Outer-product Hessian diagonal block data dependence: softmax vs. no softmax</text>
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Outer-product Hessian diagonal block data dependence: softmax vs. no softmax</text>
 
     <!-- Headers -->
-    <text x="55" y="60" font-size="11" fill="#555" text-anchor="middle">Block</text>
-    <text x="265" y="60" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">Softmax Attention</text>
-    <text x="560" y="60" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">Linear Attention (sigmoid / no softmax)</text>
+    <text x="60" y="54" font-size="11" fill="#666" text-anchor="middle">Block</text>
+    <text x="265" y="54" font-size="12" fill="#333" text-anchor="middle">Softmax Attention</text>
+    <text x="565" y="54" font-size="12" fill="#333" text-anchor="middle">Linear / Sigmoid Attention</text>
 
     <!-- Dividers -->
-    <line x1="20" y1="68" x2="740" y2="68" stroke="#ddd" stroke-width="1"/>
-    <line x1="20" y1="113" x2="740" y2="113" stroke="#ddd" stroke-width="1"/>
-    <line x1="20" y1="158" x2="740" y2="158" stroke="#ddd" stroke-width="1"/>
-    <line x1="20" y1="203" x2="740" y2="203" stroke="#ddd" stroke-width="1"/>
-    <line x1="120" y1="68" x2="120" y2="203" stroke="#ddd" stroke-width="1"/>
-    <line x1="400" y1="68" x2="400" y2="203" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="62" x2="740" y2="62" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="104" x2="740" y2="104" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="146" x2="740" y2="146" stroke="#ddd" stroke-width="1"/>
+    <line x1="20" y1="188" x2="740" y2="188" stroke="#ddd" stroke-width="1"/>
+    <line x1="120" y1="62" x2="120" y2="188" stroke="#ddd" stroke-width="1"/>
+    <line x1="400" y1="62" x2="400" y2="188" stroke="#ddd" stroke-width="1"/>
 
     <!-- Row labels -->
-    <text x="70" y="97" font-size="12" fill="#333" text-anchor="middle">Q, K blocks</text>
-    <text x="70" y="142" font-size="12" fill="#333" text-anchor="middle">V block</text>
+    <text x="70" y="90" font-size="11" fill="#444" text-anchor="middle">Q, K blocks</text>
+    <text x="70" y="132" font-size="11" fill="#444" text-anchor="middle">V block</text>
 
     <!-- Softmax column -->
-    <rect x="124" y="72" width="272" height="38" fill="#fff0f0" rx="3"/>
-    <text x="260" y="95" font-size="13" fill="#c0392b" text-anchor="middle">𝒪(X⁶)  — steep growth</text>
+    <rect x="126" y="68" width="270" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="261" y="89" font-size="12" fill="#e05252" text-anchor="middle">𝒪(X⁶) — steep growth</text>
 
-    <rect x="124" y="117" width="272" height="38" fill="#e8f5e9" rx="3"/>
-    <text x="260" y="140" font-size="13" fill="#27ae60" text-anchor="middle">𝒪(X²)  — gentle growth</text>
+    <rect x="126" y="110" width="270" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="261" y="131" font-size="12" fill="#2d6cdf" text-anchor="middle">𝒪(X²) — gentle growth</text>
 
     <!-- Linear attention column -->
-    <rect x="404" y="72" width="332" height="38" fill="#e8eaf6" rx="3"/>
-    <text x="570" y="95" font-size="13" fill="#3949ab" text-anchor="middle">𝒪(Σ³_XX) — uniform cubic</text>
+    <rect x="406" y="68" width="328" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="570" y="89" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) — uniform</text>
 
-    <rect x="404" y="117" width="332" height="38" fill="#e8eaf6" rx="3"/>
-    <text x="570" y="140" font-size="13" fill="#3949ab" text-anchor="middle">𝒪(Σ³_XX) — uniform cubic</text>
+    <rect x="406" y="110" width="328" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="570" y="131" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) — uniform</text>
 
-    <!-- Caption below -->
-    <text x="380" y="225" font-size="10" fill="#888" text-anchor="middle">Without softmax all blocks depend uniformly on the cube of the intra-sequence covariance Σ_XX = X⊤X/L.</text>
-    <text x="380" y="240" font-size="10" fill="#888" text-anchor="middle">Softmax breaks this symmetry, making Q/K blocks depend on the sixth power of data while V depends on the square.</text>
+    <text x="380" y="208" font-size="10" fill="#888" text-anchor="middle">Without softmax all blocks grow uniformly; softmax breaks symmetry, separating Q/K (sixth power) from V (square).</text>
   </svg>
-  <p class="viz-caption">Figure 3. Data dependence of the outer-product Hessian diagonal blocks for softmax attention versus linear attention. Softmax introduces extreme block heterogeneity: query and key blocks depend on \(\mathcal{O}(X^6)\) while the value block depends on \(\mathcal{O}(X^2)\). Removing softmax (linear or sigmoid attention) makes all blocks depend uniformly on the cube of the intra-sequence covariance, eliminating the heterogeneity entirely.</p>
+  <p class="viz-caption">Figure 3. Data dependence of the outer-product Hessian diagonal blocks for softmax attention versus linear attention. Softmax introduces extreme block heterogeneity: query and key blocks depend on \(\mathcal{O}(X^6)\) while the value block depends on \(\mathcal{O}(X^2)\). Removing softmax makes all blocks depend uniformly on the cube of the intra-sequence covariance, eliminating the heterogeneity entirely.</p>
 </div>
 
 <p>
@@ -477,43 +474,43 @@ None of this structure exists if you replace softmax with sigmoid. Sigmoid does 
   <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <marker id="ma1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 9 3, 0 6" fill="#555"/>
+        <polygon points="0 0, 9 3, 0 6" fill="#444"/>
       </marker>
     </defs>
-    <rect x="0" y="0" width="760" height="260" fill="#ffffff"/>
+    <rect x="0" y="0" width="760" height="260" fill="#fff"/>
 
     <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Attention moments govern different Hessian blocks</text>
 
     <!-- Moment boxes on the left -->
-    <rect x="20" y="50" width="190" height="50" fill="#e3f2fd" stroke="#1e88e5" rx="5"/>
-    <text x="115" y="69" font-size="12" fill="#1e88e5" text-anchor="middle" font-weight="bold">M₁ = AX</text>
-    <text x="115" y="88" font-size="10" fill="#555" text-anchor="middle">attention-weighted mean</text>
+    <rect x="20" y="50" width="190" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="115" y="71" font-size="12" fill="#333" text-anchor="middle">M₁ = AX</text>
+    <text x="115" y="89" font-size="10" fill="#777" text-anchor="middle">attention-weighted mean</text>
 
-    <rect x="20" y="120" width="190" height="50" fill="#e8f5e9" stroke="#43a047" rx="5"/>
-    <text x="115" y="139" font-size="12" fill="#43a047" text-anchor="middle" font-weight="bold">M₂ (2nd central moment)</text>
-    <text x="115" y="158" font-size="10" fill="#555" text-anchor="middle">attention-weighted covariance</text>
+    <rect x="20" y="120" width="190" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="115" y="141" font-size="12" fill="#333" text-anchor="middle">M₂  (2nd central moment)</text>
+    <text x="115" y="159" font-size="10" fill="#777" text-anchor="middle">attention-weighted covariance</text>
 
-    <rect x="20" y="190" width="190" height="50" fill="#fff3e0" stroke="#fb8c00" rx="5"/>
-    <text x="115" y="209" font-size="12" fill="#fb8c00" text-anchor="middle" font-weight="bold">M₃ (3rd central moment)</text>
-    <text x="115" y="228" font-size="10" fill="#555" text-anchor="middle">attention-weighted skewness</text>
+    <rect x="20" y="190" width="190" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="115" y="211" font-size="12" fill="#333" text-anchor="middle">M₃  (3rd central moment)</text>
+    <text x="115" y="229" font-size="10" fill="#777" text-anchor="middle">attention-weighted skewness</text>
 
     <!-- Hessian block boxes on the right -->
-    <rect x="520" y="50" width="220" height="50" fill="#fce4ec" stroke="#e53935" rx="5"/>
-    <text x="630" y="72" font-size="12" fill="#e53935" text-anchor="middle">H_o(W_V, W_V)</text>
-    <text x="630" y="90" font-size="10" fill="#555" text-anchor="middle">value outer-product Hessian</text>
+    <rect x="520" y="50" width="220" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="630" y="71" font-size="12" fill="#2d6cdf" text-anchor="middle">H_o(W_V, W_V)</text>
+    <text x="630" y="89" font-size="10" fill="#777" text-anchor="middle">value outer-product Hessian</text>
 
-    <rect x="520" y="120" width="220" height="50" fill="#f3e5f5" stroke="#8e24aa" rx="5"/>
-    <text x="630" y="142" font-size="12" fill="#8e24aa" text-anchor="middle">H_o(W_Q, W_Q)</text>
-    <text x="630" y="160" font-size="10" fill="#555" text-anchor="middle">query outer-product Hessian</text>
+    <rect x="520" y="120" width="220" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="630" y="141" font-size="12" fill="#2d6cdf" text-anchor="middle">H_o(W_Q, W_Q)</text>
+    <text x="630" y="159" font-size="10" fill="#777" text-anchor="middle">query outer-product Hessian</text>
 
-    <rect x="520" y="190" width="220" height="50" fill="#e8eaf6" stroke="#3949ab" rx="5"/>
-    <text x="630" y="212" font-size="12" fill="#3949ab" text-anchor="middle">H_f(W_Q, W_K)</text>
-    <text x="630" y="230" font-size="10" fill="#555" text-anchor="middle">query-key functional Hessian</text>
+    <rect x="520" y="190" width="220" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="630" y="211" font-size="12" fill="#e05252" text-anchor="middle">H_f(W_Q, W_K)</text>
+    <text x="630" y="229" font-size="10" fill="#777" text-anchor="middle">query-key functional Hessian</text>
 
     <!-- Arrows -->
-    <line x1="212" y1="75" x2="518" y2="75" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
-    <line x1="212" y1="145" x2="518" y2="145" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
-    <line x1="212" y1="215" x2="518" y2="215" stroke="#555" stroke-width="1.4" marker-end="url(#ma1)"/>
+    <line x1="212" y1="75" x2="518" y2="75" stroke="#444" stroke-width="1.4" marker-end="url(#ma1)"/>
+    <line x1="212" y1="145" x2="518" y2="145" stroke="#444" stroke-width="1.4" marker-end="url(#ma1)"/>
+    <line x1="212" y1="215" x2="518" y2="215" stroke="#444" stroke-width="1.4" marker-end="url(#ma1)"/>
 
     <text x="365" y="68" font-size="10" fill="#888" text-anchor="middle">governs</text>
     <text x="365" y="138" font-size="10" fill="#888" text-anchor="middle">governs</text>
