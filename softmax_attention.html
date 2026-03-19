@@ -138,7 +138,7 @@
 <p class="meta">19 March, 2026</p>
 
 <p>
-I still remember the exact moment. It was the Advanced Deep Learning midsemester, question three: solve a lengthy attention problem numerical, was mostly easy. I was moving fast, confident, writing the query-key product, scaling by the square root of the key dimension, and then—without thinking—I wrote:
+I still remember the exact moment. It was the Advanced Deep Learning midsemester, question three: solve a lengthy attention problem numerical, was mostly easy. I was moving fast, confident, writing the query-key product, scaling by the square root of the key dimension, and then-without thinking-I wrote:
 </p>
 
 <p>
@@ -201,7 +201,7 @@ With sigmoid, every entry gets independently squashed into \((0,1)\), with no in
     <text x="154" y="152" font-size="10" fill="#666">σ(·)</text>
 
     <rect x="30" y="163" width="220" height="110" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
-    <text x="140" y="182" font-size="11" fill="#777" text-anchor="middle">σ(T) — entries in (0,1)</text>
+    <text x="140" y="182" font-size="11" fill="#777" text-anchor="middle">σ(T) - entries in (0,1)</text>
     <text x="140" y="202" font-size="11" fill="#333" text-anchor="middle">0.89    0.40    0.79</text>
     <text x="140" y="220" font-size="11" fill="#333" text-anchor="middle">0.23    0.69    0.94</text>
     <text x="140" y="238" font-size="11" fill="#333" text-anchor="middle">0.62    0.87    0.43</text>
@@ -221,7 +221,7 @@ With sigmoid, every entry gets independently squashed into \((0,1)\), with no in
     <text x="594" y="152" font-size="10" fill="#666">softmax row-wise</text>
 
     <rect x="430" y="163" width="300" height="110" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
-    <text x="580" y="182" font-size="11" fill="#777" text-anchor="middle">softmax(T) — rows normalized</text>
+    <text x="580" y="182" font-size="11" fill="#777" text-anchor="middle">softmax(T) - rows normalized</text>
     <text x="580" y="202" font-size="11" fill="#333" text-anchor="middle">0.68    0.06    0.26</text>
     <text x="580" y="220" font-size="11" fill="#333" text-anchor="middle">0.03    0.19    0.78</text>
     <text x="580" y="238" font-size="11" fill="#333" text-anchor="middle">0.22    0.59    0.19</text>
@@ -232,7 +232,7 @@ With sigmoid, every entry gets independently squashed into \((0,1)\), with no in
 </div>
 
 <p>
-That single property—rows sum to one—is what turns each row of the attention matrix into a distribution over the sequence. And that turns the weighted sum \(AXW_V\) into something geometrically meaningful: for each query token \(i\), the output is a convex combination of the value vectors, a properly weighted expectation. Sigmoid gives you no such structure. You are not computing an expectation under anything. You are just element-wise squashing followed by matrix multiplication.
+That single property - rows sum to one - is what turns each row of the attention matrix into a distribution over the sequence. And that turns the weighted sum \(AXW_V\) into something geometrically meaningful: for each query token \(i\), the output is a convex combination of the value vectors, a properly weighted expectation. Sigmoid gives you no such structure. You are not computing an expectation under anything. You are just element-wise squashing followed by matrix multiplication.
 </p>
 
 <h2>Normalization is load-bearing structure</h2>
@@ -264,7 +264,7 @@ H = H_o + H_f.
 </p>
 
 <p>
-The outer-product Hessian is always positive semi-definite—it is built from outer products of Jacobians. The functional Hessian carries second-order derivatives of the network itself and can be indefinite. Now, naively, you might expect the diagonal Hessian blocks \(H(W_V, W_V)\) and \(H(W_Q, W_Q)\) to be roughly comparable in magnitude. They are not. They differ by approximately two orders of magnitude.
+The outer-product Hessian is always positive semi-definite-it is built from outer products of Jacobians. The functional Hessian carries second-order derivatives of the network itself and can be indefinite. Now, naively, you might expect the diagonal Hessian blocks \(H(W_V, W_V)\) and \(H(W_Q, W_Q)\) to be roughly comparable in magnitude. They are not. They differ by approximately two orders of magnitude.
 </p>
 
 <p>
@@ -291,7 +291,7 @@ This is the key empirical finding in the paper: when you look at histograms of t
     <text x="565" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻³</text>
     <text x="675" y="234" font-size="10" fill="#888" text-anchor="middle">10⁻²</text>
 
-    <!-- Query block histogram — peaked near 10^-5 -->
+    <!-- Query block histogram - peaked near 10^-5 -->
     <rect x="285" y="185" width="18" height="10" fill="#2d6cdf" opacity="0.7"/>
     <rect x="303" y="160" width="18" height="35" fill="#2d6cdf" opacity="0.7"/>
     <rect x="321" y="106" width="18" height="89" fill="#2d6cdf" opacity="0.7"/>
@@ -300,7 +300,7 @@ This is the key empirical finding in the paper: when you look at histograms of t
     <rect x="375" y="150" width="18" height="45" fill="#2d6cdf" opacity="0.7"/>
     <rect x="393" y="196" width="18" height="10" fill="#2d6cdf" opacity="0.7"/>
 
-    <!-- Value block histogram — peaked near 10^-3 -->
+    <!-- Value block histogram - peaked near 10^-3 -->
     <rect x="510" y="190" width="18" height="8" fill="#e05252" opacity="0.7"/>
     <rect x="528" y="165" width="18" height="33" fill="#e05252" opacity="0.7"/>
     <rect x="546" y="108" width="18" height="90" fill="#e05252" opacity="0.7"/>
@@ -315,9 +315,9 @@ This is the key empirical finding in the paper: when you look at histograms of t
 
     <!-- Legend -->
     <rect x="78" y="54" width="12" height="12" fill="#2d6cdf" opacity="0.7"/>
-    <text x="96" y="65" font-size="11" fill="#333">H(W_Q, W_Q) — query block  ≈ 10⁻⁵</text>
+    <text x="96" y="65" font-size="11" fill="#333">H(W_Q, W_Q) - query block  ≈ 10⁻⁵</text>
     <rect x="78" y="74" width="12" height="12" fill="#e05252" opacity="0.7"/>
-    <text x="96" y="85" font-size="11" fill="#333">H(W_V, W_V) — value block  ≈ 10⁻³</text>
+    <text x="96" y="85" font-size="11" fill="#333">H(W_V, W_V) - value block  ≈ 10⁻³</text>
   </svg>
   <p class="viz-caption">Figure 2. Schematic Hessian block magnitude distributions, following the empirical finding of Ormaniec et al. (2025, Figure 1), evaluated on a single-block GPT-2 Transformer at initialization. The query block entries are approximately two orders of magnitude smaller than the value block entries. This block heterogeneity is directly caused by the softmax nonlinearity.</p>
 </div>
@@ -325,7 +325,7 @@ This is the key empirical finding in the paper: when you look at histograms of t
 <h2>The root of the heterogeneity: data dependence</h2>
 
 <p>
-The theoretical heart of the paper is a precise characterization of how each Hessian block depends on the input data \(X\). Because \(X\) enters self-attention three times—as queries, keys, and values—the data dependence of the Hessian is highly nonlinear and varies significantly across blocks. Writing the dependence in big-\(\mathcal{O}\) notation (where \(\mathcal{O}(X^k)\) means all entries of the block scale as the \(k\)-th power of the entry magnitude of \(X\)), the outer-product Hessian satisfies:
+The theoretical heart of the paper is a precise characterization of how each Hessian block depends on the input data \(X\). Because \(X\) enters self-attention three times-as queries, keys, and values-the data dependence of the Hessian is highly nonlinear and varies significantly across blocks. Writing the dependence in big-\(\mathcal{O}\) notation (where \(\mathcal{O}(X^k)\) means all entries of the block scale as the \(k\)-th power of the entry magnitude of \(X\)), the outer-product Hessian satisfies:
 </p>
 
 <p>
@@ -355,7 +355,7 @@ V & \cdot & \cdot & \mathcal{O}(1)
 </p>
 
 <p>
-Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2)\) from the outer-product Hessian (the functional Hessian's value block is exactly zero). The query and key diagonal blocks grow as \(\mathcal{O}(X^6)\) from the outer-product Hessian. At initialization, when token embeddings \(X\) have small magnitude—say standard deviation \(\sigma \approx 0.1\) or so—a term of order \(\sigma^6 \approx 10^{-6}\) is vastly smaller than a term of order \(\sigma^2 \approx 10^{-2}\). This is precisely why the query Hessian block is so much smaller than the value block at initialization: it lives in a higher-power regime that is numerically tiny when data magnitudes are small. The paper verifies this by systematically varying the initialization scale \(\sigma\) and measuring how the Frobenius norm of each block scales, finding clean agreement with the theoretical predictions.
+Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2)\) from the outer-product Hessian (the functional Hessian's value block is exactly zero). The query and key diagonal blocks grow as \(\mathcal{O}(X^6)\) from the outer-product Hessian. At initialization, when token embeddings \(X\) have small magnitude-say standard deviation \(\sigma \approx 0.1\) or so-a term of order \(\sigma^6 \approx 10^{-6}\) is vastly smaller than a term of order \(\sigma^2 \approx 10^{-2}\). This is precisely why the query Hessian block is so much smaller than the value block at initialization: it lives in a higher-power regime that is numerically tiny when data magnitudes are small. The paper verifies this by systematically varying the initialization scale \(\sigma\) and measuring how the Frobenius norm of each block scales, finding clean agreement with the theoretical predictions.
 </p>
 
 <div class="viz" role="img" aria-label="Comparison of data dependence between softmax attention and linear attention">
@@ -383,17 +383,17 @@ Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2
 
     <!-- Softmax column -->
     <rect x="126" y="68" width="270" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
-    <text x="261" y="89" font-size="12" fill="#e05252" text-anchor="middle">𝒪(X⁶) — steep growth</text>
+    <text x="261" y="89" font-size="12" fill="#e05252" text-anchor="middle">𝒪(X⁶) - steep growth</text>
 
     <rect x="126" y="110" width="270" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
-    <text x="261" y="131" font-size="12" fill="#2d6cdf" text-anchor="middle">𝒪(X²) — gentle growth</text>
+    <text x="261" y="131" font-size="12" fill="#2d6cdf" text-anchor="middle">𝒪(X²) - gentle growth</text>
 
     <!-- Linear attention column -->
     <rect x="406" y="68" width="328" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
-    <text x="570" y="89" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) — uniform</text>
+    <text x="570" y="89" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) - uniform</text>
 
     <rect x="406" y="110" width="328" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
-    <text x="570" y="131" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) — uniform</text>
+    <text x="570" y="131" font-size="12" fill="#555" text-anchor="middle">𝒪(Σ³_XX) - uniform</text>
 
     <text x="380" y="208" font-size="10" fill="#888" text-anchor="middle">Without softmax all blocks grow uniformly; softmax breaks symmetry, separating Q/K (sixth power) from V (square).</text>
   </svg>
@@ -401,11 +401,11 @@ Look at the extremes. The value diagonal block is dominated by \(\mathcal{O}(X^2
 </div>
 
 <p>
-And this is the key point I had been missing. If you remove softmax—whether you replace it with sigmoid, with a linear identity, or with anything else that does not enforce row normalization—the heterogeneity disappears. The outer-product Hessian blocks all depend uniformly on \(\mathcal{O}(\Sigma_{XX}^3)\) where \(\Sigma_{XX} = X^\top X / L\) is the intra-sequence covariance. Every block grows at the same rate. No two-orders-of-magnitude spread. No structural asymmetry between query-key and value parameters.
+And this is the key point I had been missing. If you remove softmax-whether you replace it with sigmoid, with a linear identity, or with anything else that does not enforce row normalization-the heterogeneity disappears. The outer-product Hessian blocks all depend uniformly on \(\mathcal{O}(\Sigma_{XX}^3)\) where \(\Sigma_{XX} = X^\top X / L\) is the intra-sequence covariance. Every block grows at the same rate. No two-orders-of-magnitude spread. No structural asymmetry between query-key and value parameters.
 </p>
 
 <p>
-Softmax is what breaks the symmetry. The query and key matrices interact with the derivative of the softmax in ways that multiply the data dependence, because those matrices parameterize the argument of the softmax. The value matrix sits outside the softmax entirely and contributes only linearly. That distinction—inside versus outside the normalizing nonlinearity—is the structural cause of the entire block heterogeneity.
+Softmax is what breaks the symmetry. The query and key matrices interact with the derivative of the softmax in ways that multiply the data dependence, because those matrices parameterize the argument of the softmax. The value matrix sits outside the softmax entirely and contributes only linearly. That distinction-inside versus outside the normalizing nonlinearity-is the structural cause of the entire block heterogeneity.
 </p>
 
 <h2>Softmax makes the Hessian more indefinite</h2>
@@ -419,17 +419,17 @@ For MLPs with piecewise linear activations like ReLU, the functional Hessian has
 </p>
 
 <p>
-For self-attention with softmax, this is no longer true. The functional Hessian \(H_f\) has non-zero diagonal blocks for the query and key parameters—specifically, the query diagonal block depends on second derivatives of the softmax, which are non-trivial. These blocks are indefinite, carrying both positive and negative eigenvalues. Park and Kim (2022) had already observed empirically that the Transformer Hessian is more indefinite than that of CNNs. This paper provides the precise theoretical mechanism: it is the softmax nonlinearity that prevents the block-hollow structure and introduces indefiniteness into the diagonal Hessian blocks.
+For self-attention with softmax, this is no longer true. The functional Hessian \(H_f\) has non-zero diagonal blocks for the query and key parameters-specifically, the query diagonal block depends on second derivatives of the softmax, which are non-trivial. These blocks are indefinite, carrying both positive and negative eigenvalues. Park and Kim (2022) had already observed empirically that the Transformer Hessian is more indefinite than that of CNNs. This paper provides the precise theoretical mechanism: it is the softmax nonlinearity that prevents the block-hollow structure and introduces indefiniteness into the diagonal Hessian blocks.
 </p>
 
 <p>
-Removing softmax restores the block-hollow structure to the functional Hessian's diagonal, and the Hessian blocks become positive semi-definite again—structurally much more like an MLP. With my sigmoid mistake on the exam, I had essentially written down a model whose Hessian is qualitatively closer to an MLP's than to a proper Transformer's.
+Removing softmax restores the block-hollow structure to the functional Hessian's diagonal, and the Hessian blocks become positive semi-definite again-structurally much more like an MLP. With my sigmoid mistake on the exam, I had essentially written down a model whose Hessian is qualitatively closer to an MLP's than to a proper Transformer's.
 </p>
 
 <h2>Attention moments: a statistical structure I had not seen before</h2>
 
 <p>
-One of the most elegant things in the paper is how the data terms in the Hessian are organized through what the authors call attention moment matrices. Because each row of the softmax attention matrix \(A\) is a probability distribution over the \(L\) input tokens, you can define statistical moments of those per-row distributions—just as you would define the mean and variance of a probability distribution over numbers.
+One of the most elegant things in the paper is how the data terms in the Hessian are organized through what the authors call attention moment matrices. Because each row of the softmax attention matrix \(A\) is a probability distribution over the \(L\) input tokens, you can define statistical moments of those per-row distributions-just as you would define the mean and variance of a probability distribution over numbers.
 </p>
 
 <p>
@@ -443,7 +443,7 @@ M_1 := AX = \bigl[A_{i,:}^\top X\bigr]_{1 \le i \le L} \in \mathbb{R}^{L \times 
 </p>
 
 <p>
-This is exactly the context vector from the standard attention mechanism—the output before the value projection. It is also the quantity that appears in the value outer-product Hessian. The second central moment matrix \(M_2\) captures the attention-weighted covariance of the token embeddings around the attention mean, and the third central moment matrix \(M_3\) captures the corresponding skewness analogue.
+This is exactly the context vector from the standard attention mechanism-the output before the value projection. It is also the quantity that appears in the value outer-product Hessian. The second central moment matrix \(M_2\) captures the attention-weighted covariance of the token embeddings around the attention mean, and the third central moment matrix \(M_3\) captures the corresponding skewness analogue.
 </p>
 
 <p>
@@ -451,23 +451,23 @@ These three moment matrices appear in different parts of the Hessian in a beauti
 </p>
 
 <p>
-The value outer-product Hessian \(H_o(W_V, W_V)\) depends on \(M_1\), the first moment—the basic weighted average.
+The value outer-product Hessian \(H_o(W_V, W_V)\) depends on \(M_1\), the first moment-the basic weighted average.
 </p>
 
 <p>
-The query-key outer-product Hessian depends on \(M_2\), the second central moment—which measures how spread out the attention distribution is across the token sequence.
+The query-key outer-product Hessian depends on \(M_2\), the second central moment-which measures how spread out the attention distribution is across the token sequence.
 </p>
 
 <p>
-The query-key functional Hessian depends on \(M_3\), the third central moment—the most complex statistical structure of all.
+The query-key functional Hessian depends on \(M_3\), the third central moment-the most complex statistical structure of all.
 </p>
 
 <p>
-This means the curvature experienced by the query and key parameters is sensitive to higher-order statistics of the attention distribution than the value parameters. A model that has learned sharply peaked attention—mostly attending to one token—will have \(M_2 \approx 0\) and \(M_3 \approx 0\), giving near-zero curvature in the query-key directions. A model with diffuse, spread-out attention will have substantial \(M_2\) and non-trivial \(M_3\), giving meaningful curvature to the query-key parameters.
+This means the curvature experienced by the query and key parameters is sensitive to higher-order statistics of the attention distribution than the value parameters. A model that has learned sharply peaked attention-mostly attending to one token-will have \(M_2 \approx 0\) and \(M_3 \approx 0\), giving near-zero curvature in the query-key directions. A model with diffuse, spread-out attention will have substantial \(M_2\) and non-trivial \(M_3\), giving meaningful curvature to the query-key parameters.
 </p>
 
 <p>
-None of this structure exists if you replace softmax with sigmoid. Sigmoid does not create probability distributions over rows. It does not define an attention mean, or attention covariance, or any higher moment in this precise statistical sense. The entire moment-theoretic characterization of the Hessian—arguably the paper's most elegant contribution—is a direct consequence of the row-normalization that softmax provides and sigmoid does not.
+None of this structure exists if you replace softmax with sigmoid. Sigmoid does not create probability distributions over rows. It does not define an attention mean, or attention covariance, or any higher moment in this precise statistical sense. The entire moment-theoretic characterization of the Hessian-arguably the paper's most elegant contribution-is a direct consequence of the row-normalization that softmax provides and sigmoid does not.
 </p>
 
 <div class="viz" role="img" aria-label="Attention moment matrices and which Hessian blocks they govern">
@@ -526,11 +526,11 @@ Once you see the Hessian structure, a lot of standard Transformer training pract
 </p>
 
 <p>
-The block heterogeneity—query-key blocks at \(\mathcal{O}(X^6)\) versus value blocks at \(\mathcal{O}(X^2)\)—means that at initialization, with small token embedding magnitudes, the curvature in the query-key directions is orders of magnitude smaller than in the value directions. These are completely different optimization regimes within the same layer. An optimizer like SGD with a fixed learning rate for all parameters has no way to cope with this. A step size appropriate for the value parameters is either catastrophically large for the eventually-developing query landscape, or absurdly small for the value landscape. You cannot win.
+The block heterogeneity-query-key blocks at \(\mathcal{O}(X^6)\) versus value blocks at \(\mathcal{O}(X^2)\)-means that at initialization, with small token embedding magnitudes, the curvature in the query-key directions is orders of magnitude smaller than in the value directions. These are completely different optimization regimes within the same layer. An optimizer like SGD with a fixed learning rate for all parameters has no way to cope with this. A step size appropriate for the value parameters is either catastrophically large for the eventually-developing query landscape, or absurdly small for the value landscape. You cannot win.
 </p>
 
 <p>
-Adam, by maintaining per-parameter exponential moving averages of squared gradients and dividing by them, naturally assigns different effective learning rates to parameters with different gradient scales. It is not that Adam is theoretically superior for arbitrary optimization problems. It is that Adam is specifically well-matched to the heterogeneous curvature structure that softmax creates. Zhang et al. (2024) showed empirically that the Hessian spectra of Transformer blocks are far more heterogeneous across diagonal blocks than those of CNNs—precisely the block-heterogeneity that this paper explains theoretically.
+Adam, by maintaining per-parameter exponential moving averages of squared gradients and dividing by them, naturally assigns different effective learning rates to parameters with different gradient scales. It is not that Adam is theoretically superior for arbitrary optimization problems. It is that Adam is specifically well-matched to the heterogeneous curvature structure that softmax creates. Zhang et al. (2024) showed empirically that the Hessian spectra of Transformer blocks are far more heterogeneous across diagonal blocks than those of CNNs-precisely the block-heterogeneity that this paper explains theoretically.
 </p>
 
 <p>
@@ -544,7 +544,7 @@ So here is what I would have written, if I had understood all of this before que
 </p>
 
 <p>
-Sigmoid is not merely wrong in the sense of violating convention. Writing sigmoid instead of softmax in the attention computation breaks the row-normalization structure that makes each row of the attention matrix a probability distribution. It eliminates the attention moments—the precise statistical objects that govern the curvature of the loss surface for query and key parameters. It makes the Hessian blocks uniform across parameter groups rather than heterogeneous, qualitatively transforming the optimization landscape. A model with sigmoid attention does not need Adam in the same essential way a model with softmax attention does. Its Hessian is closer to an MLP's in structure: less indefinite, more homogeneous. Perhaps easier to train with simpler optimizers. But it is not a Transformer in the mathematically meaningful sense.
+Sigmoid is not merely wrong in the sense of violating convention. Writing sigmoid instead of softmax in the attention computation breaks the row-normalization structure that makes each row of the attention matrix a probability distribution. It eliminates the attention moments-the precise statistical objects that govern the curvature of the loss surface for query and key parameters. It makes the Hessian blocks uniform across parameter groups rather than heterogeneous, qualitatively transforming the optimization landscape. A model with sigmoid attention does not need Adam in the same essential way a model with softmax attention does. Its Hessian is closer to an MLP's in structure: less indefinite, more homogeneous. Perhaps easier to train with simpler optimizers. But it is not a Transformer in the mathematically meaningful sense.
 </p>
 
 <p>
