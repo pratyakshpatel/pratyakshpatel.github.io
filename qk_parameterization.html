@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .scroll-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>One Matrix or Two: The Hidden Curvature Cost of the Query-Key Parameterization</h1>
+
+<article>
+
+<p class="meta">20 March, 2026</p>
+
+<p>
+Yesterday I wrote about what happens when you swap softmax for sigmoid in the attention computation. If you missed it: the short version is that the exam mistake I made turned out to be a structural error, not just a notational one. Softmax is the ingredient that creates per-row probability distributions over tokens, induces attention moment matrices, and makes the Hessian of the loss block-heterogeneous and partially indefinite. That piece is <a href="softmax_attention.html">here</a>. I was still sitting with the same ICLR 2025 paper by Ormaniec, Dangel, and Singh when another question surfaced—one I had been near many times but never actually examined directly.
+</p>
+
+<p>
+Why do we use two separate matrices for queries and keys?
+</p>
+
+<p>
+The standard self-attention computation is:
+</p>
+
+<div class="scroll-wrapper">
+\[
+A(X) = \text{softmax}\!\left(\frac{X W_Q W_K^\top X^\top}{\sqrt{d_K}}\right), \qquad F(X) = A(X)\,X W_V.
+\]
+</div>
+
+<p>
+Two weight matrices, \(W_Q \in \mathbb{R}^{d_V \times d_K}\) and \(W_K \in \mathbb{R}^{d_V \times d_K}\), whose product \(W_Q W_K^\top\) enters the score. From a function-class perspective there is nothing forcing this. You could replace \(W_Q W_K^\top / \sqrt{d_K}\) with a single matrix \(W_{QK} \in \mathbb{R}^{d_V \times d_V}\) and express exactly the same functions—in fact more, since \(W_Q W_K^\top\) is rank-limited by \(d_K\) while a general \(W_{QK}\) is not. So why bother splitting it?
+</p>
+
+<p>
+The standard explanations are interpretability and parameter efficiency when \(d_K < d_V\). Those are real. But the paper surfaces a third consequence that is not usually mentioned: the dual parameterization changes the curvature of the loss surface in a precise and measurable way, independent of what outputs the network produces.
+</p>
+
+<h2>The two parameterizations side by side</h2>
+
+<p>
+Let me be explicit about what each version looks like. In the standard mechanism, the score matrix is:
+</p>
+
+<p>
+\[
+T(X) = \frac{X W_Q W_K^\top X^\top}{\sqrt{d_K}},
+\]
+</p>
+
+<p>
+parameterized by the pair \((W_Q, W_K)\). In the single-matrix version we define \(W_{QK} \in \mathbb{R}^{d_V \times d_V}\) and write:
+</p>
+
+<p>
+\[
+T(X) = X W_{QK} X^\top.
+\]
+</p>
+
+<p>
+Both produce a score matrix in \(\mathbb{R}^{L \times L}\), which then goes through row-wise softmax and produces the same attention output—assuming the weights satisfy \(W_{QK} = W_Q W_K^\top / \sqrt{d_K}\). The predictions are identical. The gradients, in a first-order sense, are the same. But the Hessian—the second-order structure of the loss—is not.
+</p>
+
+<div class="viz" role="img" aria-label="Comparison of dual-matrix and single-matrix query-key parameterizations">
+  <svg viewBox="0 0 760 270" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="270" fill="#fff"/>
+
+    <!-- Left panel: dual matrices -->
+    <text x="190" y="22" font-size="13" fill="#333" text-anchor="middle">Separate W_Q and W_K</text>
+
+    <rect x="40" y="40" width="70" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="75" y="62" font-size="12" fill="#333" text-anchor="middle">X</text>
+
+    <rect x="145" y="22" width="70" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="180" y="43" font-size="11" fill="#333" text-anchor="middle">X W_Q</text>
+    <rect x="145" y="64" width="70" height="32" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="180" y="85" font-size="11" fill="#333" text-anchor="middle">X W_K</text>
+
+    <rect x="242" y="40" width="104" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="294" y="62" font-size="10" fill="#333" text-anchor="middle">W_Q W_K^T / √d_K</text>
+
+    <rect x="50" y="128" width="290" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="195" y="150" font-size="10" fill="#333" text-anchor="middle">T = X W_Q W_K^T X^T / √d_K</text>
+
+    <line x1="110" y1="57" x2="145" y2="38" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+    <line x1="110" y1="57" x2="145" y2="80" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+    <line x1="215" y1="38" x2="242" y2="52" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+    <line x1="215" y1="80" x2="242" y2="60" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+    <line x1="294" y1="74" x2="195" y2="128" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+
+    <text x="195" y="188" font-size="10" fill="#888" text-anchor="middle">2 learnable matrices, d_V × d_K each</text>
+    <text x="195" y="205" font-size="10" fill="#e05252" text-anchor="middle">H^T_f ≠ 0: block-hollow, indefinite</text>
+
+    <!-- Divider -->
+    <line x1="390" y1="16" x2="390" y2="230" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Right panel: single matrix -->
+    <text x="575" y="22" font-size="13" fill="#333" text-anchor="middle">Single W_QK</text>
+
+    <rect x="440" y="40" width="70" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="475" y="62" font-size="12" fill="#333" text-anchor="middle">X</text>
+
+    <rect x="540" y="40" width="72" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="576" y="62" font-size="11" fill="#333" text-anchor="middle">W_QK</text>
+
+    <rect x="450" y="128" width="240" height="34" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="570" y="150" font-size="10" fill="#333" text-anchor="middle">T = X W_QK X^T</text>
+
+    <line x1="510" y1="57" x2="540" y2="57" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+    <line x1="576" y1="74" x2="570" y2="128" stroke="#444" stroke-width="1.3" marker-end="url(#arr1)"/>
+
+    <text x="570" y="188" font-size="10" fill="#888" text-anchor="middle">1 learnable matrix, d_V × d_V</text>
+    <text x="570" y="205" font-size="10" fill="#2d6cdf" text-anchor="middle">H^T_f = 0: only PSD outer-product term</text>
+
+    <text x="380" y="248" font-size="10" fill="#888" text-anchor="middle">Same score matrix T for equivalent weights — but the Hessian structure differs.</text>
+  </svg>
+  <p class="viz-caption">Figure 1. Two parameterizations of the query-key score matrix that produce identical outputs when weights match. The dual-matrix version \((W_Q, W_K)\) introduces an extra indefinite term in the Hessian—the T-functional Hessian—that is entirely absent in the single-matrix \(W_{QK}\) case.</p>
+</div>
+
+<h2>The single-matrix Hessian: what Lemma 4.1 says</h2>
+
+<p>
+The paper derives the Hessian for single-matrix attention explicitly. With \(T(X) = X W_{QK} X^\top\) and row-wise softmax, Lemma 4.1 gives:
+</p>
+
+<div class="scroll-wrapper">
+\[
+H(W_{QK}, W_{QK}) = Z_1^\top \bigl(I_L \otimes W_V W_V^\top\bigr) Z_1 + \Bigl(\delta_{XY}^\top \bigl(I_L \otimes W_V^\top\bigr) \otimes I_{d_V^2}\Bigr) Z_2,
+\]
+</div>
+
+<p>
+where \(Z_1\) collects first-order softmax derivatives, \(Z_2\) collects second-order softmax derivatives, and \(\delta_{XY} = \mathrm{vec}_r(F(X) - Y)\) is the flattened residual. The first term is the outer-product Hessian, which is always positive semi-definite—it is a Gram-type product of Jacobians. The second term is the functional Hessian, which accounts for second derivatives of the network itself.
+</p>
+
+<p>
+These two terms together define the entire Hessian for the single-matrix case. Nothing more. No additional indefinite structure. The curvature, however complex it may be due to softmax, is confined to what those two terms produce.
+</p>
+
+<h2>What the dual parameterization adds: the nested decomposition</h2>
+
+<p>
+With separate \(W_Q\) and \(W_K\), the score matrix \(T\) depends on both. Differentiating with respect to \(W_Q\) involves \(W_K\), and vice versa. The Hessian picks up cross-terms that the single-matrix version does not have.
+</p>
+
+<p>
+The paper calls this a T-Gauss-Newton decomposition, described in Remark D.1. The query-key portion of the full Hessian decomposes into a T-outer-product Hessian \(H_o^T\) and a T-functional Hessian \(H_f^T\):
+</p>
+
+<div class="scroll-wrapper">
+\[
+H_o^T(W_{QK}, W_{QK}) = \frac{1}{d_K}\, V^\top U\, V,
+\]
+</div>
+
+<p>
+where \(U\) is precisely the expression from Lemma 4.1, and \(V = [(W_Q \otimes I_{d_V}) K_{d_K,d_V},\ I_{d_V} \otimes W_K]\) is a structured matrix that encodes the dual-matrix relationship. This T-outer-product term is positive semi-definite. It is the analogue of the single-matrix Hessian, now projected through the dual parameterization.
+</p>
+
+<p>
+And then, additionally, there is a term that has no counterpart in the single-matrix case:
+</p>
+
+<div class="scroll-wrapper">
+\[
+H_f^T(W_{QK}, W_{QK}) = \frac{1}{\sqrt{d_K}}\begin{bmatrix} 0 & B^\top \\ B & 0 \end{bmatrix} \otimes I_{d_K},
+\]
+</div>
+
+<p>
+where \(B = R_{d_V}(I_L \otimes W_V^\top \otimes I_{d_V})(Z_1 \otimes I_{d_V})S\). The diagonal blocks are zero. This is the block-hollow structure. And block-hollow means indefinite.
+</p>
+
+<div class="viz" role="img" aria-label="Nested Hessian decomposition for dual-matrix query-key parameterization">
+  <svg viewBox="0 0 760 290" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="290" fill="#fff"/>
+
+    <!-- Full Hessian -->
+    <rect x="290" y="18" width="180" height="38" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="380" y="42" font-size="12" fill="#333" text-anchor="middle">Full Hessian H</text>
+
+    <!-- Gauss-Newton split -->
+    <line x1="380" y1="56" x2="220" y2="96" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <line x1="380" y1="56" x2="555" y2="96" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <text x="380" y="80" font-size="9" fill="#888" text-anchor="middle">Gauss-Newton</text>
+
+    <rect x="110" y="96" width="220" height="38" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="220" y="120" font-size="11" fill="#2d6cdf" text-anchor="middle">H_o  (outer-product, PSD)</text>
+
+    <rect x="440" y="96" width="220" height="38" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="550" y="120" font-size="11" fill="#333" text-anchor="middle">H_f  (functional)</text>
+
+    <!-- T-decomposition of query-key portion of Ho -->
+    <line x1="220" y1="134" x2="140" y2="174" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <line x1="220" y1="134" x2="320" y2="174" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <text x="220" y="160" font-size="9" fill="#888" text-anchor="middle">T-decomposition (dual W_Q, W_K)</text>
+
+    <rect x="50" y="174" width="180" height="48" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="140" y="194" font-size="10" fill="#2d6cdf" text-anchor="middle">H^T_o</text>
+    <text x="140" y="210" font-size="9" fill="#777" text-anchor="middle">PSD, rank-limited</text>
+
+    <rect x="240" y="174" width="180" height="48" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="330" y="194" font-size="10" fill="#e05252" text-anchor="middle">H^T_f</text>
+    <text x="330" y="210" font-size="9" fill="#777" text-anchor="middle">block-hollow, ±λ pairs</text>
+
+    <!-- Single matrix note -->
+    <rect x="480" y="174" width="250" height="60" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="605" y="196" font-size="10" fill="#333" text-anchor="middle">Single W_QK:</text>
+    <text x="605" y="210" font-size="10" fill="#333" text-anchor="middle">H^T_f term absent entirely</text>
+    <text x="605" y="224" font-size="9" fill="#777" text-anchor="middle">only H^T_o contributes</text>
+
+    <line x1="550" y1="134" x2="605" y2="174" stroke="#444" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr2)"/>
+
+    <text x="380" y="262" font-size="10" fill="#888" text-anchor="middle">The T-functional Hessian H^T_f arises because W_Q and W_K both appear in T,</text>
+    <text x="380" y="276" font-size="10" fill="#888" text-anchor="middle">so differentiating w.r.t. one involves the other. This cross-coupling has no single-matrix counterpart.</text>
+  </svg>
+  <p class="viz-caption">Figure 2. The nested Hessian decomposition for the dual-matrix parameterization. The query-key portion of the outer-product Hessian decomposes further into a T-outer-product term \(H_o^T\) (positive semi-definite) and a T-functional term \(H_f^T\) (block-hollow, indefinite). The latter vanishes entirely when queries and keys are merged into a single matrix \(W_{QK}\).</p>
+</div>
+
+<h2>Block-hollow means indefinite: the eigenvalue argument</h2>
+
+<p>
+The T-functional Hessian has the form \(\frac{1}{\sqrt{d_K}}\begin{bmatrix} 0 & B^\top \\ B & 0 \end{bmatrix} \otimes I_{d_K}\). The zero blocks on the diagonal make this block-hollow. And block-hollow implies a very specific eigenvalue structure: all eigenvalues come in symmetric \(\pm\lambda\) pairs.
+</p>
+
+<p>
+To see this, suppose \([v_1^\top, v_2^\top]^\top\) is an eigenvector with eigenvalue \(\lambda\). Then \(B^\top v_2 = \lambda v_1\) and \(B v_1 = \lambda v_2\). Now consider \([-v_1^\top, v_2^\top]^\top\): we get \(B^\top v_2 = \lambda v_1 = -\lambda(-v_1)\) and \(B(-v_1) = -\lambda v_2\). So \([-v_1^\top, v_2^\top]^\top\) is an eigenvector with eigenvalue \(-\lambda\). Every positive eigenvalue has a corresponding negative one of equal magnitude.
+</p>
+
+<p>
+The Kronecker product with \(I_{d_K}\) means each such pair \(\pm\lambda_i\) appears with multiplicity \(d_K\). So the T-functional Hessian alone contributes at least \(2 \cdot \mathrm{rank}(B) \cdot d_K\) non-zero eigenvalues, split evenly between positive and negative. This indefiniteness is intrinsic to the dual parameterization. It is not a consequence of softmax specifically—you would get it in linear attention with separate \(W_Q, W_K\) as well.
+</p>
+
+<p>
+The paper notes that this is structurally identical to what Singh et al. (2021) found for the functional Hessian of a two-layer linear MLP. That work showed eigenvalues come in \(\pm\lambda\) pairs with multiplicity \(d_K\) at each layer. In self-attention with two query-key matrices, the same structure reappears—not because of depth, but because the product \(W_Q W_K^\top\) is itself a two-matrix composition. A single attention layer with dual parameterization inherits the eigenvalue structure of a two-layer MLP, confined entirely to the query-key block.
+</p>
+
+<div class="viz" role="img" aria-label="Block-hollow structure of T-functional Hessian and eigenvalue pairing">
+  <svg viewBox="0 0 760 270" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="270" fill="#fff"/>
+
+    <text x="380" y="22" font-size="13" fill="#333" text-anchor="middle">Block-hollow structure and eigenvalue pairing of H^T_f</text>
+
+    <!-- Block matrix drawing -->
+    <text x="185" y="52" font-size="11" fill="#333" text-anchor="middle">H^T_f  ∝  [0, B^T ; B, 0] ⊗ I_{d_K}</text>
+
+    <rect x="58" y="64" width="122" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="119" y="100" font-size="11" fill="#888" text-anchor="middle">0</text>
+
+    <rect x="188" y="64" width="122" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="249" y="100" font-size="11" fill="#333" text-anchor="middle">B^T</text>
+
+    <rect x="58" y="134" width="122" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="119" y="170" font-size="11" fill="#333" text-anchor="middle">B</text>
+
+    <rect x="188" y="134" width="122" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="3"/>
+    <text x="249" y="170" font-size="11" fill="#888" text-anchor="middle">0</text>
+
+    <text x="119" y="58" font-size="9" fill="#666" text-anchor="middle">W_Q block</text>
+    <text x="249" y="58" font-size="9" fill="#666" text-anchor="middle">W_K block</text>
+    <text x="46" y="95" font-size="9" fill="#666" text-anchor="middle" transform="rotate(-90 46 95)">W_Q</text>
+    <text x="46" y="165" font-size="9" fill="#666" text-anchor="middle" transform="rotate(-90 46 165)">W_K</text>
+
+    <text x="185" y="222" font-size="10" fill="#888" text-anchor="middle">Diagonal blocks zero → forces ±λ eigenvalue pairing.</text>
+
+    <!-- Divider -->
+    <line x1="360" y1="55" x2="360" y2="240" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Eigenvalue spectrum -->
+    <text x="565" y="52" font-size="12" fill="#333" text-anchor="middle">Eigenvalue spectrum</text>
+
+    <line x1="390" y1="155" x2="740" y2="155" stroke="#999" stroke-width="1.5"/>
+    <text x="565" y="173" font-size="10" fill="#666" text-anchor="middle">λ</text>
+
+    <!-- Negative eigenvalues -->
+    <rect x="420" y="134" width="14" height="19" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="440" y="122" width="14" height="31" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="460" y="128" width="14" height="25" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="480" y="138" width="14" height="15" fill="#e05252" opacity="0.7" rx="2"/>
+    <text x="458" y="117" font-size="9" fill="#e05252" text-anchor="middle">−λ_i  (mult. d_K)</text>
+
+    <!-- Positive eigenvalues (mirror) -->
+    <rect x="636" y="134" width="14" height="19" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="656" y="122" width="14" height="31" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="676" y="128" width="14" height="25" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="696" y="138" width="14" height="15" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <text x="672" y="117" font-size="9" fill="#2d6cdf" text-anchor="middle">+λ_i  (mult. d_K)</text>
+
+    <text x="565" y="202" font-size="10" fill="#888" text-anchor="middle">Same structure as the functional Hessian of a 2-layer linear MLP</text>
+    <text x="565" y="216" font-size="10" fill="#888" text-anchor="middle">(Singh et al., 2021). Absent in the single-matrix W_QK case.</text>
+  </svg>
+  <p class="viz-caption">Figure 3. The T-functional Hessian \(H_f^T\) has zero diagonal blocks and off-diagonal \(B, B^\top\). This block-hollow structure forces eigenvalues into symmetric \(\pm\lambda_i\) pairs, each with multiplicity \(d_K\). The same structure appears in the functional Hessian of a two-layer linear MLP. It is entirely absent when queries and keys are merged into a single \(W_{QK}\).</p>
+</div>
+
+<h2>Rank bounds: curvature lives in a low-dimensional subspace</h2>
+
+<p>
+There is a second structural consequence that Lemma D.2 makes precise. The T-outer-product Hessian \(H_o^T\), even when \(W_Q\) and \(W_K\) are full rank, has bounded rank:
+</p>
+
+<div class="scroll-wrapper">
+\[
+\mathrm{rk}\!\bigl(H_o^T(W_{QK}, W_{QK})\bigr) \leq \begin{cases} 2 d_K d_V - d_K^2 & \text{if } d_K < d_V, \\ d_V^2 & \text{if } d_K \geq d_V. \end{cases}
+\]
+</div>
+
+<p>
+The bound follows from the rank of \(V^\top\) in the expression \(H_o^T = V^\top U V / d_K\). Even if \(U\) is full rank, the product is bounded by the rank of \(V^\top\), and the structured form of \(V\) limits this.
+</p>
+
+<p>
+To see what this means concretely: if \(d_K = d_V / 2\), the bound is \(2 \cdot (d_V/2) \cdot d_V - (d_V/2)^2 = 3d_V^2/4\). So at most three-quarters of the directions in parameter space have any curvature from the T-outer-product term. In multi-head attention where \(d_K = d_V / H\), the bound becomes roughly \(2d_V^2/H\), which is much smaller than \(d_V^2\) for the head counts used in practice. Curvature concentrates in a low-rank subspace; most directions are flat.
+</p>
+
+<div class="viz" role="img" aria-label="Rank bound on T-outer-product Hessian for different dK/dV ratios">
+  <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="230" fill="#fff"/>
+
+    <text x="380" y="22" font-size="13" fill="#333" text-anchor="middle">T-outer-product Hessian rank bound  (as fraction of d²_V)</text>
+
+    <!-- Header -->
+    <text x="90" y="48" font-size="11" fill="#666" text-anchor="middle">d_K / d_V</text>
+    <text x="260" y="48" font-size="11" fill="#666" text-anchor="middle">Bound  2d_K d_V − d²_K</text>
+    <text x="490" y="48" font-size="11" fill="#666" text-anchor="middle">Fraction of d²_V</text>
+    <text x="660" y="48" font-size="11" fill="#666" text-anchor="middle">Flat directions</text>
+
+    <line x1="28" y1="55" x2="732" y2="55" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="90" x2="732" y2="90" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="124" x2="732" y2="124" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="158" x2="732" y2="158" stroke="#ddd" stroke-width="1"/>
+    <line x1="28" y1="192" x2="732" y2="192" stroke="#ddd" stroke-width="1"/>
+    <line x1="160" y1="55" x2="160" y2="192" stroke="#ddd" stroke-width="1"/>
+    <line x1="360" y1="55" x2="360" y2="192" stroke="#ddd" stroke-width="1"/>
+    <line x1="580" y1="55" x2="580" y2="192" stroke="#ddd" stroke-width="1"/>
+
+    <text x="90" y="79" font-size="11" fill="#333" text-anchor="middle">1/4</text>
+    <text x="260" y="79" font-size="11" fill="#333" text-anchor="middle">7 d²_V / 16</text>
+    <text x="490" y="79" font-size="11" fill="#333" text-anchor="middle">43.75 %</text>
+    <text x="660" y="79" font-size="11" fill="#e05252" text-anchor="middle">56.25 %</text>
+
+    <text x="90" y="113" font-size="11" fill="#333" text-anchor="middle">1/2</text>
+    <text x="260" y="113" font-size="11" fill="#333" text-anchor="middle">3 d²_V / 4</text>
+    <text x="490" y="113" font-size="11" fill="#333" text-anchor="middle">75 %</text>
+    <text x="660" y="113" font-size="11" fill="#e05252" text-anchor="middle">25 %</text>
+
+    <text x="90" y="147" font-size="11" fill="#333" text-anchor="middle">3/4</text>
+    <text x="260" y="147" font-size="11" fill="#333" text-anchor="middle">15 d²_V / 16</text>
+    <text x="490" y="147" font-size="11" fill="#333" text-anchor="middle">93.75 %</text>
+    <text x="660" y="147" font-size="11" fill="#e05252" text-anchor="middle">6.25 %</text>
+
+    <text x="90" y="181" font-size="11" fill="#333" text-anchor="middle">1</text>
+    <text x="260" y="181" font-size="11" fill="#333" text-anchor="middle">d²_V</text>
+    <text x="490" y="181" font-size="11" fill="#333" text-anchor="middle">100 %</text>
+    <text x="660" y="181" font-size="11" fill="#888" text-anchor="middle">0 %</text>
+
+    <text x="380" y="212" font-size="10" fill="#888" text-anchor="middle">In practice d_K = d_V / H for H heads. With H = 8 the rank bound is at most ~25 % of d²_V.</text>
+  </svg>
+  <p class="viz-caption">Figure 4. The maximum rank of the T-outer-product Hessian \(H_o^T\) as a fraction of \(d_V^2\), for different \(d_K / d_V\) ratios. In typical multi-head attention where \(d_K = d_V / H\), the curvature in the query-key outer-product Hessian is concentrated in a small subspace, with most directions entirely flat.</p>
+</div>
+
+<h2>What the combination implies for optimization</h2>
+
+<p>
+Putting the two results together gives a picture of the query-key Hessian that is more intricate than it first appears. The T-outer-product term \(H_o^T\) is positive semi-definite but low-rank: only a small fraction of parameter space experiences curvature from it. The T-functional term \(H_f^T\) is indefinite, with eigenvalues in \(\pm\lambda\) pairs, and exists only because of the dual parameterization. The full query-key Hessian is the sum of these two.
+</p>
+
+<p>
+This produces an unusual combination: a landscape that is simultaneously indefinite and sparse in curvature. Most directions in parameter space are flat from the outer-product term. The few directions that are curved have mixed sign because of the T-functional term. There is no single "upward" or "downward" direction—the loss curves up in some directions and down in others, and most directions have zero curvature from the leading term.
+</p>
+
+<p>
+This matters for optimizer design in a concrete way. An optimizer like SGD, which updates all parameters with the same learning rate scaled by gradient magnitude, has no mechanism to handle the directional heterogeneity here. Adaptive optimizers like Adam, which maintain per-parameter statistics, are better suited—they can implicitly assign different effective learning rates to directions with high curvature versus flat directions. The paper discussed this connection in more detail in the context of block-heterogeneity from softmax. But the dual parameterization adds another layer: even within the query-key block, the curvature is non-uniform and indefinite in ways that make simple optimization difficult.
+</p>
+
+<h2>The functional equivalence that isn't</h2>
+
+<p>
+I keep returning to a broader point this makes. In machine learning we usually say two parameterizations are equivalent if they can represent the same set of functions. And in that sense \((W_Q, W_K)\) and \(W_{QK}\) are equivalent—every product \(W_Q W_K^\top / \sqrt{d_K}\) is a valid \(W_{QK}\), and every \(W_{QK}\) with rank at most \(d_K\) can be written as such a product.
+</p>
+
+<p>
+But the loss surface is not determined by function class alone. It is determined by the parameterization. Two parameterizations that cover the same functions can curve differently, be more or less indefinite, have more or less rank. The Hessian is sensitive to how the parameters enter the computation, not only to what computation they perform. \(W_Q W_K^\top\) enters the score computation as a product of two independent matrices, both of which are differentiated separately. \(W_{QK}\) enters as a single matrix. The chain rule produces different second-order terms in the two cases, and those differences accumulate into the T-functional Hessian.
+</p>
+
+<p>
+The dual-matrix choice was motivated by interpretability and efficiency. Queries and keys are meaningful objects in the attention picture: a query is what a token is looking for, a key is what a token offers to be found by. Keeping them separate preserves that semantic structure. Using \(d_K < d_V\) reduces parameters and regularizes the score matrix to be low-rank. These are good reasons. But as a side effect, the parameterization introduces \(\pm\lambda\) eigenvalue pairs with multiplicity \(d_K\) and concentrates outer-product curvature into a rank-limited subspace. These are not bugs. They are precise geometric consequences of the design choice.
+</p>
+
+<h2>Connecting the two days</h2>
+
+<p>
+Yesterday's question was about activation functions. Softmax versus sigmoid, and how that choice governs the attention moment structure and the block-heterogeneity of the Hessian across parameter groups. Today's question is about parameterization. Two matrices versus one, and how that choice governs the definiteness and rank of the query-key Hessian itself.
+</p>
+
+<p>
+Both are instances of the same observation: the Transformer's training behavior is not separable from its specific structural choices. Function class does not determine optimization geometry. The row normalization of softmax creates distributions over tokens and induces moment matrices that make blocks heterogeneous. The product parameterization of \(W_Q W_K^\top\) creates a T-level composition that introduces indefiniteness and rank concentration. Layer normalization reduces data growth rates. Each choice leaves a signature in the second-order structure of the loss that shapes what optimizers experience when training the model.
+</p>
+
+<p>
+The paper's title asks what it means to be a Transformer. Having now spent two days inside a single section of it, my answer is getting more specific. It means committing to a set of structural decisions—softmax row normalization, dual query-key matrices, pre-layer normalization—each of which has measurable consequences for curvature, indefiniteness, and rank. Those consequences are not incidental. They are part of what the Transformer is.
+</p>
+
+<p>
+One matrix or two is not a minor implementation detail. It is a curvature choice. And I find it interesting that the original Attention Is All You Need paper almost certainly made that choice for semantic and efficiency reasons, not geometric ones. The geometry came along for free, for better and for worse.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Ormaniec, W., Dangel, F., &amp; Singh, S. P. (2025). What Does It Mean to Be a Transformer? Insights from a Theoretical Hessian Analysis. <em>International Conference on Learning Representations (ICLR 2025)</em>. Code repository: <a href="https://github.com/dalab/transformer-hessian" target="_blank">github.com/dalab/transformer-hessian</a>.</li>
+  <li>Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., &amp; Polosukhin, I. (2017). Attention Is All You Need. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1706.03762" target="_blank">Paper link</a>.</li>
+  <li>Singh, S. P., Bachmann, G., &amp; Hofmann, T. (2021). Analytic Insights into Structure and Rank of Neural Network Hessian Maps. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2106.16217" target="_blank">Paper link</a>.</li>
+  <li>Singh, S. P., Hofmann, T., &amp; Schölkopf, B. (2023). The Hessian Perspective into the Nature of Convolutional Neural Networks. <em>International Conference on Machine Learning</em>.</li>
+  <li>Ahn, K., Cheng, X., Song, M., Yun, C., Jadbabaie, A., &amp; Sra, S. (2024). Linear Attention is (Maybe) All You Need (to Understand Transformer Optimization). <em>International Conference on Learning Representations</em>.</li>
+  <li>My previous post on softmax versus sigmoid in attention: <a href="softmax_attention.html">The Sigmoid Mistake</a>.</li>
+</ol>
+
+</article>
+</main>
+
+</body>
+</html>
