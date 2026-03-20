@@ -143,7 +143,7 @@
 <p class="meta">20 March, 2026</p>
 
 <p>
-Yesterday I wrote about what happens when you swap softmax for sigmoid in the attention computation. If you missed it: the short version is that the exam mistake I made turned out to be a structural error, not just a notational one. Softmax is the ingredient that creates per-row probability distributions over tokens, induces attention moment matrices, and makes the Hessian of the loss block-heterogeneous and partially indefinite. That piece is <a href="softmax_attention.html">here</a>. I was still sitting with the same ICLR 2025 paper by Ormaniec, Dangel, and Singh when another question surfaced—one I had been near many times but never actually examined directly.
+Yesterday I wrote about what happens when you swap softmax for sigmoid in the attention computation. If you missed it: the short version is that the exam mistake I made turned out to be a structural error, not just a notational one. Softmax is the ingredient that creates per-row probability distributions over tokens, induces attention moment matrices, and makes the Hessian of the loss block-heterogeneous and partially indefinite. That piece is <a href="softmax_attention.html">here</a>. I was still sitting with the same ICLR 2025 paper by Ormaniec, Dangel, and Singh when another question surfaced -one I had been near many times but never actually examined directly.
 </p>
 
 <p>
@@ -161,7 +161,7 @@ A(X) = \text{softmax}\!\left(\frac{X W_Q W_K^\top X^\top}{\sqrt{d_K}}\right), \q
 </div>
 
 <p>
-Two weight matrices, \(W_Q \in \mathbb{R}^{d_V \times d_K}\) and \(W_K \in \mathbb{R}^{d_V \times d_K}\), whose product \(W_Q W_K^\top\) enters the score. From a function-class perspective there is nothing forcing this. You could replace \(W_Q W_K^\top / \sqrt{d_K}\) with a single matrix \(W_{QK} \in \mathbb{R}^{d_V \times d_V}\) and express exactly the same functions—in fact more, since \(W_Q W_K^\top\) is rank-limited by \(d_K\) while a general \(W_{QK}\) is not. So why bother splitting it?
+Two weight matrices, \(W_Q \in \mathbb{R}^{d_V \times d_K}\) and \(W_K \in \mathbb{R}^{d_V \times d_K}\), whose product \(W_Q W_K^\top\) enters the score. From a function-class perspective there is nothing forcing this. You could replace \(W_Q W_K^\top / \sqrt{d_K}\) with a single matrix \(W_{QK} \in \mathbb{R}^{d_V \times d_V}\) and express exactly the same functions -in fact more, since \(W_Q W_K^\top\) is rank-limited by \(d_K\) while a general \(W_{QK}\) is not. So why bother splitting it?
 </p>
 
 <p>
@@ -191,7 +191,7 @@ T(X) = X W_{QK} X^\top.
 </p>
 
 <p>
-Both produce a score matrix in \(\mathbb{R}^{L \times L}\), which then goes through row-wise softmax and produces the same attention output—assuming the weights satisfy \(W_{QK} = W_Q W_K^\top / \sqrt{d_K}\). The predictions are identical. The gradients, in a first-order sense, are the same. But the Hessian—the second-order structure of the loss—is not.
+Both produce a score matrix in \(\mathbb{R}^{L \times L}\), which then goes through row-wise softmax and produces the same attention output -assuming the weights satisfy \(W_{QK} = W_Q W_K^\top / \sqrt{d_K}\). The predictions are identical. The gradients, in a first-order sense, are the same. But the Hessian -the second-order structure of the loss -is not.
 </p>
 
 <div class="viz" role="img" aria-label="Comparison of dual-matrix and single-matrix query-key parameterizations">
@@ -250,9 +250,9 @@ Both produce a score matrix in \(\mathbb{R}^{L \times L}\), which then goes thro
     <text x="570" y="188" font-size="10" fill="#888" text-anchor="middle">1 learnable matrix, d_V × d_V</text>
     <text x="570" y="205" font-size="10" fill="#2d6cdf" text-anchor="middle">H^T_f = 0: only PSD outer-product term</text>
 
-    <text x="380" y="248" font-size="10" fill="#888" text-anchor="middle">Same score matrix T for equivalent weights — but the Hessian structure differs.</text>
+    <text x="380" y="248" font-size="10" fill="#888" text-anchor="middle">Same score matrix T for equivalent weights  - but the Hessian structure differs.</text>
   </svg>
-  <p class="viz-caption">Figure 1. Two parameterizations of the query-key score matrix that produce identical outputs when weights match. The dual-matrix version \((W_Q, W_K)\) introduces an extra indefinite term in the Hessian—the T-functional Hessian—that is entirely absent in the single-matrix \(W_{QK}\) case.</p>
+  <p class="viz-caption">Figure 1. Two parameterizations of the query-key score matrix that produce identical outputs when weights match. The dual-matrix version \((W_Q, W_K)\) introduces an extra indefinite term in the Hessian -the T-functional Hessian -that is entirely absent in the single-matrix \(W_{QK}\) case.</p>
 </div>
 
 <h2>The single-matrix Hessian: what Lemma 4.1 says</h2>
@@ -268,7 +268,7 @@ H(W_{QK}, W_{QK}) = Z_1^\top \bigl(I_L \otimes W_V W_V^\top\bigr) Z_1 + \Bigl(\d
 </div>
 
 <p>
-where \(Z_1\) collects first-order softmax derivatives, \(Z_2\) collects second-order softmax derivatives, and \(\delta_{XY} = \mathrm{vec}_r(F(X) - Y)\) is the flattened residual. The first term is the outer-product Hessian, which is always positive semi-definite—it is a Gram-type product of Jacobians. The second term is the functional Hessian, which accounts for second derivatives of the network itself.
+where \(Z_1\) collects first-order softmax derivatives, \(Z_2\) collects second-order softmax derivatives, and \(\delta_{XY} = \mathrm{vec}_r(F(X) - Y)\) is the flattened residual. The first term is the outer-product Hessian, which is always positive semi-definite -it is a Gram-type product of Jacobians. The second term is the functional Hessian, which accounts for second derivatives of the network itself.
 </p>
 
 <p>
@@ -371,11 +371,11 @@ To see this, suppose \([v_1^\top, v_2^\top]^\top\) is an eigenvector with eigenv
 </p>
 
 <p>
-The Kronecker product with \(I_{d_K}\) means each such pair \(\pm\lambda_i\) appears with multiplicity \(d_K\). So the T-functional Hessian alone contributes at least \(2 \cdot \mathrm{rank}(B) \cdot d_K\) non-zero eigenvalues, split evenly between positive and negative. This indefiniteness is intrinsic to the dual parameterization. It is not a consequence of softmax specifically—you would get it in linear attention with separate \(W_Q, W_K\) as well.
+The Kronecker product with \(I_{d_K}\) means each such pair \(\pm\lambda_i\) appears with multiplicity \(d_K\). So the T-functional Hessian alone contributes at least \(2 \cdot \mathrm{rank}(B) \cdot d_K\) non-zero eigenvalues, split evenly between positive and negative. This indefiniteness is intrinsic to the dual parameterization. It is not a consequence of softmax specifically -you would get it in linear attention with separate \(W_Q, W_K\) as well.
 </p>
 
 <p>
-The paper notes that this is structurally identical to what Singh et al. (2021) found for the functional Hessian of a two-layer linear MLP. That work showed eigenvalues come in \(\pm\lambda\) pairs with multiplicity \(d_K\) at each layer. In self-attention with two query-key matrices, the same structure reappears—not because of depth, but because the product \(W_Q W_K^\top\) is itself a two-matrix composition. A single attention layer with dual parameterization inherits the eigenvalue structure of a two-layer MLP, confined entirely to the query-key block.
+The paper notes that this is structurally identical to what Singh et al. (2021) found for the functional Hessian of a two-layer linear MLP. That work showed eigenvalues come in \(\pm\lambda\) pairs with multiplicity \(d_K\) at each layer. In self-attention with two query-key matrices, the same structure reappears -not because of depth, but because the product \(W_Q W_K^\top\) is itself a two-matrix composition. A single attention layer with dual parameterization inherits the eigenvalue structure of a two-layer MLP, confined entirely to the query-key block.
 </p>
 
 <div class="viz" role="img" aria-label="Block-hollow structure of T-functional Hessian and eigenvalue pairing">
@@ -508,17 +508,17 @@ Putting the two results together gives a picture of the query-key Hessian that i
 </p>
 
 <p>
-This produces an unusual combination: a landscape that is simultaneously indefinite and sparse in curvature. Most directions in parameter space are flat from the outer-product term. The few directions that are curved have mixed sign because of the T-functional term. There is no single "upward" or "downward" direction—the loss curves up in some directions and down in others, and most directions have zero curvature from the leading term.
+This produces an unusual combination: a landscape that is simultaneously indefinite and sparse in curvature. Most directions in parameter space are flat from the outer-product term. The few directions that are curved have mixed sign because of the T-functional term. There is no single "upward" or "downward" direction -the loss curves up in some directions and down in others, and most directions have zero curvature from the leading term.
 </p>
 
 <p>
-This matters for optimizer design in a concrete way. An optimizer like SGD, which updates all parameters with the same learning rate scaled by gradient magnitude, has no mechanism to handle the directional heterogeneity here. Adaptive optimizers like Adam, which maintain per-parameter statistics, are better suited—they can implicitly assign different effective learning rates to directions with high curvature versus flat directions. The paper discussed this connection in more detail in the context of block-heterogeneity from softmax. But the dual parameterization adds another layer: even within the query-key block, the curvature is non-uniform and indefinite in ways that make simple optimization difficult.
+This matters for optimizer design in a concrete way. An optimizer like SGD, which updates all parameters with the same learning rate scaled by gradient magnitude, has no mechanism to handle the directional heterogeneity here. Adaptive optimizers like Adam, which maintain per-parameter statistics, are better suited -they can implicitly assign different effective learning rates to directions with high curvature versus flat directions. The paper discussed this connection in more detail in the context of block-heterogeneity from softmax. But the dual parameterization adds another layer: even within the query-key block, the curvature is non-uniform and indefinite in ways that make simple optimization difficult.
 </p>
 
 <h2>The functional equivalence that isn't</h2>
 
 <p>
-I keep returning to a broader point this makes. In machine learning we usually say two parameterizations are equivalent if they can represent the same set of functions. And in that sense \((W_Q, W_K)\) and \(W_{QK}\) are equivalent—every product \(W_Q W_K^\top / \sqrt{d_K}\) is a valid \(W_{QK}\), and every \(W_{QK}\) with rank at most \(d_K\) can be written as such a product.
+I keep returning to a broader point this makes. In machine learning we usually say two parameterizations are equivalent if they can represent the same set of functions. And in that sense \((W_Q, W_K)\) and \(W_{QK}\) are equivalent -every product \(W_Q W_K^\top / \sqrt{d_K}\) is a valid \(W_{QK}\), and every \(W_{QK}\) with rank at most \(d_K\) can be written as such a product.
 </p>
 
 <p>
@@ -540,7 +540,7 @@ Both are instances of the same observation: the Transformer's training behavior 
 </p>
 
 <p>
-The paper's title asks what it means to be a Transformer. Having now spent two days inside a single section of it, my answer is getting more specific. It means committing to a set of structural decisions—softmax row normalization, dual query-key matrices, pre-layer normalization—each of which has measurable consequences for curvature, indefiniteness, and rank. Those consequences are not incidental. They are part of what the Transformer is.
+The paper's title asks what it means to be a Transformer. Having now spent two days inside a single section of it, my answer is getting more specific. It means committing to a set of structural decisions -softmax row normalization, dual query-key matrices, pre-layer normalization -each of which has measurable consequences for curvature, indefiniteness, and rank. Those consequences are not incidental. They are part of what the Transformer is.
 </p>
 
 <p>
