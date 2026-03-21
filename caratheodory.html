@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Carathéodory's Theorem</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .scroll-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Interactive tool container */
+    .tool-wrap {
+      margin: 1.6rem 0 1.8rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 1rem 1rem 0.8rem;
+    }
+
+    .tool-title {
+      font-size: 0.88rem;
+      color: #666;
+      margin-bottom: 0.6rem;
+      text-align: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+      border-radius: 3px;
+      touch-action: none;
+    }
+
+    .coord-panel {
+      margin-top: 0.7rem;
+      padding: 0.6rem 0.8rem;
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      font-family: Georgia, serif;
+      font-size: 0.97rem;
+      min-height: 3.4rem;
+      line-height: 1.6;
+    }
+
+    .tool-hint {
+      font-size: 0.82rem;
+      color: #999;
+      text-align: center;
+      margin-top: 0.5rem;
+      margin-bottom: 0;
+    }
+
+    .tool-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    @media (max-width: 500px) {
+      body { font-size: 1rem; padding: 1rem; }
+      h1 { font-size: 1.4rem; }
+      h2 { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="projects_and_interests.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+<h1>Carathéodory's Theorem: Every Interior Point Has Three Witnesses</h1>
+
+<article>
+
+<p class="meta">March 2026</p>
+
+<p>
+I first encountered Carathéodory's theorem in the middle of reading a proof about the Frank-Wolfe algorithm. There it sat in the opening paragraph, stated as though everyone already knew it: any point in the convex hull of a set in \(\mathbb{R}^d\) can be expressed as a convex combination of at most \(d+1\) points of that set. The author moved on immediately. I stopped there for a long time.
+</p>
+
+<p>
+The statement sounds mild until you sit with what it actually says. Take a convex polygon with a hundred vertices. Pick any point in its interior. Carathéodory's theorem guarantees you can always find three vertices of that polygon - just three, never more - such that your chosen point is a weighted average of exactly those three. The other ninety-seven vertices are irrelevant to this point. Three witnesses always suffice.
+</p>
+
+<p>
+That feels wrong. If you pick a point somewhere in the middle of a polygon whose vertices are spread all around it, surely you need all of them to locate it precisely? Not at all. The theorem says three is always enough, and the bound is tight. It holds in any dimension, for any convex set, for any interior or boundary point. In \(\mathbb{R}^2\), always three. In \(\mathbb{R}^3\), always four. In \(\mathbb{R}^d\), always \(d+1\).
+</p>
+
+<h2>The proof fits in a paragraph</h2>
+
+<p>
+Which is part of why I love it. Suppose \(p = \sum_{i=1}^k \lambda_i x_i\) with each \(\lambda_i > 0\), \(\sum_i \lambda_i = 1\), and \(k > d+1\). We want to reduce the number of active terms. Since \(k-1 > d\), the vectors \(x_1 - x_k, \ldots, x_{k-1} - x_k\) are \(k-1 > d\) vectors in \(\mathbb{R}^d\), so they are linearly dependent. There exist \(\alpha_1, \ldots, \alpha_{k-1}\), not all zero, with \(\sum_{i=1}^{k-1} \alpha_i (x_i - x_k) = 0\). Set \(\alpha_k = -\sum_{i=1}^{k-1} \alpha_i\). Then:
+</p>
+
+<p>
+\[
+\sum_{i=1}^k \alpha_i x_i = 0 \qquad \text{and} \qquad \sum_{i=1}^k \alpha_i = 0.
+\]
+</p>
+
+<p>
+Now observe that for any \(t\):
+</p>
+
+<div class="scroll-wrapper">
+\[
+\sum_{i=1}^k (\lambda_i - t\alpha_i)\, x_i = p \qquad \text{and} \qquad \sum_{i=1}^k (\lambda_i - t\alpha_i) = 1.
+\]
+</div>
+
+<p>
+So \((\lambda_i - t\alpha_i)\) is a valid set of weights for \(p\) at any value of \(t\). Now increase \(|t|\) from zero (in the direction that keeps some \(\alpha_i \neq 0\)) until the first coefficient \(\lambda_j - t\alpha_j\) hits zero. At that value of \(t\), we still have \(p\) expressed as a convex combination - but now with at most \(k-1\) positive terms, since the \(j\)-th coefficient has vanished. Repeat until \(k \leq d+1\).
+</p>
+
+<p>
+It is one of those proofs where once you see it, you cannot unsee it. The linear dependence of more than \(d+1\) points in \(\mathbb{R}^d\) is the engine. The reduction step is entirely mechanical. The conclusion is striking.
+</p>
+
+<h2>Try it: click inside the polygon</h2>
+
+<p>
+The tool below makes this visceral. Click anywhere inside the polygon and the algorithm instantly finds three hull vertices whose convex combination is exactly your point. Drag any hull vertex to reshape the polygon - the decomposition updates live.
+</p>
+
+<div class="tool-wrap">
+  <p class="tool-title">Carathéodory decomposition - interactive</p>
+  <canvas id="cara-canvas"></canvas>
+  <div class="coord-panel" id="coord-info">
+    <span style="color:#999">Click anywhere inside the polygon to decompose the point.</span>
+  </div>
+  <p class="tool-hint">Click inside &nbsp;·&nbsp; drag vertices to reshape</p>
+</div>
+
+<p class="tool-caption">The polygon always has a fan triangulation into \(n-2\) triangles from vertex 1. Your click lands in exactly one of them. The three triangle vertices are the Carathéodory witnesses, and the barycentric coordinates \(\lambda_1, \lambda_2, \lambda_3\) are the weights. They are always non-negative and always sum to exactly one.</p>
+
+<h2>What you are watching</h2>
+
+<p>
+The implementation uses a fan triangulation from the topmost hull vertex. The convex polygon is split into \(n-2\) triangles, each sharing hull vertex 1 as the apex. When you click a point P, the algorithm checks each triangle in turn using barycentric coordinates:
+</p>
+
+<div class="scroll-wrapper">
+\[
+\lambda_1 = \frac{(y_2 - y_3)(P_x - x_3) + (x_3 - x_2)(P_y - y_3)}{(y_2 - y_3)(x_1 - x_3) + (x_3 - x_2)(y_1 - y_3)},
+\]
+</div>
+
+<p>
+with \(\lambda_2\) defined analogously and \(\lambda_3 = 1 - \lambda_1 - \lambda_2\). The point lies inside the triangle if and only if all three coordinates are non-negative. The first triangle satisfying this condition gives the decomposition.
+</p>
+
+<p>
+The three colored circles are the witnesses. The dashed lines from P to each vertex show the three directions whose weighted combination recovers P exactly. The weights at the bottom are the barycentric coordinates: if one vertex dominates with weight near one, P is close to that vertex. If the three weights are roughly equal, P is near the centroid of the triangle.
+</p>
+
+<p>
+Notice that the triangle you see is not unique - a different fan triangulation from a different apex would typically give a different triangle for the same interior point. Carathéodory's theorem guarantees a decomposition exists using at most three vertices; it does not say which three. The fan triangulation picks one valid set quickly. The geometry is always correct regardless of which decomposition you find.
+</p>
+
+<h2>The bound d+1 is tight</h2>
+
+<p>
+A natural question: can we always do it with fewer than three? Sometimes, yes. If P lies on an edge of the polygon, two vertices suffice. If P is a vertex itself, one vertex suffices. But for a generic interior point, three vertices are necessary - and two cannot always work.
+</p>
+
+<p>
+The standard example is the centroid of a triangle. Label the vertices \(A, B, C\). The centroid is \(\frac{1}{3}A + \frac{1}{3}B + \frac{1}{3}C\). Can you write the centroid as a convex combination of only two of the three vertices? That would require the centroid to lie on one of the edges, which it does not. The centroid is strictly interior, so no two-vertex combination reaches it. Three are genuinely necessary here. The bound \(d+1\) is achieved, not merely approached.
+</p>
+
+<h2>Why this mattered beyond the Frank-Wolfe paper</h2>
+
+<p>
+Once I understood the theorem, I started seeing it everywhere.
+</p>
+
+<p>
+<strong>Linear programming.</strong> A basic feasible solution of an LP with feasible region in \(\mathbb{R}^n\) has at most \(n\) nonzero variables. The simplex algorithm moves between vertices of the feasible polytope. Every interior point is a convex combination of at most \(n+1\) vertices, so if you are minimizing a linear function over a polytope, the minimum is always at a vertex. Carathéodory is the reason the simplex method is complete: it does not miss the optimum by staying in the interior.
+</p>
+
+<p>
+<strong>Support vector machines.</strong> The maximum-margin hyperplane in \(\mathbb{R}^d\) is determined by at most \(d+1\) support vectors. The dual formulation of the SVM writes the normal vector \(w = \sum_i \alpha_i y_i x_i\) as a sparse combination of training points. At optimality, the active \(\alpha_i\) are nonzero only on the support vectors - and Carathéodory bounds how many you need. In practice the number is often much smaller than \(d+1\), but the theorem gives the worst-case certificate: the rest of the dataset is provably irrelevant to the decision boundary.
+</p>
+
+<p>
+<strong>Frank-Wolfe / conditional gradient.</strong> This is the algorithm that started everything for me. Frank-Wolfe minimizes a smooth function \(f\) over a convex set \(\mathcal{C}\) by at each step finding the vertex of \(\mathcal{C}\) that most reduces the linearized objective, then taking a convex combination step. After \(k\) steps the iterate is a convex combination of at most \(k\) vertices of \(\mathcal{C}\). Carathéodory says this representation can always be pruned to \(d+1\) terms without changing the point. In practice, Frank-Wolfe is used exactly because the iterates stay sparse - a consequence of this structure.
+</p>
+
+<p>
+<strong>Neural network weight space.</strong> Consider the loss surface of a neural network. The flat minima hypothesis says that wide, flat regions of the loss are preferable to sharp, narrow ones for generalization. Carathéodory has a subtle role here: if you take a convex combination of two models (parameter averaging, as in model ensembling or stochastic weight averaging), the resulting point lies in the convex hull of those models. If the loss is low at both endpoints and the path between them is also low (the linear mode connectivity hypothesis), then the ensemble inherits low loss by convexity. The theorem bounds how many models you need to mix to cover a region: in the \(d\)-dimensional weight space of a network, \(d+1\) models suffice to represent any point in their convex hull.
+</p>
+
+<p>
+<strong>Attention and mixture models.</strong> Each row of the softmax attention matrix is a probability distribution over the sequence. Any such distribution is a point in the probability simplex \(\Delta_{L-1} \subset \mathbb{R}^L\), whose extreme points are the one-hot vectors. In \(\mathbb{R}^L\), Carathéodory says any probability vector can be written as a convex combination of at most \(L\) extreme points - which is trivially true for the simplex since the simplex itself has exactly \(L\) vertices. But for the effective attention distribution (which may live on a lower-dimensional manifold), fewer witnesses suffice. Sharp attention, where one token gets nearly all the weight, is the extreme-point case: one witness. Uniform attention is the interior: all \(L\) witnesses with equal weights. Carathéodory formalizes why sharp attention is "simpler" in a representational sense.
+</p>
+
+<p>
+<strong>Sparse dictionary learning and compressed sensing.</strong> In dictionary learning, you want to represent data points \(x \in \mathbb{R}^n\) as sparse combinations of dictionary atoms \(D = \{d_1, \ldots, d_m\}\) with \(m \gg n\). Carathéodory says that any point in conv\((D)\) can be represented with at most \(n+1\) atoms. If your data lives in the convex hull of the dictionary, you never need more than \(n+1\) atoms - a bound on the intrinsic sparsity of the representation that is independent of the dictionary size \(m\). This is the theoretical foundation for why \(\ell_1\) regularization works: it promotes sparse representations, and the sparse representation always exists with at most \(n+1\) terms by Carathéodory.
+</p>
+
+<p>
+<strong>K-means and clustering.</strong> The centroid of a cluster is a convex combination of its members. If the cluster lives in \(\mathbb{R}^d\), the centroid lies in the convex hull of the cluster points. Carathéodory says the centroid can be expressed as a convex combination of at most \(d+1\) cluster members. In high-dimensional spaces where \(d\) is large, this is not a practical compression - but in the interpretability-motivated setting where you want to find "representative points" for a cluster, the theorem says \(d+1\) data points always suffice to locate the centroid exactly.
+</p>
+
+<p>
+<strong>Reinforcement learning and policy mixing.</strong> A mixed policy in RL is a convex combination of deterministic policies. The set of deterministic policies is finite (for finite state and action spaces), and any mixed policy is in their convex hull. Carathéodory says any mixed policy can be written as a convex combination of at most \(|\mathcal{S}||\mathcal{A}| + 1\) deterministic policies (where \(|\mathcal{S}||\mathcal{A}|\) is the dimension of the policy space). In practice the bound is tighter. But the theorem tells you that mixed policies are not fundamentally more expressive than sparse mixtures - the mixing complexity is bounded by the dimension.
+</p>
+
+<h2>Building this</h2>
+
+<p>
+Writing the tool was its own small pleasure. The hardest part is not the math - the barycentric coordinate formula is a textbook half-page - but the interactive geometry: handling mouse coordinates relative to the canvas, maintaining the convex hull ordering after vertex drags, keeping the fan triangulation consistent with whatever hull order the algorithm returns.
+</p>
+
+<p>
+I used Andrew's monotone chain algorithm for the convex hull, which outputs vertices in counterclockwise order when working in standard coordinates. The fan triangulation then follows the hull ordering, and the barycentric coordinates are computed for each triangle until one contains the click point. The whole thing runs in real time because the number of hull vertices is small enough that the linear scan through triangles is imperceptible.
+</p>
+
+<p>
+What I did not expect when building it: how clearly you can see the triangulation structure as you click around. Near an edge between two triangles of the fan, small clicks move you from one triangle to the other, and the highlighted witnesses switch abruptly. The decomposition is discontinuous at triangle boundaries, even though the geometric object (the polygon and its interior) is smooth. The witnesses jump; the weights jump. P itself moves continuously. This discontinuity is not a bug - it is a property of the particular decomposition algorithm, not of Carathéodory's theorem itself. The theorem only guarantees existence; it says nothing about continuity of the witness selection.
+</p>
+
+<p>
+That observation sat with me for a while. The theorem is existential. It tells you witnesses exist, not how to find them canonically. The fan triangulation is one particular selection rule, fast and simple, but arbitrary in the sense that rotating the fan to a different apex gives a different set of witnesses for the same point. There is no canonical set of three witnesses for an interior point of a general polygon. Just the guarantee that three is always enough.
+</p>
+
+<p>
+I find that philosophically interesting. In mathematics we often look for canonical representatives - the simplest element of an equivalence class, the minimal description. Carathéodory tells you the description can always be made small (at most \(d+1\) terms), but not that there is a unique small one. The guarantee is about size, not identity.
+</p>
+
+</article>
+</main>
+
+<footer style="text-align:center; margin-top:3rem; padding-top:2rem; border-top:1px solid #ddd; font-size:0.95rem; color:#555;">
+  &copy; 2026 Pratyaksh Patel
+</footer>
+
+<script>
+(function () {
+  const canvas = document.getElementById('cara-canvas');
+  const ctx    = canvas.getContext('2d');
+  const IW = 680, IH = 430;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = IW * dpr;
+  canvas.height = IH * dpr;
+  ctx.scale(dpr, dpr);
+  // set displayed height via style to maintain aspect ratio
+  function resizeCanvas() {
+    const w = canvas.parentElement.clientWidth - 32;
+    canvas.style.width  = Math.min(w, IW) + 'px';
+    canvas.style.height = Math.round(Math.min(w, IW) * IH / IW) + 'px';
+  }
+  resizeCanvas();
+  window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+  // --- Data ---
+  let pts = [
+    {x:342, y:52},  {x:516, y:98},  {x:600, y:232}, {x:548, y:370},
+    {x:342, y:410}, {x:136, y:370}, {x:74,  y:236}, {x:148, y:98}
+  ];
+
+  function computeHull(points) {
+    if (points.length < 3) return [...points];
+    const s = [...points].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+    const cross = (O, A, B) => (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+    const lo = [], hi = [];
+    for (const p of s) {
+      while (lo.length >= 2 && cross(lo[lo.length-2], lo[lo.length-1], p) <= 0) lo.pop();
+      lo.push(p);
+    }
+    for (let i = s.length - 1; i >= 0; i--) {
+      const p = s[i];
+      while (hi.length >= 2 && cross(hi[hi.length-2], hi[hi.length-1], p) <= 0) hi.pop();
+      hi.push(p);
+    }
+    lo.pop(); hi.pop();
+    return lo.concat(hi);
+  }
+
+  let hull    = computeHull(pts);
+  let selPt   = null;
+  let decomp  = null;
+  let dragIdx = null;
+
+  // --- Math ---
+  function baryCoords(A, B, C, P) {
+    const d = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y);
+    if (Math.abs(d) < 1e-10) return null;
+    const u = ((B.y - C.y) * (P.x - C.x) + (C.x - B.x) * (P.y - C.y)) / d;
+    const v = ((C.y - A.y) * (P.x - C.x) + (A.x - C.x) * (P.y - C.y)) / d;
+    return [u, v, 1 - u - v];
+  }
+
+  function findDecomp(P) {
+    const h = hull;
+    for (let i = 1; i < h.length - 1; i++) {
+      const bc = baryCoords(h[0], h[i], h[i+1], P);
+      if (bc && bc[0] >= -1e-9 && bc[1] >= -1e-9 && bc[2] >= -1e-9) {
+        return { A: h[0], B: h[i], C: h[i+1], iA: 0, iB: i, iC: i+1, bc };
+      }
+    }
+    return null;
+  }
+
+  function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx*dx + dy*dy; }
+
+  // --- Colors ---
+  const COLS = ['#2d6cdf', '#e05252', '#444'];
+
+  // --- Draw ---
+  function draw() {
+    ctx.clearRect(0, 0, IW, IH);
+
+    // Hull polygon
+    if (hull.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(hull[0].x, hull[0].y);
+      for (let i = 1; i < hull.length; i++) ctx.lineTo(hull[i].x, hull[i].y);
+      ctx.closePath();
+      ctx.fillStyle = '#f8f9fb';
+      ctx.fill();
+      ctx.strokeStyle = '#c0c0c0';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Triangle
+    if (decomp && selPt) {
+      const {A, B, C} = decomp;
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(45,108,223,0.09)';
+      ctx.fill();
+      ctx.strokeStyle = '#2d6cdf';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Dashed spokes from P to each vertex
+      [A, B, C].forEach((V, i) => {
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = COLS[i];
+        ctx.lineWidth = 1.4;
+        ctx.globalAlpha = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(selPt.x, selPt.y);
+        ctx.lineTo(V.x, V.y);
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // All hull vertices
+    hull.forEach((p, i) => {
+      const inDecomp = decomp && (i === decomp.iA || i === decomp.iB || i === decomp.iC);
+      const colIdx   = inDecomp ? [decomp.iA, decomp.iB, decomp.iC].indexOf(i) : -1;
+      const r        = inDecomp ? 11 : 8;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle   = inDecomp ? COLS[colIdx] : '#efefef';
+      ctx.fill();
+      ctx.strokeStyle = inDecomp ? '#fff' : '#aaa';
+      ctx.lineWidth   = inDecomp ? 2.5 : 1.5;
+      ctx.stroke();
+
+      // Vertex number label
+      ctx.fillStyle    = inDecomp ? '#fff' : '#777';
+      ctx.font         = `${inDecomp ? 600 : 400} 11px sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(i + 1, p.x, p.y);
+    });
+
+    // Selected point P
+    if (selPt) {
+      ctx.beginPath();
+      ctx.arc(selPt.x, selPt.y, 5.5, 0, Math.PI * 2);
+      ctx.fillStyle   = '#111';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+      ctx.fillStyle    = '#222';
+      ctx.font         = '600 12px sans-serif';
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText('P', selPt.x + 8, selPt.y - 5);
+    }
+
+    updateInfo();
+  }
+
+  function updateInfo() {
+    const el = document.getElementById('coord-info');
+    if (!selPt || !decomp) {
+      if (selPt) {
+        el.innerHTML = '<span style="color:#c0392b;font-size:0.9rem">Point is outside the polygon - click inside.</span>';
+      } else {
+        el.innerHTML = '<span style="color:#999">Click anywhere inside the polygon to decompose the point.</span>';
+      }
+      return;
+    }
+    const {bc, iA, iB, iC} = decomp;
+    const [l1, l2, l3] = bc.map(x => Math.max(0, x));
+    const sum = l1 + l2 + l3;
+    el.innerHTML =
+      `<span style="color:#666;font-size:0.88rem">Decomposition using vertices&nbsp;${iA+1},&nbsp;${iB+1},&nbsp;${iC+1}:</span><br>` +
+      `<span style="font-size:1.08rem">` +
+        `<b style="color:#333">P</b> = ` +
+        `<b style="color:${COLS[0]}">${l1.toFixed(4)}</b>&#8202;&middot;&#8202;V<sub>${iA+1}</sub>&ensp;+&ensp;` +
+        `<b style="color:${COLS[1]}">${l2.toFixed(4)}</b>&#8202;&middot;&#8202;V<sub>${iB+1}</sub>&ensp;+&ensp;` +
+        `<b style="color:${COLS[2]}">${l3.toFixed(4)}</b>&#8202;&middot;&#8202;V<sub>${iC+1}</sub>` +
+      `</span><br>` +
+      `<span style="color:#999;font-size:0.83rem">` +
+        `&lambda;<sub>1</sub>&thinsp;+&thinsp;&lambda;<sub>2</sub>&thinsp;+&thinsp;&lambda;<sub>3</sub> = ${sum.toFixed(6)}&emsp;` +
+        `all &lambda;<sub>i</sub> &ge; 0&emsp;&#10003;&thinsp;convex combination` +
+      `</span>`;
+  }
+
+  // --- Input ---
+  function getP(e) {
+    const r  = canvas.getBoundingClientRect();
+    const sx = IW / r.width;
+    const sy = IH / r.height;
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    const p = getP(e);
+    // Check hull vertices for drag
+    for (let i = 0; i < hull.length; i++) {
+      if (dist2(p, hull[i]) < 18 * 18) {
+        dragIdx = pts.indexOf(hull[i]);
+        if (dragIdx >= 0) { canvas.style.cursor = 'grabbing'; return; }
+      }
+    }
+    // Interior click
+    selPt  = p;
+    decomp = findDecomp(p);
+    draw();
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    const p = getP(e);
+    if (dragIdx !== null) {
+      pts[dragIdx] = p;
+      hull  = computeHull(pts);
+      if (selPt) decomp = findDecomp(selPt);
+      draw();
+      return;
+    }
+    // Cursor hint
+    let onV = false;
+    for (const v of hull) { if (dist2(p, v) < 18 * 18) { onV = true; break; } }
+    canvas.style.cursor = onV ? 'grab' : 'crosshair';
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    dragIdx = null;
+    canvas.style.cursor = 'crosshair';
+  });
+
+  canvas.addEventListener('mouseleave', () => { dragIdx = null; });
+
+  // Touch
+  function touchDispatch(type, t) {
+    canvas.dispatchEvent(new MouseEvent(type, {
+      clientX: t.clientX, clientY: t.clientY, bubbles: true
+    }));
+  }
+  canvas.addEventListener('touchstart',  e => { e.preventDefault(); touchDispatch('mousedown', e.touches[0]); },    {passive:false});
+  canvas.addEventListener('touchmove',   e => { e.preventDefault(); touchDispatch('mousemove', e.touches[0]); },    {passive:false});
+  canvas.addEventListener('touchend',    e => { e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mouseup')); }, {passive:false});
+
+  // Init
+  hull = computeHull(pts);
+  draw();
+})();
+</script>
+</body>
+</html>
