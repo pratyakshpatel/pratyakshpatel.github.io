@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .scroll-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>Martingales in Optimization: Why SGD Doesn't Drift Randomly</h1>
+
+<article>
+
+<p class="meta">21 March, 2026</p>
+
+<p>
+It started, as many things do, with a Wikipedia tab I did not intend to open. I was reading through a convergence proof for stochastic gradient descent, the kind of proof that appears in the appendix of a paper you are trying to understand quickly, and I kept encountering the word martingale. Not in passing. It appeared in lemmas, in the core argument, as though it were assumed knowledge. I had a vague recollection from probability: something about gambling, something about fair games. I clicked through. Then through again. By the time I looked up it was well past midnight and I had tabs open on optional stopping, Doob's decomposition, the law of large numbers for martingales, and the Robbins-Siegmund theorem. This is the post I wished had existed before I went down that spiral.
+</p>
+
+<p>
+The question I kept returning to was simple. SGD is noisy. It does not follow the gradient exactly; it follows a stochastic estimate of it, computed on a random mini-batch. That noise accumulates over thousands of steps. Yet the algorithm converges. Why does the noise not send the iterates drifting off in some random direction? What is the structure that prevents pure diffusion? The answer, it turns out, is martingales. Specifically, the noise in SGD is not ordinary random noise. It has a very particular zero-mean structure that makes it a martingale difference sequence, and that structure is the precise reason it does not accumulate directional drift.
+</p>
+
+<h2>What a martingale is</h2>
+
+<p>
+The easiest entry point is through gambling. Suppose you are playing a fair game: at each step, you either win or lose one unit, each with probability one-half. Your fortune after \(t\) steps is \(M_t\). The question is: given everything that has happened up to step \(t\), what is your expected fortune at step \(t+1\)?
+</p>
+
+<p>
+\[
+\mathbb{E}[M_{t+1} \mid M_0, M_1, \ldots, M_t] = M_t.
+\]
+</p>
+
+<p>
+Your expected future fortune equals your current fortune. Not more, not less. The game is fair. This is a martingale. Formally, a sequence \((M_t)_{t \geq 0}\) is a martingale with respect to a filtration \((\mathcal{F}_t)_{t \geq 0}\) if it is adapted (each \(M_t\) is measurable with respect to \(\mathcal{F}_t\), meaning it depends only on information available at time \(t\)), integrable (\(\mathbb{E}[|M_t|] < \infty\) for all \(t\)), and satisfies:
+</p>
+
+<p>
+\[
+\mathbb{E}[M_{t+1} \mid \mathcal{F}_t] = M_t.
+\]
+</p>
+
+<p>
+The filtration \(\mathcal{F}_t\) is the technical object for "everything known up to time \(t\)." In SGD, it will be the sigma-algebra generated by the initial parameters and all the random data batches seen so far: \(\mathcal{F}_t = \sigma(\theta_0, z_0, z_1, \ldots, z_{t-1})\). The filtration grows over time as more information accumulates.
+</p>
+
+<p>
+Two variants are useful here. A supermartingale satisfies \(\mathbb{E}[M_{t+1} \mid \mathcal{F}_t] \leq M_t\) - the process tends to decrease in expectation, like a biased casino game. A submartingale satisfies the reverse inequality. Supermartingales will be the key object in the convergence analysis, because the distance from the optimum is exactly the kind of process that decreases in expectation under a well-behaved optimizer.
+</p>
+
+<p>
+A related concept is a martingale difference sequence: a sequence \((\xi_t)\) where each \(\xi_t\) has zero conditional mean given the past, \(\mathbb{E}[\xi_t \mid \mathcal{F}_{t-1}] = 0\). The increments of a martingale form a martingale difference sequence. And crucially, any sum of martingale differences \(M_T = \sum_{t=0}^{T-1} \xi_t\) is itself a martingale: its expected future value equals its current value, because each new term contributes zero in conditional expectation.
+</p>
+
+<h2>SGD as a stochastic process</h2>
+
+<p>
+The standard SGD update is:
+</p>
+
+<p>
+\[
+\theta_{t+1} = \theta_t - \eta_t\, g_t(\theta_t;\, z_t),
+\]
+</p>
+
+<p>
+where \(g_t(\theta_t; z_t)\) is the gradient of the loss computed on a random mini-batch \(z_t\), and \(\eta_t > 0\) is the learning rate at step \(t\). Define the objective function \(f(\theta) = \mathbb{E}_{z}[\ell(\theta; z)]\) as the expected loss over the data distribution. The stochastic gradient is an unbiased estimator of the true gradient:
+</p>
+
+<p>
+\[
+\mathbb{E}[g_t(\theta_t; z_t) \mid \mathcal{F}_t] = \nabla f(\theta_t).
+\]
+</p>
+
+<p>
+This is the unbiasedness assumption, and it is fundamental. It says that the mini-batch gradient points, on average, in the right direction. Now split the stochastic gradient into its mean and its deviation from the mean:
+</p>
+
+<p>
+\[
+g_t(\theta_t; z_t) = \nabla f(\theta_t) + \xi_t,
+\]
+</p>
+
+<p>
+where \(\xi_t = g_t(\theta_t; z_t) - \nabla f(\theta_t)\) is the noise term. By unbiasedness, \(\mathbb{E}[\xi_t \mid \mathcal{F}_t] = 0\). The noise has zero conditional mean given the history. This is exactly the definition of a martingale difference sequence.
+</p>
+
+<p>
+Substituting back, the SGD update becomes:
+</p>
+
+<div class="scroll-wrapper">
+\[
+\theta_{t+1} = \theta_t - \eta_t \nabla f(\theta_t) - \eta_t \xi_t.
+\]
+</div>
+
+<p>
+Two terms. The first, \(-\eta_t \nabla f(\theta_t)\), is the deterministic gradient descent step: this is the signal, the part that points toward the optimum. The second, \(-\eta_t \xi_t\), is the noise contribution at step \(t\): this is random, with zero conditional mean. The cumulative noise after \(T\) steps is:
+</p>
+
+<p>
+\[
+\sum_{t=0}^{T-1} \eta_t \xi_t.
+\]
+</p>
+
+<p>
+Because each \(\eta_t \xi_t\) has zero conditional mean given the past, this sum is a martingale. The noise accumulates, but it accumulates as a fair game. It oscillates without systematic directional bias. This is the first key insight: the stochastic part of SGD is not generic random noise. It is a martingale, which means it cannot drift in any preferred direction in expectation.
+</p>
+
+<div class="viz" role="img" aria-label="Comparison of pure random walk versus SGD trajectory in one dimension">
+  <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="280" fill="#fff"/>
+
+    <!-- Left: pure random walk -->
+    <text x="190" y="22" font-size="13" fill="#333" text-anchor="middle">Pure random walk</text>
+    <line x1="30" y1="140" x2="360" y2="140" stroke="#bbb" stroke-width="1"/>
+    <line x1="30" y1="40" x2="30" y2="240" stroke="#bbb" stroke-width="1"/>
+    <text x="195" y="258" font-size="10" fill="#888" text-anchor="middle">steps</text>
+    <text x="14" y="144" font-size="9" fill="#888" text-anchor="middle">0</text>
+
+    <!-- random walk path - drifts up -->
+    <polyline points="30,140 58,128 86,138 114,118 142,102 170,122 198,108 226,88 254,100 282,78 310,95 338,80" fill="none" stroke="#e05252" stroke-width="2"/>
+    <text x="344" y="78" font-size="9" fill="#e05252">drifts</text>
+    <text x="108" y="258" font-size="9" fill="#888" text-anchor="middle">E[walk] = 0 but path wanders</text>
+
+    <!-- Divider -->
+    <line x1="390" y1="20" x2="390" y2="260" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Right: SGD trajectory -->
+    <text x="575" y="22" font-size="13" fill="#333" text-anchor="middle">SGD toward optimum</text>
+    <line x1="420" y1="140" x2="745" y2="140" stroke="#bbb" stroke-width="1"/>
+    <line x1="420" y1="40" x2="420" y2="240" stroke="#bbb" stroke-width="1"/>
+    <text x="582" y="258" font-size="10" fill="#888" text-anchor="middle">steps</text>
+
+    <!-- optimum line -->
+    <line x1="420" y1="220" x2="745" y2="220" stroke="#cfcfcf" stroke-dasharray="5 3" stroke-width="1"/>
+    <text x="748" y="224" font-size="9" fill="#888">θ*</text>
+
+    <!-- SGD path - descends with oscillation -->
+    <polyline points="420,60 448,78 476,68 504,90 532,104 560,110 588,120 616,126 644,130 672,132 700,134 728,134" fill="none" stroke="#2d6cdf" stroke-width="2"/>
+    <text x="580" y="258" font-size="9" fill="#888" text-anchor="middle">noise oscillates but gradient signal descends</text>
+  </svg>
+  <p class="viz-caption">Figure 1. A pure random walk (left) has zero mean increment at each step, but the path drifts freely because there is no restoring force. SGD (right) also has zero-mean noise at each step, but the deterministic gradient component creates a drift toward the optimum. The noise cannot fight the signal on average - it is a martingale difference, adding zero in conditional expectation.</p>
+</div>
+
+<h2>The Doob decomposition: splitting drift from noise</h2>
+
+<p>
+There is a general theorem by Doob that formalizes exactly this split. The Doob decomposition says: any adapted integrable process \((X_t)\) can be written uniquely as:
+</p>
+
+<p>
+\[
+X_t = X_0 + M_t + A_t,
+\]
+</p>
+
+<p>
+where \((M_t)\) is a martingale with \(M_0 = 0\), and \((A_t)\) is a predictable process with \(A_0 = 0\). Predictable means that \(A_t\) is known at time \(t-1\): it depends only on the past, not on the current randomness. The decomposition is unique, and the two parts are given explicitly by:
+</p>
+
+<div class="scroll-wrapper">
+\[
+A_t = \sum_{s=1}^{t} \bigl(\mathbb{E}[X_s \mid \mathcal{F}_{s-1}] - X_{s-1}\bigr), \qquad M_t = X_t - X_0 - A_t.
+\]
+</div>
+
+<p>
+The predictable part \(A_t\) accumulates the conditional expected increments: it is the total systematic drift of the process. The martingale part \(M_t\) is everything that is not predictable: the pure noise, the oscillation that has zero expected contribution at each step.
+</p>
+
+<p>
+Apply this to \(V_t = \|\theta_t - \theta^*\|^2\), the squared distance to the optimum. For SGD under a smooth objective \(f\) with \(L\)-Lipschitz gradients, expanding the squared norm after one step:
+</p>
+
+<div class="scroll-wrapper">
+\[
+\|\theta_{t+1} - \theta^*\|^2 = \|\theta_t - \theta^* - \eta_t g_t\|^2 = \|\theta_t - \theta^*\|^2 - 2\eta_t \langle g_t,\, \theta_t - \theta^* \rangle + \eta_t^2 \|g_t\|^2.
+\]
+</div>
+
+<p>
+Taking conditional expectation and using \(\mathbb{E}[g_t \mid \mathcal{F}_t] = \nabla f(\theta_t)\):
+</p>
+
+<div class="scroll-wrapper">
+\[
+\mathbb{E}[V_{t+1} \mid \mathcal{F}_t] = V_t - 2\eta_t \langle \nabla f(\theta_t),\, \theta_t - \theta^* \rangle + \eta_t^2\, \mathbb{E}[\|g_t\|^2 \mid \mathcal{F}_t].
+\]
+</div>
+
+<p>
+Assuming bounded stochastic gradient variance, \(\mathbb{E}[\|g_t\|^2 \mid \mathcal{F}_t] \leq G^2\), and using strong convexity with parameter \(\mu > 0\), which gives \(\langle \nabla f(\theta_t), \theta_t - \theta^* \rangle \geq \mu \|\theta_t - \theta^*\|^2 = \mu V_t\):
+</p>
+
+<p>
+\[
+\mathbb{E}[V_{t+1} \mid \mathcal{F}_t] \leq (1 - 2\mu \eta_t)\, V_t + \eta_t^2 G^2.
+\]
+</p>
+
+<p>
+This is the key inequality. The predictable part of \(V_t\) decreases by a factor of at least \(2\mu\eta_t\) at each step. The bias term \(\eta_t^2 G^2\) is the price paid for using a stochastic gradient instead of the true one. The martingale part is the residual \(V_{t+1} - \mathbb{E}[V_{t+1} \mid \mathcal{F}_t]\): random, zero-mean, oscillating, not accumulating in any direction.
+</p>
+
+<div class="viz" role="img" aria-label="Doob decomposition of V_t into predictable descent and martingale noise">
+  <svg viewBox="0 0 760 270" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="270" fill="#fff"/>
+
+    <!-- V_t box -->
+    <rect x="300" y="20" width="160" height="42" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="380" y="38" font-size="12" fill="#333" text-anchor="middle">V_t = ‖θ_t − θ*‖²</text>
+    <text x="380" y="54" font-size="10" fill="#777" text-anchor="middle">squared distance to optimum</text>
+
+    <!-- Doob split -->
+    <line x1="380" y1="62" x2="200" y2="106" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <line x1="380" y1="62" x2="565" y2="106" stroke="#444" stroke-width="1.3" marker-end="url(#arr2)"/>
+    <text x="380" y="90" font-size="9" fill="#888" text-anchor="middle">Doob decomposition</text>
+
+    <!-- Predictable part -->
+    <rect x="60" y="106" width="280" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="200" y="124" font-size="11" fill="#2d6cdf" text-anchor="middle">A_t  (predictable)</text>
+    <text x="200" y="140" font-size="10" fill="#777" text-anchor="middle">−2η_t ⟨∇f(θ_t), θ_t−θ*⟩ + η_t² G²</text>
+    <text x="200" y="158" font-size="9" fill="#777" text-anchor="middle">decreases V_t when η_t small enough</text>
+
+    <!-- Martingale part -->
+    <rect x="420" y="106" width="280" height="62" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="560" y="124" font-size="11" fill="#e05252" text-anchor="middle">M_t  (martingale)</text>
+    <text x="560" y="140" font-size="10" fill="#777" text-anchor="middle">V_t − E[V_t | F_{t-1}]  residual</text>
+    <text x="560" y="158" font-size="9" fill="#777" text-anchor="middle">E[M_t | F_{t-1}] = 0,  no directional drift</text>
+
+    <!-- bottom notes -->
+    <text x="200" y="198" font-size="10" fill="#888" text-anchor="middle">controls convergence rate</text>
+    <text x="560" y="198" font-size="10" fill="#888" text-anchor="middle">oscillates but does not accumulate</text>
+
+    <text x="380" y="242" font-size="10" fill="#888" text-anchor="middle">The martingale part cannot fight the predictable descent in expectation.</text>
+    <text x="380" y="256" font-size="10" fill="#888" text-anchor="middle">This is why noise does not derail the optimization.</text>
+  </svg>
+  <p class="viz-caption">Figure 2. The Doob decomposition of \(V_t = \|\theta_t - \theta^*\|^2\) into a predictable part \(A_t\) (the systematic gradient descent contribution) and a martingale part \(M_t\) (the zero-mean residual noise). The martingale part has no preferred direction and cannot accumulate systematic drift away from the optimum.</p>
+</div>
+
+<h2>The martingale difference in practice</h2>
+
+<p>
+I want to make this concrete. At each step \(t\), the noise \(\xi_t = g_t - \nabla f(\theta_t)\) can be large or small, positive or negative in each coordinate, depending on which data points happened to land in the mini-batch. There is no structure preventing any individual \(\xi_t\) from being large. What is constrained is the conditional expectation: averaged over all possible mini-batches that could be drawn at step \(t\), given the current parameters \(\theta_t\), the noise has zero mean.
+</p>
+
+<p>
+This is a strong statement. It says the noise is not biased toward any direction. In particular, it does not systematically point away from the optimum, even when the parameters are close to convergence. Each noise realization is random and may take the iterate in a bad direction, but the next one is just as likely to compensate. The accumulated noise \(\sum_{t=0}^{T-1} \eta_t \xi_t\) is a martingale: its expected value at any future time, given the present, equals its current value. It wanders like a fair game, not like a biased drift.
+</p>
+
+<div class="viz" role="img" aria-label="Martingale difference sequence xi_t: zero conditional mean visualized">
+  <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="230" fill="#fff"/>
+    <text x="380" y="22" font-size="13" fill="#333" text-anchor="middle">Noise sequence ξ_t: zero conditional mean, but individual realizations vary</text>
+
+    <!-- Axis -->
+    <line x1="40" y1="115" x2="720" y2="115" stroke="#999" stroke-width="1.5"/>
+    <text x="726" y="119" font-size="10" fill="#888">t</text>
+    <text x="32" y="119" font-size="10" fill="#888" text-anchor="middle">0</text>
+
+    <!-- Bars: alternating positive/negative to show zero-mean character -->
+    <rect x="58" y="72" width="28" height="43" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="96" y="115" width="28" height="34" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="134" y="88" width="28" height="27" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="172" y="115" width="28" height="52" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="210" y="59" width="28" height="56" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="248" y="115" width="28" height="20" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="286" y="80" width="28" height="35" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="324" y="115" width="28" height="44" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="362" y="95" width="28" height="20" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="400" y="115" width="28" height="38" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="438" y="68" width="28" height="47" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="476" y="115" width="28" height="30" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="514" y="88" width="28" height="27" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="552" y="115" width="28" height="48" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="590" y="76" width="28" height="39" fill="#2d6cdf" opacity="0.7" rx="2"/>
+    <rect x="628" y="115" width="28" height="24" fill="#e05252" opacity="0.7" rx="2"/>
+    <rect x="666" y="92" width="28" height="23" fill="#2d6cdf" opacity="0.7" rx="2"/>
+
+    <text x="380" y="195" font-size="10" fill="#888" text-anchor="middle">Each ξ_t is a random draw — positive (blue, above axis) or negative (red, below).</text>
+    <text x="380" y="209" font-size="10" fill="#888" text-anchor="middle">The conditional mean E[ξ_t | F_t] = 0 at every step. No systematic directional bias accumulates.</text>
+  </svg>
+  <p class="viz-caption">Figure 3. The noise \(\xi_t = g_t - \nabla f(\theta_t)\) at each SGD step. Individual realizations are arbitrary in sign and magnitude, depending on which mini-batch was drawn. But the conditional mean is exactly zero at every step: \(\mathbb{E}[\xi_t \mid \mathcal{F}_t] = 0\). This zero-mean condition is the martingale difference property, and it is what prevents the noise from systematically fighting the gradient signal.</p>
+</div>
+
+<h2>The Robbins-Siegmund theorem: from martingales to convergence</h2>
+
+<p>
+Having the supermartingale-like inequality for \(V_t\) is the hard part. Converting it into an almost sure convergence statement is handled by a classical result due to Robbins and Siegmund (1971). The theorem is worth knowing.
+</p>
+
+<p>
+<strong>Robbins-Siegmund theorem.</strong> Let \((V_t)\), \((a_t)\), \((b_t)\) be non-negative adapted processes satisfying:
+</p>
+
+<p>
+\[
+\mathbb{E}[V_{t+1} \mid \mathcal{F}_t] \leq V_t - a_t + b_t \quad \text{for all } t \geq 0.
+\]
+</p>
+
+<p>
+If \(\sum_{t=0}^\infty b_t < \infty\) almost surely, then: (i) \(V_t\) converges almost surely to a finite non-negative limit, and (ii) \(\sum_{t=0}^\infty a_t < \infty\) almost surely.
+</p>
+
+<p>
+Apply this to the SGD inequality \(\mathbb{E}[V_{t+1} \mid \mathcal{F}_t] \leq V_t - 2\mu\eta_t V_t + \eta_t^2 G^2\). Set \(a_t = 2\mu\eta_t V_t\) and \(b_t = \eta_t^2 G^2\). The condition \(\sum b_t < \infty\) requires \(\sum \eta_t^2 < \infty\). If this holds, then the theorem gives us two conclusions. First, \(V_t = \|\theta_t - \theta^*\|^2\) converges almost surely to some finite limit \(V_\infty\). Second, \(\sum_t \eta_t V_t < \infty\) almost surely.
+</p>
+
+<p>
+The second conclusion, combined with \(\sum \eta_t = \infty\), forces \(V_\infty = 0\). Here is why: if \(V_t\) converged to some positive limit \(c > 0\), then \(\sum \eta_t V_t \geq c \sum \eta_t = \infty\), contradicting \(\sum \eta_t V_t < \infty\). So \(V_\infty\) must be zero: \(\theta_t \to \theta^*\) almost surely.
+</p>
+
+<p>
+This gives the classical Robbins-Monro conditions on the learning rate schedule:
+</p>
+
+<div class="scroll-wrapper">
+\[
+\sum_{t=0}^\infty \eta_t = \infty \quad \text{and} \quad \sum_{t=0}^\infty \eta_t^2 < \infty.
+\]
+</div>
+
+<p>
+The first condition says the learning rates cannot decay too fast: the algorithm must take steps large enough to cover arbitrary distances in parameter space. The second says the learning rates must eventually go to zero: the noise contribution \(\eta_t^2 G^2\) must be summable. The canonical schedule \(\eta_t = \eta_0 / (t+1)\) satisfies both: the harmonic series diverges but the sum of its squares converges.
+</p>
+
+<p>
+What I find beautiful about this is that the two conditions are not arbitrary engineering rules. They fall out directly from the martingale structure of the problem. The first condition forces the descent term to dominate. The second keeps the noise finite. Together they ensure the supermartingale \(V_t\) is well-behaved enough for the Robbins-Siegmund argument to close. The learning rate schedule is not a hyperparameter choice in the usual sense. It is a condition required for the proof to work.
+</p>
+
+<div class="viz" role="img" aria-label="Convergence conditions and Robbins-Siegmund theorem structure">
+  <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="240" fill="#fff"/>
+
+    <!-- Conditions -->
+    <rect x="20" y="26" width="210" height="42" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="125" y="44" font-size="11" fill="#333" text-anchor="middle">Σ η_t = ∞</text>
+    <text x="125" y="60" font-size="9" fill="#777" text-anchor="middle">steps cover all distances</text>
+
+    <rect x="20" y="82" width="210" height="42" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="125" y="100" font-size="11" fill="#333" text-anchor="middle">Σ η_t² &lt; ∞</text>
+    <text x="125" y="116" font-size="9" fill="#777" text-anchor="middle">noise bias is summable</text>
+
+    <rect x="20" y="138" width="210" height="42" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="125" y="156" font-size="11" fill="#333" text-anchor="middle">E[V_{t+1} | F_t] ≤ V_t − a_t + b_t</text>
+    <text x="125" y="172" font-size="9" fill="#777" text-anchor="middle">supermartingale inequality</text>
+
+    <!-- Arrows to theorem -->
+    <line x1="230" y1="47" x2="320" y2="110" stroke="#444" stroke-width="1.3" marker-end="url(#arr3)"/>
+    <line x1="230" y1="103" x2="320" y2="110" stroke="#444" stroke-width="1.3" marker-end="url(#arr3)"/>
+    <line x1="230" y1="159" x2="320" y2="115" stroke="#444" stroke-width="1.3" marker-end="url(#arr3)"/>
+
+    <!-- Robbins-Siegmund box -->
+    <rect x="320" y="78" width="180" height="60" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="410" y="100" font-size="11" fill="#333" text-anchor="middle">Robbins-Siegmund</text>
+    <text x="410" y="116" font-size="10" fill="#333" text-anchor="middle">theorem (1971)</text>
+    <text x="410" y="130" font-size="9" fill="#777" text-anchor="middle">quasi-martingale convergence</text>
+
+    <!-- Arrows to conclusions -->
+    <line x1="500" y1="108" x2="570" y2="78" stroke="#444" stroke-width="1.3" marker-end="url(#arr3)"/>
+    <line x1="500" y1="118" x2="570" y2="148" stroke="#444" stroke-width="1.3" marker-end="url(#arr3)"/>
+
+    <!-- Conclusions -->
+    <rect x="570" y="46" width="172" height="46" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="656" y="65" font-size="10" fill="#2d6cdf" text-anchor="middle">V_t converges a.s.</text>
+    <text x="656" y="80" font-size="9" fill="#777" text-anchor="middle">to a finite limit V_∞</text>
+
+    <rect x="570" y="126" width="172" height="46" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="656" y="145" font-size="10" fill="#2d6cdf" text-anchor="middle">Σ η_t V_t &lt; ∞ a.s.</text>
+    <text x="656" y="160" font-size="9" fill="#777" text-anchor="middle">forces V_∞ = 0 when Ση_t = ∞</text>
+
+    <text x="380" y="215" font-size="10" fill="#888" text-anchor="middle">The learning rate conditions are not heuristics. They are what the proof requires to close.</text>
+  </svg>
+  <p class="viz-caption">Figure 4. The structure of the convergence argument. Three conditions - the two Robbins-Monro learning rate requirements and the supermartingale inequality from SGD's gradient step - feed into the Robbins-Siegmund theorem and produce almost sure convergence. The learning rate schedule falls out of the proof, not out of trial and error.</p>
+</div>
+
+<h2>Why this is not the same as a random walk</h2>
+
+<p>
+I want to address the thing that confused me longest. A martingale also wanders like a random walk - its expected future value equals its current value. So is SGD just a biased random walk? The answer is no, and the distinction matters.
+</p>
+
+<p>
+In a pure random walk, the increments are i.i.d. and have no dependence on where you currently are. There is no restoring force. The walk drifts because there is nothing stopping it. The expected position stays at the starting point only in the very long-run average; any individual path wanders wherever the noise takes it.
+</p>
+
+<p>
+In SGD, the noise \(\xi_t\) has zero conditional mean, yes. But the deterministic gradient term \(-\eta_t \nabla f(\theta_t)\) depends on the current position \(\theta_t\). It points toward the optimum. And the gradient gets larger as \(\theta_t\) moves farther from the optimum (under strong convexity). This is a restoring force that pure random walks do not have. The further the iterate strays, the harder the gradient pulls it back. The martingale structure of the noise means the noise does not fight this restoring force in expectation. The noise oscillates; the gradient descends.
+</p>
+
+<p>
+The formal way to see this is in the Doob decomposition. The predictable part \(A_t\) is monotone decreasing (pulling \(V_t\) down) when the learning rate is small enough. The martingale part \(M_t\) fluctuates but does not drift. A random walk has no equivalent of \(A_t\): its predictable part is identically zero. The entire process is its martingale part. SGD is not a random walk; it is a random walk with an additional restoring force, and the restoring force wins in the long run because the noise has no preferred direction to fight it with.
+</p>
+
+<h2>Variance and the price of stochasticity</h2>
+
+<p>
+There is one more piece worth examining: the bias term \(\eta_t^2 G^2\) in the supermartingale inequality. This term does not vanish. It is the permanent price paid for using stochastic gradients. In full-batch gradient descent, this term is zero: the gradient is exact. In SGD, even when \(\theta_t = \theta^*\), the stochastic gradient \(g_t(\theta^*; z_t)\) is not zero - it depends on the random mini-batch and fluctuates around the true gradient \(\nabla f(\theta^*) = 0\). The variance of the noise does not disappear at the optimum.
+</p>
+
+<p>
+This is precisely why the learning rate must decay to zero: \(\eta_t \to 0\). If the learning rate were held constant, the bias term \(\eta^2 G^2\) would prevent \(V_t\) from converging to zero. The iterate would bounce around a neighborhood of the optimum whose radius scales with \(\eta G / \mu\). To converge exactly, the learning rate must shrink. But it cannot shrink too fast, or the gradient term no longer accumulates enough progress. The Robbins-Monro conditions pin down exactly the right rate of decay.
+</p>
+
+<p>
+Modern practice often uses constant or piece-wise constant learning rates with periodic restarts, which deliberately does not converge to zero. This is a choice to trade exact convergence for faster initial progress and implicit regularization via the noise. The martingale analysis explains why that trade-off exists: constant \(\eta\) gives a richer martingale structure (the noise is always active) but prevents the supermartingale from collapsing to zero. Decaying \(\eta\) collapses the noise but slows late-stage progress. The theory makes the trade-off explicit.
+</p>
+
+<h2>What the Wikipedia spiral taught me</h2>
+
+<p>
+The thing I did not expect when I started reading about martingales is how much the formalism clarifies. Before, I had a vague intuition that SGD converges because the gradient signal is stronger than the noise signal on average. That is true but imprecise. The martingale framework makes it precise. The noise is a martingale difference - zero conditional mean, no directional bias. The gradient is the predictable drift. The Doob decomposition separates these cleanly. The Robbins-Siegmund theorem converts the supermartingale inequality into almost sure convergence. Every step in the argument has a name and a reference.
+</p>
+
+<p>
+Knowing this changes how I look at variants. Stochastic variance reduction methods like SVRG reduce the variance of the martingale difference term, making the noise smaller without eliminating it. Adam implicitly handles heterogeneous gradient scales, which the Hessian analysis from the <a href="softmax_attention.html">softmax attention post</a> explains is particularly relevant for Transformers. Momentum integrates the martingale differences over time, smoothing the noise while preserving the gradient signal. Each of these methods is, in part, a manipulation of the martingale structure.
+</p>
+
+<p>
+There is also a broader lesson about what makes a convergence proof work. The proof does not argue that the noise is small. It argues that the noise is unbiased. Those are different claims. Large unbiased noise is fine for convergence, as long as the learning rate decays appropriately. Small biased noise can prevent convergence entirely - the algorithm can be confidently wrong in a consistent direction. The martingale property is not about magnitude; it is about direction. The noise has no preferred direction, and that is sufficient.
+</p>
+
+<p>
+I started this post with a Wikipedia spiral and I am ending it with a cleaner picture of something I had used for years without really understanding. SGD does not converge despite its noise. It converges because of the precise structure of that noise. The stochastic gradient is unbiased, which makes its deviation from the true gradient a martingale difference, which means the accumulated noise has no directional drift, which means the deterministic gradient signal always wins in expectation, which is why the whole thing works. That is a complete story. It took until now to find it.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Robbins, H., &amp; Siegmund, D. (1971). A convergence theorem for non negative almost supermartingales and some applications. In <em>Optimizing Methods in Statistics</em>, Academic Press. The original Robbins-Siegmund quasi-martingale convergence theorem.</li>
+  <li>Robbins, H., &amp; Monro, S. (1951). A stochastic approximation method. <em>Annals of Mathematical Statistics</em>, 22(3), 400-407. The original stochastic approximation paper establishing the learning rate conditions.</li>
+  <li>Bottou, L., Curtis, F. E., &amp; Nocedal, J. (2018). Optimization methods for large-scale machine learning. <em>SIAM Review</em>, 60(2), 223-311. <a href="https://arxiv.org/abs/1606.04838" target="_blank">Paper link</a>. A comprehensive survey of SGD theory including martingale-based analyses.</li>
+  <li>Doob, J. L. (1953). <em>Stochastic Processes</em>. Wiley. The original statement of the Doob decomposition and martingale convergence theorems.</li>
+  <li>Bach, F., &amp; Moulines, E. (2013). Non-strongly-convex smooth stochastic approximation with convergence rate O(1/n). <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1306.2119" target="_blank">Paper link</a>. Martingale tools applied to non-strongly-convex SGD.</li>
+  <li>My previous post on the Hessian structure of softmax attention, which motivates why these optimization properties matter specifically for Transformers: <a href="softmax_attention.html">The Sigmoid Mistake</a>.</li>
+  <li>My previous post on query-key parameterization and how the dual matrix structure changes the Hessian: <a href="qk_parameterization.html">One Matrix or Two</a>.</li>
+</ol>
+
+</article>
+</main>
+
+</body>
+</html>
