@@ -173,11 +173,11 @@
 <p class="meta">01 May, 2026</p>
 
 <p>
-This one started with a very annoying kind of hindsight. During my thesis on next-event prediction in soccer, I had two separate mental shelves. On one shelf were graphs: players as nodes, passes as edges, pressure as a local relationship, team shape as a living network. On the other shelf was Mamba: long event streams, selective memory, the feeling that a model should remember the last five seconds and also the build-up from forty seconds ago without choking on sequence length.
+I was very forntunate to be able to select my own topic for my bachelor's thesis, which was Next Event Prediction in football, I know very aspirational and cool but also equally hard to be pulled off in four months while also working fulltime somehwere else. I did it nonethsless. While working on it, I tried Mamba, but it worked really bad, because of lack of data, at the end Graph attention hit it and it worked. but I never sat down and thought, why not both of them together? Now that the thesis is submitted and I have enough time to work on it, I started reading heavily on the intersection of graph and sequence models, and I found this paper which is exactly about the awkward border between two worlds. Graphs do not arrive as a sentence. Mamba wants a sequence. A football possession is both: a sequence of actions and a constantly changing graph of players, spaces, and passing options. So the interesting problem is not just "can I put Mamba on graph data?" It is: what must be true before that even makes sense? Led to all this.
 </p>
 
 <p>
-I used the ideas separately. Graphs helped me think about structure. Mamba helped me think about time. Then the thesis was over, the deadline fog lifted, and my brain did the most unhelpful thing possible: it asked the obvious question after the fact. Can we use them together?
+So, I did use the ideas separately. Graphs helped me think about structure. Mamba helped me think about time. Here, Im trynna answer a pretty obvious question - Can we use them together?
 </p>
 
 <p>
