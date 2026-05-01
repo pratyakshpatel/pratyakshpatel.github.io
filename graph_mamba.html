@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 1.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .note-box {
+      background: #f4f7fb;
+      border-left: 4px solid #5277a3;
+      padding: 1rem;
+      margin: 1.4rem 0;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>Graph Mamba: The Post-Thesis Idea I Wish I Had Earlier</h1>
+
+<article>
+
+<p class="meta">01 May, 2026</p>
+
+<p>
+This one started with a very annoying kind of hindsight. During my thesis on next-event prediction in soccer, I had two separate mental shelves. On one shelf were graphs: players as nodes, passes as edges, pressure as a local relationship, team shape as a living network. On the other shelf was Mamba: long event streams, selective memory, the feeling that a model should remember the last five seconds and also the build-up from forty seconds ago without choking on sequence length.
+</p>
+
+<p>
+I used the ideas separately. Graphs helped me think about structure. Mamba helped me think about time. Then the thesis was over, the deadline fog lifted, and my brain did the most unhelpful thing possible: it asked the obvious question after the fact. Can we use them together?
+</p>
+
+<p>
+That question led me to <em>Graph Mamba: Towards Learning on Graphs with State Space Models</em> by Behrouz and Hashemi [1]. The paper is exactly about the awkward border between two worlds. Graphs do not arrive as a sentence. Mamba wants a sequence. A football possession is both: a sequence of actions and a constantly changing graph of players, spaces, and passing options. So the interesting problem is not just "can I put Mamba on graph data?" It is: what must be true before that even makes sense?
+</p>
+
+<p>
+The paper's answer is surprisingly practical. It says: do not simply replace attention with Mamba inside an existing graph transformer and hope the architecture forgives you. First decide what the tokens are. Then decide how to order them. Then encode local neighborhoods. Then scan them in both directions using a selective state space model. Positional and structural encodings are useful, but the paper argues they do not always need to be the whole personality of the model.
+</p>
+
+<p>
+That is the whole blog in one sentence. But it took me a while to feel why it matters, so let me build it slowly.
+</p>
+
+<div class="viz" role="img" aria-label="Soccer next-event prediction as both a graph and a sequence problem">
+  <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow-a" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="340" fill="#fff"/>
+
+    <rect x="28" y="42" width="310" height="210" rx="8" fill="#eef6ef" stroke="#b7d2bc"/>
+    <text x="183" y="28" font-size="15" fill="#333" text-anchor="middle">The graph view</text>
+    <rect x="58" y="72" width="250" height="150" rx="6" fill="#d7ead8" stroke="#9abd9e"/>
+    <line x1="183" y1="72" x2="183" y2="222" stroke="#f7f7f7" stroke-width="2"/>
+    <circle cx="112" cy="126" r="12" fill="#4f7f58"/>
+    <circle cx="171" cy="112" r="12" fill="#4f7f58"/>
+    <circle cx="234" cy="135" r="12" fill="#4f7f58"/>
+    <circle cx="130" cy="184" r="12" fill="#4f7f58"/>
+    <circle cx="218" cy="190" r="12" fill="#4f7f58"/>
+    <circle cx="272" cy="102" r="9" fill="#9b4d4d"/>
+    <circle cx="272" cy="176" r="9" fill="#9b4d4d"/>
+    <line x1="112" y1="126" x2="171" y2="112" stroke="#355d3b" stroke-width="2"/>
+    <line x1="171" y1="112" x2="234" y2="135" stroke="#355d3b" stroke-width="2"/>
+    <line x1="130" y1="184" x2="218" y2="190" stroke="#355d3b" stroke-width="2"/>
+    <line x1="234" y1="135" x2="272" y2="102" stroke="#a66" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <line x1="218" y1="190" x2="272" y2="176" stroke="#a66" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="183" y="244" font-size="11" fill="#555" text-anchor="middle">who can influence whom right now?</text>
+
+    <rect x="422" y="42" width="310" height="210" rx="8" fill="#f7f3e8" stroke="#d8c99d"/>
+    <text x="577" y="28" font-size="15" fill="#333" text-anchor="middle">The sequence view</text>
+    <line x1="462" y1="132" x2="692" y2="132" stroke="#444" stroke-width="2" marker-end="url(#arrow-a)"/>
+    <circle cx="476" cy="132" r="15" fill="#d3993f"/>
+    <circle cx="535" cy="132" r="15" fill="#d3993f"/>
+    <circle cx="594" cy="132" r="15" fill="#d3993f"/>
+    <circle cx="653" cy="132" r="15" fill="#d3993f"/>
+    <text x="476" y="137" font-size="10" fill="#fff" text-anchor="middle">P</text>
+    <text x="535" y="137" font-size="10" fill="#fff" text-anchor="middle">C</text>
+    <text x="594" y="137" font-size="10" fill="#fff" text-anchor="middle">D</text>
+    <text x="653" y="137" font-size="10" fill="#fff" text-anchor="middle">?</text>
+    <text x="476" y="168" font-size="10" fill="#555" text-anchor="middle">pass</text>
+    <text x="535" y="168" font-size="10" fill="#555" text-anchor="middle">carry</text>
+    <text x="594" y="168" font-size="10" fill="#555" text-anchor="middle">duel</text>
+    <text x="653" y="168" font-size="10" fill="#555" text-anchor="middle">next</text>
+    <path d="M477 205 C520 190, 585 190, 650 205" fill="none" stroke="#8d6c2f" stroke-width="2" stroke-dasharray="5 5"/>
+    <text x="577" y="226" font-size="11" fill="#555" text-anchor="middle">what history should still matter?</text>
+
+    <line x1="340" y1="150" x2="420" y2="150" stroke="#444" stroke-width="1.8" marker-end="url(#arrow-a)"/>
+    <text x="380" y="139" font-size="11" fill="#555" text-anchor="middle">same game</text>
+
+    <rect x="180" y="286" width="400" height="30" rx="15" fill="#f5f5f5" stroke="#d5d5d5"/>
+    <text x="380" y="306" font-size="12" fill="#444" text-anchor="middle">Graph Mamba asks: can structure become a useful sequence?</text>
+  </svg>
+  <div class="viz-caption">
+    Soccer next-event prediction is naturally two things at once. The match is a graph of players and relations, but the prediction target lives in an event stream.
+  </div>
+</div>
+
+<h2>The old graph story: messages are local</h2>
+
+<p>
+Most graph neural networks begin with a clean idea. A node updates itself by listening to its neighbors. In a citation graph, a paper listens to nearby papers. In a molecule, an atom listens to adjacent atoms. In soccer, a player could listen to nearby teammates, opponents, the ball carrier, and maybe zones of space. The common message-passing template looks like this:
+</p>
+
+<p>
+\[
+  h_v^{(\ell+1)} = \text{Update}\left(h_v^{(\ell)},\; \text{Aggregate}\{h_u^{(\ell)} : u \in \mathcal{N}(v)\}\right).
+\]
+</p>
+
+<p>
+This is beautiful because it respects the graph. It does not pretend that node order matters. If I rename the players from 1 to 22, the model should not suddenly change its answer. Methods like GCNs made this simple and scalable by learning local graph structure and node features with cost linear in the number of edges [4]. GIN then gave the field a sharper language for discussing how expressive these neighborhood aggregation models can be [5].
+</p>
+
+<p>
+But local listening has a price. If a node needs information from five hops away, the model must stack enough layers for that information to arrive. By the time it arrives, it has been mixed, compressed, and re-compressed through fixed-size vectors. This is the over-squashing problem: too much distant information gets squeezed through too narrow a channel [6]. In a soccer analogy, imagine trying to understand why the right winger received the ball by only asking the nearest player, then asking that player's nearest player, and so on. The reason might live in a center-back stepping forward ten seconds earlier. By the time that signal reaches the winger through local gossip, it is not crisp anymore.
+</p>
+
+<p>
+That was one of the reasons graph transformers became attractive. If attention lets every token talk to every other token, then long-range interactions become direct. The original Transformer made this idea famous for sequences [7]. Graph Transformers then tried to bring the same global mixing into graph learning. GraphGPS, for example, framed a strong recipe as a combination of positional or structural encoding, local message passing, and global attention [8].
+</p>
+
+<p>
+The problem is that full attention is expensive. If a graph has \(n\) nodes, all-pairs attention has \(O(n^2)\) pair interactions. For small graphs this can be fine. For large graphs, it becomes the elephant sitting on the GPU. Sparse graph transformers such as Exphormer reduce this by using local edges, expander connections, and virtual global nodes [10]. That is clever. But the broader question remains: do we need attention as the global mixing mechanism, or do we need something that can carry long-range information efficiently?
+</p>
+
+<h2>The Mamba story: memory is selective</h2>
+
+<p>
+Mamba comes from a different direction. It is a sequence model built on state space models. A very simplified state space model keeps a hidden state \(h_t\), updates it as new input \(x_t\) arrives, and emits an output \(y_t\):
+</p>
+
+<p>
+\[
+  h_t = \bar{A}h_{t-1} + \bar{B}x_t, \qquad y_t = Ch_t.
+\]
+</p>
+
+<p>
+S4 made these models exciting again by showing how structured state spaces can handle long sequences efficiently [3]. Mamba's important twist is selectivity [2]. Instead of using fixed transition behavior for every token, Mamba lets parts of the state update depend on the input. In plain language: the model can decide what to remember, what to ignore, and when to reset. A bad touch, a harmless sideways pass, and a line-breaking carry do not have to enter memory with the same force.
+</p>
+
+<p>
+A toy version of the idea is:
+</p>
+
+<p>
+\[
+  h_t = A(x_t)h_{t-1} + B(x_t)x_t, \qquad y_t = C(x_t)h_t.
+\]
+</p>
+
+<p>
+That notation hides many implementation details, but it captures the feeling. The transition is not blind. The token can influence how memory changes. This is exactly why Mamba felt natural for event prediction in soccer. Event streams are long, noisy, and uneven. Most events are not decisive. Some are everything. A model that can selectively carry context has the right temperament for the sport.
+</p>
+
+<p>
+But Mamba has a catch: it scans a sequence. Graphs are not sequences. A sentence has a first word, second word, and third word. A graph has nodes and edges, but no canonical order. If we line up players by jersey number, we have injected a fake structure. If we line them up by x-coordinate, we have injected a tactical bias. Sometimes that bias is useful. Sometimes it is nonsense. This is the central tension the Graph Mamba paper takes seriously.
+</p>
+
+<div class="note-box">
+  <p>
+    The mistake would be to say: "Mamba is linear, graphs are expensive, let us just replace graph attention with Mamba." The paper's point is subtler. A selective scan is powerful only after we have chosen meaningful tokens and a meaningful order.
+  </p>
+</div>
+
+<h2>Why the obvious combination is not enough</h2>
+
+<p>
+There is a concurrent paper with a very similar name, <em>Graph-Mamba: Towards Long-Range Graph Sequence Modeling with Selective State Spaces</em>, which replaces the attention block in GraphGPS with a Mamba-style block and uses node prioritization/order strategies [13]. That is a natural first attempt, and it is useful. But Behrouz and Hashemi argue that this is not the whole story [1]. The paper I am writing about calls its architecture Graph Mamba Networks, or GMNs, and the key distinction is that it treats graph-to-sequence conversion as a first-class design problem.
+</p>
+
+<p>
+If each node is simply a token, then Mamba receives a list of nodes. But what does the first node know? In a one-directional scan, early nodes cannot see later nodes. In attention, this is not a problem because every node can attend to every other node. In a recurrent scan, order shapes information flow. If the ordering is arbitrary, the model can lose structural information for boring reasons.
+</p>
+
+<p>
+This matters in soccer too. Suppose I order players by distance to the ball. The ball carrier appears first, then nearby pressure, then farther support. That ordering might be good for predicting immediate actions. But if I order players by shirt number, I am basically asking the model to discover football through laundry metadata. It might learn something despite me, but I am not helping.
+</p>
+
+<p>
+So Graph Mamba introduces a recipe. The paper describes four required steps and one optional step: tokenization, token ordering, local encoding, bidirectional selective SSM encoding, and optional positional/structural encoding. I like this because it feels less like a single architecture and more like a checklist for not fooling yourself.
+</p>
+
+<div class="viz" role="img" aria-label="Graph Mamba pipeline from random walk tokens to bidirectional Mamba">
+  <svg viewBox="0 0 760 390" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow-b" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="390" fill="#fff"/>
+
+    <text x="92" y="30" font-size="13" fill="#333" text-anchor="middle">1. Neighborhood tokens</text>
+    <circle cx="92" cy="112" r="13" fill="#5277a3"/>
+    <circle cx="45" cy="76" r="10" fill="#bbb"/>
+    <circle cx="145" cy="78" r="10" fill="#bbb"/>
+    <circle cx="52" cy="154" r="10" fill="#bbb"/>
+    <circle cx="145" cy="154" r="10" fill="#bbb"/>
+    <circle cx="92" cy="202" r="10" fill="#bbb"/>
+    <line x1="92" y1="112" x2="45" y2="76" stroke="#777"/>
+    <line x1="92" y1="112" x2="145" y2="78" stroke="#777"/>
+    <line x1="92" y1="112" x2="52" y2="154" stroke="#777"/>
+    <line x1="52" y1="154" x2="92" y2="202" stroke="#777"/>
+    <line x1="145" y1="78" x2="145" y2="154" stroke="#777"/>
+    <path d="M92 112 L45 76 L145 78" fill="none" stroke="#d3993f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M92 112 L52 154 L92 202" fill="none" stroke="#4f7f58" stroke-width="3" stroke-linecap="round"/>
+    <text x="92" y="238" font-size="10" fill="#555" text-anchor="middle">sample walks from node v</text>
+
+    <line x1="180" y1="130" x2="235" y2="130" stroke="#444" stroke-width="1.7" marker-end="url(#arrow-b)"/>
+
+    <text x="305" y="30" font-size="13" fill="#333" text-anchor="middle">2. Ordered subgraphs</text>
+    <rect x="244" y="72" width="122" height="38" rx="6" fill="#f6f6f6" stroke="#ccc"/>
+    <rect x="244" y="122" width="122" height="38" rx="6" fill="#f6f6f6" stroke="#ccc"/>
+    <rect x="244" y="172" width="122" height="38" rx="6" fill="#f6f6f6" stroke="#ccc"/>
+    <text x="305" y="96" font-size="11" fill="#333" text-anchor="middle">3-hop sample</text>
+    <text x="305" y="146" font-size="11" fill="#333" text-anchor="middle">2-hop sample</text>
+    <text x="305" y="196" font-size="11" fill="#333" text-anchor="middle">1-hop sample</text>
+    <text x="305" y="238" font-size="10" fill="#555" text-anchor="middle">far to near, then shuffle ties</text>
+
+    <line x1="382" y1="130" x2="437" y2="130" stroke="#444" stroke-width="1.7" marker-end="url(#arrow-b)"/>
+
+    <text x="512" y="30" font-size="13" fill="#333" text-anchor="middle">3. Local encoding</text>
+    <rect x="452" y="75" width="120" height="130" rx="7" fill="#eef2f8" stroke="#bcc9d9"/>
+    <text x="512" y="105" font-size="11" fill="#333" text-anchor="middle">MPNN or RWF</text>
+    <line x1="482" y1="126" x2="542" y2="126" stroke="#5277a3" stroke-width="2"/>
+    <line x1="482" y1="148" x2="542" y2="148" stroke="#5277a3" stroke-width="2"/>
+    <line x1="482" y1="170" x2="542" y2="170" stroke="#5277a3" stroke-width="2"/>
+    <text x="512" y="238" font-size="10" fill="#555" text-anchor="middle">turn each token into a vector</text>
+
+    <line x1="585" y1="130" x2="640" y2="130" stroke="#444" stroke-width="1.7" marker-end="url(#arrow-b)"/>
+
+    <text x="686" y="30" font-size="13" fill="#333" text-anchor="middle">4. Bi-Mamba</text>
+    <rect x="637" y="76" width="98" height="128" rx="7" fill="#f8f1e8" stroke="#d8c99d"/>
+    <path d="M658 105 C680 88, 700 88, 720 105" fill="none" stroke="#9a7431" stroke-width="2" marker-end="url(#arrow-b)"/>
+    <path d="M720 164 C700 181, 680 181, 658 164" fill="none" stroke="#9a7431" stroke-width="2" marker-end="url(#arrow-b)"/>
+    <text x="686" y="138" font-size="11" fill="#333" text-anchor="middle">selective</text>
+    <text x="686" y="153" font-size="11" fill="#333" text-anchor="middle">scan</text>
+    <text x="686" y="238" font-size="10" fill="#555" text-anchor="middle">both directions</text>
+
+    <rect x="165" y="305" width="430" height="42" rx="8" fill="#f7f7f7" stroke="#d6d6d6"/>
+    <text x="380" y="322" font-size="11" fill="#555" text-anchor="middle">The output for node v is not just v.</text>
+    <text x="380" y="339" font-size="11" fill="#555" text-anchor="middle">It is v after its sampled neighborhoods have been scanned, filtered, and folded back in.</text>
+  </svg>
+  <div class="viz-caption">
+    A simplified version of GMN's core recipe. The exact paper includes optional PE/SE, optional MPNN augmentation, and a final node-level bidirectional scan.
+  </div>
+</div>
+
+<h2>Step one: make graph tokens that mean something</h2>
+
+<p>
+The tokenization is the heart of the paper. For a node \(v\), GMN samples random walks starting from \(v\). For each walk length \(\hat{m}\), it samples \(M\) walks, takes the set of visited nodes, and builds the induced subgraph. In the paper's notation, one token is:
+</p>
+
+<p>
+\[
+  G[T_{\hat{m}}(v)] = G\left[\bigcup_{i=1}^{M} T_{\hat{m}, i}(v)\right].
+\]
+</p>
+
+<p>
+This sounds more complicated than it feels. Pick a player. Walk one relation away, two relations away, three relations away. Each distance gives you a small neighborhood around the player. Instead of using the whole \(k\)-hop ball, which can explode in dense graphs, use sampled walks. Now each node is represented by a sequence of neighborhood snapshots.
+</p>
+
+<p>
+There are three knobs:
+</p>
+
+<table>
+  <tr>
+    <th>Symbol</th>
+    <th>Plain meaning</th>
+    <th>Soccer translation</th>
+  </tr>
+  <tr>
+    <td>\(M\)</td>
+    <td>number of walks per length</td>
+    <td>how many local routes we sample from a player</td>
+  </tr>
+  <tr>
+    <td>\(m\)</td>
+    <td>maximum walk length</td>
+    <td>how far tactical context can reach</td>
+  </tr>
+  <tr>
+    <td>\(s\)</td>
+    <td>how many times we repeat sampling</td>
+    <td>how many alternate views of the same neighborhood we give the model</td>
+  </tr>
+</table>
+
+<p>
+I like \(s\) a lot. Mamba tends to benefit from longer useful sequences because its selection mechanism can filter what does not matter [2]. GMN exploits that by giving the model more sampled subgraphs, not fewer. This is a very Mamba-ish choice. Attention often makes us afraid of token count because every token talks to every other token. A linear scan changes the economics. More context is not free, but it is less terrifying.
+</p>
+
+<p>
+The paper also has a nice bridge between node and subgraph tokenization. If \(m = 0\), the token for a node is just the node itself. If \(m \geq 1\), the tokens become sampled subgraphs around the node. So one hyperparameter moves the architecture between a node-token view and a neighborhood-token view. That matters because not all graph tasks want the same bias. Sometimes the global node sequence is enough. Sometimes local structure is the whole game.
+</p>
+
+<h2>Step two: order the tokens without lying too much</h2>
+
+<p>
+Mamba cares about order. That is not a defect. It is what lets the scan behave like memory. But graphs do not hand us an order, so GMN must create one.
+</p>
+
+<p>
+For subgraph tokens, the paper gets a useful order almost for free. A larger-hop sampled neighborhood contains broader context. A smaller-hop sampled neighborhood is closer to the target node. GMN orders tokens from farther neighborhoods to nearer neighborhoods. The intuition is: let the broad context flow into the local context, so the final representation of the node can know both the outside world and the immediate surroundings.
+</p>
+
+<p>
+For repeated samples with the same walk length, the paper shuffles them to avoid overfitting to an arbitrary order. That small detail matters. If two sampled two-hop neighborhoods have no natural before/after relation, pretending otherwise can leak nonsense into the model.
+</p>
+
+<p>
+When \(m = 0\), there are no subgraph tokens, only nodes. Then the ordering problem returns. The paper discusses centrality-style orderings and uses degree ordering in experiments for simplicity and efficiency. In a soccer version, I would not blindly use degree. I would test several task-aware orderings: distance to ball, pitch x-coordinate, possession-team first, pressure score, pass-network centrality, or even a learned ordering. But I would treat this as a modeling assumption, not a harmless preprocessing step.
+</p>
+
+<h2>Step three: encode local structure</h2>
+
+<p>
+A sampled subgraph is still a graph. Mamba wants vectors. So each neighborhood token must be vectorized. The paper allows different local encoders, including message-passing networks such as Gated-GCN, or random-walk feature encodings inspired by CRaWl [11].
+</p>
+
+<p>
+This is where GMN is nicely hybrid. It does not throw away message passing as if local inductive bias suddenly became embarrassing. It uses local encoders where local encoders make sense. Then it uses Mamba for the longer-range scan. I think that is the correct instinct. In soccer, local geometry is not optional. Pressure, marking, passing lanes, and support angles are all local. But the next event also depends on previous tempo, field tilt, transitions, and the possession story. Local structure and long memory are not enemies. They are different organs.
+</p>
+
+<h2>Step four: scan both ways</h2>
+
+<p>
+A normal Mamba block scans in one direction. For language, direction can be part of the task. For graph encoding, a single direction is suspicious. If node A appears before node B, then B can receive information from A, but A cannot receive information from B. That asymmetry may be completely artificial.
+</p>
+
+<p>
+GMN uses a bidirectional Mamba block. One scan goes forward. Another scan goes backward. Their outputs are combined. This makes the model less fragile to ordering choices and gives each token a chance to be influenced by tokens on both sides. Vision Mamba models use a similar instinct when adapting sequence scans to images, because images also do not naturally behave like one-dimensional sentences [1].
+</p>
+
+<p>
+The paper's ablation study says this choice matters a lot. On heterophilic datasets, removing bidirectional Mamba causes a large drop. For example, on Roman-empire, the full GMN reports 0.8769 accuracy, while the version without bidirectional Mamba reports 0.8327. On Minesweeper, ROC AUC drops from 0.9101 to 0.8597. That is not a tiny decoration. It is one of the pieces that makes the graph adaptation real.
+</p>
+
+<h2>The optional part: positional and structural encodings</h2>
+
+<p>
+Graph Transformers often lean heavily on positional and structural encodings because attention by itself has weak graph bias. If every node can attend to every other node, the model needs help understanding where nodes sit in the graph. Laplacian eigenvectors, random-walk encodings, shortest-path encodings, and related features are common ways to inject this information.
+</p>
+
+<p>
+GMN does not ban PE/SE. It makes them optional. That is an important difference in tone. If subgraph tokens already carry local structure, and if random-walk sampling already provides meaningful neighborhoods, then complex encodings may not be the only way to give the model graph awareness. This is one reason the authors can make the provocative claim that Transformers, complex message passing, and PE/SE are sufficient for good performance, but not necessary [1].
+</p>
+
+<p>
+I would not read that as "never use PE/SE." I would read it as "do not confuse a successful recipe with a law of nature." If positional encodings help, use them. If they become the scalability bottleneck, GMN gives another path.
+</p>
+
+<h2>A useful complexity picture</h2>
+
+<p>
+The computational story is simple enough to keep in your head. Full attention over \(n\) nodes is quadratic: \(O(n^2)\). GMN's sampled-neighborhood version is roughly linear in graph size when \(M\), \(s\), and \(m\) are treated as controlled hyperparameters:
+</p>
+
+<p>
+\[
+  O\left(Ms(m+1)|V| + |E|\right).
+\]
+</p>
+
+<p>
+This does not mean GMN is magically free. Sampling, encoding, and scanning all cost something. Larger \(s\) gives more context but slower training. Larger \(m\) reaches farther but increases token work. Larger \(M\) gives better neighborhood coverage but more computation. The useful part is that these are knobs, not a wall.
+</p>
+
+<div class="viz" role="img" aria-label="Quadratic attention versus linear Graph Mamba cost curve">
+  <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="360" fill="#fff"/>
+    <text x="380" y="28" font-size="15" fill="#333" text-anchor="middle">Cost shape: all-pairs attention vs selective scan</text>
+
+    <line x1="90" y1="292" x2="680" y2="292" stroke="#444" stroke-width="1.5"/>
+    <line x1="90" y1="292" x2="90" y2="54" stroke="#444" stroke-width="1.5"/>
+    <text x="384" y="326" font-size="12" fill="#555" text-anchor="middle">number of nodes / tokens</text>
+    <text x="28" y="176" font-size="12" fill="#555" text-anchor="middle" transform="rotate(-90 28 176)">relative compute or memory</text>
+
+    <path d="M100 285 C220 260, 350 185, 660 62" fill="none" stroke="#a24f4f" stroke-width="4"/>
+    <path d="M100 285 L660 105" fill="none" stroke="#5277a3" stroke-width="4"/>
+    <text x="548" y="75" font-size="12" fill="#a24f4f">attention: grows like n^2</text>
+    <text x="500" y="129" font-size="12" fill="#5277a3">GMN scan: controlled linear growth</text>
+
+    <circle cx="235" cy="242" r="4" fill="#5277a3"/>
+    <circle cx="235" cy="253" r="4" fill="#a24f4f"/>
+    <circle cx="430" cy="180" r="4" fill="#5277a3"/>
+    <circle cx="430" cy="161" r="4" fill="#a24f4f"/>
+    <circle cx="610" cy="122" r="4" fill="#5277a3"/>
+    <circle cx="610" cy="78" r="4" fill="#a24f4f"/>
+
+    <rect x="125" y="70" width="210" height="62" rx="6" fill="#f7f7f7" stroke="#d6d6d6"/>
+    <text x="230" y="94" font-size="11" fill="#444" text-anchor="middle">The practical win is not just speed.</text>
+    <text x="230" y="113" font-size="11" fill="#444" text-anchor="middle">It lets us afford more context.</text>
+  </svg>
+  <div class="viz-caption">
+    This is a conceptual plot, not a measured benchmark. The paper's measured efficiency results show GMN using less GPU memory than graph transformer baselines on large datasets.
+  </div>
+</div>
+
+<h2>What the experiments say</h2>
+
+<p>
+The paper evaluates GMNs on long-range graph benchmarks, standard GNN benchmarks, heterophilic datasets, and a large OGB dataset. The headline is that GMN is competitive or better while using less memory than attention-heavy graph transformer approaches.
+</p>
+
+<p>
+On the Long Range Graph Benchmark [9], GMN reports the best numbers among listed baselines on COCO-SP, PascalVOC-SP, Peptides-Func, and Peptides-Struct in the table. A few values that stood out to me:
+</p>
+
+<table>
+  <tr>
+    <th>Dataset</th>
+    <th>Metric</th>
+    <th>GMN</th>
+    <th>GPS + Mamba</th>
+    <th>Best non-GMN comparator in table</th>
+  </tr>
+  <tr>
+    <td>COCO-SP</td>
+    <td>F1 higher is better</td>
+    <td>0.3974</td>
+    <td>0.3895</td>
+    <td>GPS: 0.3774</td>
+  </tr>
+  <tr>
+    <td>PascalVOC-SP</td>
+    <td>F1 higher is better</td>
+    <td>0.4393</td>
+    <td>0.4180</td>
+    <td>GPS + Mamba: 0.4180</td>
+  </tr>
+  <tr>
+    <td>Peptides-Func</td>
+    <td>AP higher is better</td>
+    <td>0.7071</td>
+    <td>0.6624</td>
+    <td>CRaWl: 0.6963</td>
+  </tr>
+  <tr>
+    <td>Peptides-Struct</td>
+    <td>MAE lower is better</td>
+    <td>0.2473</td>
+    <td>0.2518</td>
+    <td>Graph ViT: 0.2468</td>
+  </tr>
+</table>
+
+<p>
+The comparison to GPS + Mamba is especially important. It is the "obvious" baseline: take a strong graph transformer framework and swap the transformer block for Mamba. GMN beating it is evidence for the paper's main design claim. The win is not only from Mamba. It is from respecting what changes when attention becomes a scan.
+</p>
+
+<p>
+On GNN benchmark datasets, GMN is also strong. It reports 0.7576 accuracy on CIFAR10, above Exphormer's 0.7469 in the table, and 0.9415 on MalNet-Tiny, slightly above Exphormer's 0.9402 [10]. On heterophilic datasets, GMN is best on Amazon-ratings, Minesweeper, and Tolokers, while Exphormer is higher on Roman-empire. That is a healthy result. It does not say one model crushes all others everywhere. It says the design is serious.
+</p>
+
+<p>
+The efficiency table is the one I would tape to my monitor before trying this on sports data. On OGBN-Arxiv, the paper reports GMN at 3.85 GB GPU memory, GPS + Mamba at 5.02 GB, Gated-GCN at 11.09 GB, and Exphormer at 36.18 GB. GMN also reports the best accuracy among those entries at 0.7248. Memory is not an aesthetic metric. It decides whether an idea gets to run at all.
+</p>
+
+<div class="viz" role="img" aria-label="Selected benchmark bars from Graph Mamba paper">
+  <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="420" fill="#fff"/>
+    <text x="380" y="28" font-size="15" fill="#333" text-anchor="middle">A few reported numbers from the Graph Mamba paper</text>
+
+    <text x="160" y="65" font-size="12" fill="#444" text-anchor="middle">PascalVOC-SP F1</text>
+    <line x1="70" y1="185" x2="250" y2="185" stroke="#ddd"/>
+    <rect x="90" y="78" width="34" height="107" fill="#5277a3"/>
+    <rect x="139" y="83" width="34" height="102" fill="#d3993f"/>
+    <rect x="188" y="91" width="34" height="94" fill="#8f8f8f"/>
+    <text x="107" y="203" font-size="10" fill="#555" text-anchor="middle">GMN</text>
+    <text x="156" y="203" font-size="10" fill="#555" text-anchor="middle">G+M</text>
+    <text x="205" y="203" font-size="10" fill="#555" text-anchor="middle">CRaWl</text>
+    <text x="107" y="74" font-size="10" fill="#333" text-anchor="middle">.439</text>
+    <text x="156" y="79" font-size="10" fill="#333" text-anchor="middle">.418</text>
+    <text x="205" y="87" font-size="10" fill="#333" text-anchor="middle">.409</text>
+
+    <text x="380" y="65" font-size="12" fill="#444" text-anchor="middle">CIFAR10 accuracy</text>
+    <line x1="290" y1="185" x2="470" y2="185" stroke="#ddd"/>
+    <rect x="310" y="82" width="34" height="103" fill="#5277a3"/>
+    <rect x="359" y="85" width="34" height="100" fill="#d3993f"/>
+    <rect x="408" y="89" width="34" height="96" fill="#8f8f8f"/>
+    <text x="327" y="203" font-size="10" fill="#555" text-anchor="middle">GMN</text>
+    <text x="376" y="203" font-size="10" fill="#555" text-anchor="middle">Exph</text>
+    <text x="425" y="203" font-size="10" fill="#555" text-anchor="middle">G+M</text>
+    <text x="327" y="78" font-size="10" fill="#333" text-anchor="middle">.758</text>
+    <text x="376" y="81" font-size="10" fill="#333" text-anchor="middle">.747</text>
+    <text x="425" y="85" font-size="10" fill="#333" text-anchor="middle">.734</text>
+
+    <text x="600" y="65" font-size="12" fill="#444" text-anchor="middle">OGBN-Arxiv memory</text>
+    <line x1="510" y1="185" x2="690" y2="185" stroke="#ddd"/>
+    <rect x="530" y="162" width="34" height="23" fill="#5277a3"/>
+    <rect x="579" y="155" width="34" height="30" fill="#d3993f"/>
+    <rect x="628" y="78" width="34" height="107" fill="#a24f4f"/>
+    <text x="547" y="203" font-size="10" fill="#555" text-anchor="middle">GMN</text>
+    <text x="596" y="203" font-size="10" fill="#555" text-anchor="middle">G+M</text>
+    <text x="645" y="203" font-size="10" fill="#555" text-anchor="middle">Exph</text>
+    <text x="547" y="157" font-size="10" fill="#333" text-anchor="middle">3.85G</text>
+    <text x="596" y="150" font-size="10" fill="#333" text-anchor="middle">5.02G</text>
+    <text x="645" y="74" font-size="10" fill="#333" text-anchor="middle">36.18G</text>
+
+    <rect x="118" y="275" width="524" height="78" rx="8" fill="#f7f7f7" stroke="#d6d6d6"/>
+    <text x="380" y="300" font-size="11" fill="#444" text-anchor="middle">The pattern I care about:</text>
+    <text x="380" y="319" font-size="11" fill="#444" text-anchor="middle">GMN is not just Mamba pasted onto GPS.</text>
+    <text x="380" y="338" font-size="11" fill="#444" text-anchor="middle">The tokenization and bidirectional scan are doing real work.</text>
+  </svg>
+  <div class="viz-caption">
+    Hand-drawn from selected values reported in the paper's tables. G+M means GPS + Mamba. Exph means Exphormer.
+  </div>
+</div>
+
+<h2>The theory, in human language</h2>
+
+<p>
+The paper has three theoretical claims that are worth translating carefully.
+</p>
+
+<p>
+First, its neighborhood sampling can be more expressive than fixed \(k\)-hop neighborhood sampling when \(M\), \(m\), and \(s\) are large enough. The intuition is that fixed \(k\)-hop neighborhoods give one big view. Random-walk sampling with repeated samples can expose many substructures inside that view. It is like comparing a single aerial photo of a possession to several camera angles through possible passing lanes.
+</p>
+
+<p>
+Second, with positional encoding and enough parameters, GMNs can approximate permutation-equivariant functions on graphs. This mirrors the kind of universality argument often made for graph transformers, but the paper leans on results showing that state space models with layer-wise nonlinearities are universal approximators for sequence-to-sequence functions [1].
+</p>
+
+<p>
+Third, without PE and without an MPNN, GMNs can still have expressive power not bounded by the Weisfeiler-Leman hierarchy, because the random-walk feature encoding connects to CRaWl [11]. I would be careful not to over-sell this as "GMN solves graph isomorphism." That is not the practical takeaway. The takeaway is better: random-walk subgraph views can expose patterns that standard message passing may miss.
+</p>
+
+<p>
+For my purposes, the theory says: this is not only an engineering hack. The sampling and encoding choices change what the model can see.
+</p>
+
+<h2>The soccer version I keep imagining</h2>
+
+<p>
+Now back to the thesis itch. In next-event prediction, the target could be the next action type, next location, next receiver, next possession value, or some joint distribution over all of these. The input is usually an event stream: pass, carry, pressure, duel, shot, clearance. Each event has time, location, team, player, body part, result, and context. Soccer event frameworks such as SPADL and VAEP made this action-language view popular by representing and valuing on-ball actions with context [14].
+</p>
+
+<p>
+But every event also lives inside a graph. At a timestamp, players have relations: distance, angle, passing lane visibility, same-team/opponent indicator, role, pressure, velocity alignment. TacticAI is a nice real-world example of football graph modeling: it treats corner-kick situations as graphs of players and uses graph neural networks to reason about first receivers and shot likelihood [15]. That is set-piece focused, but the representation lesson transfers. Football is relational before it is sequential.
+</p>
+
+<p>
+So here is the Graph Mamba-flavored next-event model I would now try.
+</p>
+
+<p>
+At each event time \(t\), construct a graph \(G_t\). Nodes are players, maybe the ball, maybe tactical zones. Edges encode distances, same-team relations, passing-lane openness, marking pressure, and relative velocity. Node features include player location, velocity, team possession flag, role, fatigue proxy if available, and event-specific context. Then choose a target node or target region depending on the prediction task.
+</p>
+
+<p>
+For each key node, sample neighborhoods using random walks over this relational graph. A walk is not a literal player movement. It is a route through influence: ball carrier to nearest presser, ball carrier to passing option, passing option to marker, marker to covering defender. These sampled subgraphs become local tactical tokens. Order them from broader context back toward the player or ball carrier. Encode each token with a local graph encoder. Then use bidirectional Mamba to produce node-level representations.
+</p>
+
+<p>
+Now we still need temporal memory. There are two options, and I would test both. Option one: use GMN inside each event frame to produce graph-aware event embeddings, then feed the event sequence into a causal Mamba for next-event prediction. Option two: build tokens that already combine time and graph, such as sampled neighborhoods across recent event frames, and scan those. Option one is cleaner. Option two is more ambitious and probably more chaotic, which means I would secretly want to try it after the clean baseline works.
+</p>
+
+<div class="viz" role="img" aria-label="A possible Graph Mamba soccer next-event architecture">
+  <svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow-c" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="410" fill="#fff"/>
+    <text x="380" y="30" font-size="15" fill="#333" text-anchor="middle">A sketch for soccer next-event prediction</text>
+
+    <rect x="38" y="70" width="155" height="225" rx="8" fill="#eef6ef" stroke="#b7d2bc"/>
+    <text x="116" y="96" font-size="12" fill="#333" text-anchor="middle">event frame G_t</text>
+    <circle cx="82" cy="142" r="9" fill="#4f7f58"/>
+    <circle cx="128" cy="122" r="9" fill="#4f7f58"/>
+    <circle cx="157" cy="166" r="9" fill="#9b4d4d"/>
+    <circle cx="89" cy="210" r="9" fill="#4f7f58"/>
+    <circle cx="150" cy="225" r="9" fill="#9b4d4d"/>
+    <line x1="82" y1="142" x2="128" y2="122" stroke="#666"/>
+    <line x1="128" y1="122" x2="157" y2="166" stroke="#666"/>
+    <line x1="82" y1="142" x2="89" y2="210" stroke="#666"/>
+    <line x1="89" y1="210" x2="150" y2="225" stroke="#666"/>
+    <text x="116" y="267" font-size="10" fill="#555" text-anchor="middle">players, ball, pressure, lanes</text>
+
+    <line x1="205" y1="180" x2="260" y2="180" stroke="#444" stroke-width="1.7" marker-end="url(#arrow-c)"/>
+
+    <rect x="270" y="70" width="155" height="225" rx="8" fill="#f8f1e8" stroke="#d8c99d"/>
+    <text x="348" y="96" font-size="12" fill="#333" text-anchor="middle">GMN encoder</text>
+    <rect x="298" y="122" width="100" height="28" rx="5" fill="#fff" stroke="#ccc"/>
+    <rect x="298" y="160" width="100" height="28" rx="5" fill="#fff" stroke="#ccc"/>
+    <rect x="298" y="198" width="100" height="28" rx="5" fill="#fff" stroke="#ccc"/>
+    <text x="348" y="140" font-size="10" fill="#444" text-anchor="middle">walk tokens</text>
+    <text x="348" y="178" font-size="10" fill="#444" text-anchor="middle">local graph encode</text>
+    <text x="348" y="216" font-size="10" fill="#444" text-anchor="middle">bi-selective scan</text>
+    <text x="348" y="267" font-size="10" fill="#555" text-anchor="middle">graph-aware event vector z_t</text>
+
+    <line x1="437" y1="180" x2="492" y2="180" stroke="#444" stroke-width="1.7" marker-end="url(#arrow-c)"/>
+
+    <rect x="505" y="70" width="215" height="225" rx="8" fill="#eef2f8" stroke="#bcc9d9"/>
+    <text x="613" y="96" font-size="12" fill="#333" text-anchor="middle">causal event Mamba</text>
+    <line x1="548" y1="178" x2="681" y2="178" stroke="#5277a3" stroke-width="2" marker-end="url(#arrow-c)"/>
+    <circle cx="552" cy="178" r="13" fill="#5277a3"/>
+    <circle cx="594" cy="178" r="13" fill="#5277a3"/>
+    <circle cx="636" cy="178" r="13" fill="#5277a3"/>
+    <circle cx="678" cy="178" r="13" fill="#d3993f"/>
+    <text x="552" y="183" font-size="9" fill="#fff" text-anchor="middle">z1</text>
+    <text x="594" y="183" font-size="9" fill="#fff" text-anchor="middle">z2</text>
+    <text x="636" y="183" font-size="9" fill="#fff" text-anchor="middle">z3</text>
+    <text x="678" y="183" font-size="9" fill="#fff" text-anchor="middle">?</text>
+    <text x="613" y="237" font-size="10" fill="#555" text-anchor="middle">predict next action, location, receiver</text>
+
+    <rect x="136" y="330" width="488" height="44" rx="8" fill="#f7f7f7" stroke="#d6d6d6"/>
+    <text x="380" y="348" font-size="11" fill="#444" text-anchor="middle">This keeps the two meanings separate:</text>
+    <text x="380" y="365" font-size="11" fill="#444" text-anchor="middle">GMN handles structure inside a frame; causal Mamba handles memory across frames.</text>
+  </svg>
+  <div class="viz-caption">
+    The clean version I would implement first: GMN for graph-aware per-event embeddings, then causal Mamba over the event sequence.
+  </div>
+</div>
+
+<h2>Where this could help in next-event prediction</h2>
+
+<p>
+The most obvious gain is long-range context without flattening the pitch into a huge attention problem. A possession can contain twenty, thirty, forty events. Tracking data can contain hundreds of frames. If each frame has a player graph, full attention over every player at every time becomes expensive quickly. A selective scan gives a way to carry information across this long context while still filtering noise.
+</p>
+
+<p>
+The second gain is better inductive bias. Pure sequence models see "pass by player A to player B" as a token with features. But they do not naturally know that player B was between two defenders, that the fullback was free on the touchline, or that the pass opened a triangle. A graph encoder can make those relations visible before the temporal model tries to predict the next event.
+</p>
+
+<p>
+The third gain is interpretability of failure. If the model misses a next pass, I can ask whether the error came from the local graph view or the temporal memory. Did the sampled neighborhoods miss the relevant passing option? Did the event-level Mamba forget the earlier overload? Did the ordering make sense? This decomposition gives better debugging handles than a single giant transformer block that consumes everything.
+</p>
+
+<h2>What I would be careful about</h2>
+
+<p>
+First, causality. The paper's bidirectional scan is useful for graph representation tasks where the whole graph is available. In next-event prediction, time must remain causal. I can use bidirectional scanning inside a single current-frame graph, because all players at time \(t\) are observed. But I should not use future event frames when predicting the next event. The temporal layer should be causal unless the task explicitly allows offline smoothing.
+</p>
+
+<p>
+Second, leakage through graph construction. Football data is full of traps. If an edge feature uses information only known after the event, the model will look brilliant and be useless. For example, if the graph includes pass destination while predicting pass destination, congratulations, we invented cheating. Every node and edge feature must be timestamp-clean.
+</p>
+
+<p>
+Third, ordering. In GMN, ordering is not a cosmetic choice. For soccer, I would run ablations across several orderings and report them honestly. Distance to ball might work for immediate actions. Tactical role order might work for team shape. Learned ordering might work best but be harder to trust. There is no free lunch, only lunch with a better validation protocol.
+</p>
+
+<p>
+Fourth, benchmarks. The Long Range Graph Benchmark itself has been re-examined, with later work arguing that some reported gaps between graph transformers and message-passing baselines shrink after stronger hyperparameter tuning [12]. This does not invalidate GMN, but it is a good reminder: architecture papers live inside benchmark culture. I would want soccer-specific ablations, not only imported confidence from graph benchmarks.
+</p>
+
+<p>
+Fifth, data regime. Graph Mamba has more moving parts than a plain event-sequence model. If the dataset is small, or if tracking data is missing, the extra structure may overfit. A simple Mamba over SPADL events might beat a fancy graph model if the graph features are noisy. The right question is not "is Graph Mamba cooler?" It is "does the graph view add predictive signal after controlling for complexity?"
+</p>
+
+<h2>The part I find genuinely exciting</h2>
+
+<p>
+What I like most is that Graph Mamba changes the metaphor. A graph transformer says: let everyone talk to everyone, then learn what matters. A message-passing GNN says: let neighbors talk, layer by layer. GMN says: sample meaningful local worlds, order them carefully, and let a selective memory decide what survives.
+</p>
+
+<p>
+That feels very football. A player does not process the whole pitch as a dense matrix. They scan. They notice pressure, space, runs, body shapes. They ignore half the noise because the game is too fast. Good players do not see everything equally. They see selectively.
+</p>
+
+<p>
+Of course, neural networks are not footballers. I am not making that romantic claim. But as a modeling bias, selectivity feels right. The next event is usually not caused by every previous event. It is caused by a small set of relevant moments, some local and some long-range. Mamba gives a mechanism for selective memory. Graphs give a mechanism for relational structure. Graph Mamba is interesting because it tries to make those mechanisms meet without flattening one into the other.
+</p>
+
+<h2>If I were implementing this tomorrow</h2>
+
+<p>
+I would start modestly. No heroic architecture on day one. The first baseline would be a causal Mamba over event tokens: action type, start/end coordinates, team, player role, time delta, score state, and possession context. That tells me how much sequence alone can do.
+</p>
+
+<p>
+The second baseline would add a simple graph encoder per event frame: maybe a GCN/GAT over player positions if tracking exists, or a pass-network/context graph if only event data exists. Pool the graph into an event vector and feed that into the same causal Mamba. That tells me whether graph structure helps at all.
+</p>
+
+<p>
+Only then would I try the proper GMN version: random-walk neighborhood tokens around the ball carrier, receiver candidates, and high-pressure defenders; local encoding; bidirectional scan inside the frame; causal Mamba over frames. I would compare tokenization settings \(m = 0\), \(m = 1\), \(m = 2\), and different \(s\). I would track both accuracy and calibration, because next-event models should know when they are uncertain.
+</p>
+
+<p>
+For outputs, I would avoid predicting only action type. A useful model should predict a distribution over action type, next location, and receiver. The receiver prediction especially benefits from graph structure because the candidate set is relational. The model should learn not just "a pass happens" but "a pass to this player in this lane is plausible."
+</p>
+
+<p>
+And I would keep a small qualitative notebook. The best sports models are not only leaderboard entries. They should produce moments where you look at a possession and say: yes, that is why the model thought the switch was coming. If the model cannot be interrogated at the level of football intuition, it may still be useful, but it will be harder to trust.
+</p>
+
+<h2>Closing note</h2>
+
+<p>
+The thesis is done, so naturally I now have a better thesis idea. This is the academic version of thinking of a perfect comeback in the shower two days later.
+</p>
+
+<p>
+But I do not find that frustrating anymore. I actually like it. It means the work left a residue. Graphs taught me to care about shape. Mamba taught me to care about memory. Graph Mamba sits in the space between them and asks a very practical question: if the world is relational but our model scans sequences, how do we turn relation into sequence without destroying the relation?
+</p>
+
+<p>
+That question is bigger than soccer. It shows up in molecules, recommendation systems, traffic, social networks, brains, and any domain where structure and time refuse to stay separate. But soccer is where I feel it most vividly. A match is not a sentence, and it is not a static graph. It is a moving graph that tells a story one event at a time.
+</p>
+
+<p>
+So yes, I think graph and Mamba can be used together. Not by duct-taping them. Not by pretending a graph is secretly just a sentence. But by doing the careful middle work: tokenize neighborhoods, order them honestly, encode local structure, scan selectively, and keep the temporal prediction causal.
+</p>
+
+<p>
+If I get to revisit next-event prediction properly, this is the idea I would want on the whiteboard first.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Behrouz, A., &amp; Hashemi, F. (2024). Graph Mamba: Towards Learning on Graphs with State Space Models. <a href="https://arxiv.org/abs/2402.08678" target="_blank">arXiv:2402.08678</a>.</li>
+  <li>Gu, A., &amp; Dao, T. (2024). Mamba: Linear-Time Sequence Modeling with Selective State Spaces. <em>COLM 2024</em>. <a href="https://openreview.net/forum?id=tEYskw1VY2" target="_blank">OpenReview</a>.</li>
+  <li>Gu, A., Goel, K., &amp; Re, C. (2022). Efficiently Modeling Long Sequences with Structured State Spaces. <em>ICLR 2022</em>. <a href="https://openreview.net/forum?id=uYLFoz1vlAC" target="_blank">OpenReview</a>.</li>
+  <li>Kipf, T. N., &amp; Welling, M. (2017). Semi-Supervised Classification with Graph Convolutional Networks. <em>ICLR 2017</em>. <a href="https://openreview.net/forum?id=SJU4ayYgl" target="_blank">OpenReview</a>.</li>
+  <li>Xu, K., Hu, W., Leskovec, J., &amp; Jegelka, S. (2019). How Powerful are Graph Neural Networks? <em>ICLR 2019</em>. <a href="https://openreview.net/forum?id=ryGs6iA5Km" target="_blank">OpenReview</a>.</li>
+  <li>Alon, U., &amp; Yahav, E. (2021). On the Bottleneck of Graph Neural Networks and its Practical Implications. <em>ICLR 2021</em>. <a href="https://openreview.net/forum?id=i80OPhOCVH2" target="_blank">OpenReview</a>.</li>
+  <li>Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., &amp; Polosukhin, I. (2017). Attention Is All You Need. <em>NeurIPS 2017</em>. <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html" target="_blank">Proceedings</a>.</li>
+  <li>Rampasek, L., Galkin, M., Dwivedi, V. P., Luu, A. T., Wolf, G., &amp; Beaini, D. (2022). Recipe for a General, Powerful, Scalable Graph Transformer. <em>NeurIPS 2022</em>. <a href="https://papers.nips.cc/paper_files/paper/2022/hash/5d4834a159f1547b267a05a4e2b7cf5e-Abstract-Conference.html" target="_blank">Proceedings</a>.</li>
+  <li>Dwivedi, V. P., Rampasek, L., Galkin, M., Parviz, A., Wolf, G., Luu, A. T., &amp; Beaini, D. (2022). Long Range Graph Benchmark. <em>NeurIPS 2022 Datasets and Benchmarks</em>. <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/8c3c666820ea055a77726d66fc7d447f-Abstract-Datasets_and_Benchmarks.html" target="_blank">Proceedings</a>.</li>
+  <li>Shirzad, H., Velingker, A., Venkatachalam, B., Sutherland, D. J., &amp; Sinop, A. K. (2023). Exphormer: Sparse Transformers for Graphs. <em>ICML 2023</em>. <a href="https://proceedings.mlr.press/v202/shirzad23a" target="_blank">PMLR</a>.</li>
+  <li>Tonshoff, J., Ritzert, M., Wolf, H., &amp; Grohe, M. (2023). Walking Out of the Weisfeiler Leman Hierarchy: Graph Learning Beyond Message Passing. <em>TMLR</em>. <a href="https://openreview.net/forum?id=vgXnEyeWVY" target="_blank">OpenReview</a>.</li>
+  <li>Tonshoff, J., Ritzert, M., Rosenbluth, E., &amp; Grohe, M. (2023). Where Did the Gap Go? Reassessing the Long-Range Graph Benchmark. <a href="https://arxiv.org/abs/2309.00367" target="_blank">arXiv:2309.00367</a>.</li>
+  <li>Wang, C., Tsepa, O., Ma, J., &amp; Wang, B. (2024). Graph-Mamba: Towards Long-Range Graph Sequence Modeling with Selective State Spaces. <a href="https://arxiv.org/abs/2402.00789" target="_blank">arXiv:2402.00789</a>.</li>
+  <li>Decroos, T., Bransen, L., Van Haaren, J., &amp; Davis, J. (2019). Actions Speak Louder Than Goals: Valuing Player Actions in Soccer. <em>KDD 2019</em>. <a href="https://arxiv.org/abs/1802.07127" target="_blank">arXiv</a>.</li>
+  <li>Wang, Z., Velickovic, P., Hennes, D., et al. (2024). TacticAI: an AI assistant for football tactics. <em>Nature Communications</em>. <a href="https://www.nature.com/articles/s41467-024-45965-x" target="_blank">Article</a>.</li>
+</ol>
+
+</article>
+</main>
+
+</body>
+</html>
