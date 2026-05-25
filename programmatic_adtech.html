@@ -182,11 +182,27 @@
     <p><em>25 May, 2026</em></p>
 
     <p>
-      Programmatic advertising is one of those topics that sounds simple for exactly five seconds. "Ads are bought automatically." Nice. Then someone says DSP, SSP, DMP, CDP, ad server, exchange, header bidding, clean room, UID, PMP, floor price, frequency cap, bid shading, viewability, incrementality, CTV pod bidding, and suddenly the room smells like a server rack and a media plan had a fight.
+      I did not enter ad tech through a clean textbook definition. I entered it through an internship at a programmatic ad tech firm, where the first few days felt like standing near a very fast machine and pretending I could see all the moving parts. People were casually saying DSP, SSP, bid request, floor, deal ID, open auction, pacing, attribution, inventory quality, and I was sitting there with one very honest thought: wait, all of this happens because a tiny ad has to appear on a page?
     </p>
 
     <p>
-      This post is my attempt to explain the whole thing without pretending the complexity is fake. The business side matters because brands spend real money and publishers depend on real revenue. The tech side matters because every impression is a distributed systems problem hiding inside a marketing workflow. A single ad slot on a web page, app, TV stream, podcast, or digital billboard can trigger identity checks, consent checks, fraud checks, contextual classification, price-floor logic, machine-learning models, creative approval, an auction, measurement, billing, and attribution in the time it takes a page to load.
+      That was the first funny thing about this niche. From the outside, advertising looks boring in a very familiar way. A brand wants to show an ad. A publisher has space. Someone pays someone. Done. But the moment I started looking at the actual business, it became much stranger. Why does a single impression need an auction? Why are there so many companies between the brand and the publisher? Why does a shoe ad need identity graphs, consent strings, fraud detection, machine learning models, price floors, and a server response fast enough to not annoy the user?
+    </p>
+
+    <p>
+      The more I saw, the more I realized programmatic ad tech is one of those invisible industries that quietly holds up the internet. It is niche because normal people do not talk about SSP yield or bid shading over dinner. But it is not small. It sits under news sites, mobile apps, streaming TV, podcasts, retail media, games, and increasingly digital screens in the physical world. A lot of free or cheap media is subsidized by this strange bargain: users give attention, publishers package that attention, advertisers pay for the chance to influence future behavior, and software decides the price in milliseconds.
+    </p>
+
+    <p>
+      This also made me ask a more general question: what is an ad impression, really? It is not just a rectangle on a website. It is a perishable little market. If the ad is not sold now, it disappears. If it is sold badly, the advertiser wastes money, the publisher loses trust, and the user gets a worse experience. If it is sold well, the publisher earns, the brand reaches someone relevant, and the internet keeps funding content without asking every reader to pay for every page.
+    </p>
+
+    <p>
+      Once that clicked, the acronyms became less annoying. A DSP is not just a random three-letter object; it is the buyer's decision engine. An SSP is not just another dashboard; it is the publisher's yield machine. An exchange is not a vague middleman; it is the market where the impression is priced. Measurement is not a report at the end; it is the argument over whether the money actually worked. Privacy is not a legal footnote; it changes what the machine is allowed to know.
+    </p>
+
+    <p>
+      So this post is my attempt to explain the whole thing the way I wish someone had explained it to me when I started: from the business question first, then the technical machinery, then the messy places where both collide. I am not trying to make the complexity disappear. The complexity is the point. A single ad slot on a web page, app, TV stream, podcast, or digital billboard can trigger identity checks, consent checks, fraud checks, contextual classification, price-floor logic, machine-learning models, creative approval, an auction, measurement, billing, and attribution in the time it takes a page to load.
     </p>
 
     <p>
@@ -207,7 +223,7 @@
     <h2>1. The Simple Idea</h2>
 
     <p>
-      Programmatic advertising means using software to buy and sell ad inventory. Inventory is the opportunity to show an ad: a display slot on a website, a rewarded video in a game, a pre-roll before a video, an audio spot in a podcast stream, a CTV ad break, or a digital-out-of-home screen. Traditional media buying is closer to negotiation: a buyer and seller agree on a placement, date range, audience, rate, and volume. Programmatic buying turns much of that into platform-driven decisioning. The software decides whether an impression is worth bidding on, what it is worth, which creative can run, and how the impression should be measured.
+      The first mental model that helped me was this: programmatic advertising means using software to buy and sell ad inventory while the user is already in the environment. Inventory is the opportunity to show an ad: a display slot on a website, a rewarded video in a game, a pre-roll before a video, an audio spot in a podcast stream, a CTV ad break, or a digital-out-of-home screen. Traditional media buying is closer to negotiation: a buyer and seller agree on a placement, date range, audience, rate, and volume. Programmatic buying turns much of that into platform-driven decisioning. The software decides whether an impression is worth bidding on, what it is worth, which creative can run, and how the impression should be measured.
     </p>
 
     <p>
@@ -237,7 +253,7 @@
     <h2>2. The Business Side First</h2>
 
     <p>
-      The reason programmatic exists is not because engineers wanted to invent more acronyms. It exists because the old media-buying model had three problems: limited targeting, slow feedback, and fragmented access. A brand could buy a magazine placement, a TV spot, a homepage takeover, or a sponsorship, but it often paid for broad audience assumptions. Programmatic made it possible to buy more granular impressions and optimize while the campaign was live.
+      The reason programmatic exists is not because engineers wanted to invent more acronyms, although some days it definitely feels like that. It exists because the old media-buying model had three problems: limited targeting, slow feedback, and fragmented access. A brand could buy a magazine placement, a TV spot, a homepage takeover, or a sponsorship, but it often paid for broad audience assumptions. Programmatic made it possible to buy more granular impressions and optimize while the campaign was live.
     </p>
 
     <h3>Why brands use programmatic</h3>
