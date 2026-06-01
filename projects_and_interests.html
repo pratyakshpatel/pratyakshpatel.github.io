@@ -135,6 +135,19 @@
 
   <section>
     <h2>Projects</h2>
+    <h3>Muon Routing Atlas: Which Transformer Parameters Benefit from Orthogonalized Optimization?</h3>
+    <p>May 2026 |
+      <a href="https://github.com/pratyakshpatel/having-fun-with-muon" target="_blank">Project Link</a> |
+      <a href="muon_routing_atlas.html">Report</a>
+    </p>
+    <ul>
+      <li>Built a single-GPU GPT-style pretraining harness to test where Muon optimization helps most inside transformer blocks.</li>
+      <li>Compared AdamW against Muon routed to all hidden matrices, MLP-only, attention-only, V/O-only, Q/K-only, no-Q/K, and layerwise regions.</li>
+      <li>Logged optimizer groups, validation loss, samples, update geometry, and reproducible run metadata across TinyStories and FineWeb-Edu experiments.</li>
+      <li>Found that all-hidden Muon was consistently best, while no-Q/K recovered about 83-84% of the all-hidden Muon gain.</li>
+      <li>Showed that MLP-only and V/O-only were individually insufficient on FineWeb-Edu, suggesting a coupled FFN + V/O pathway rather than a single-module explanation.</li>
+    </ul>
+
     <h3><a href="caratheodory.html">Carathéodory's Theorem - Interactive Visualizer</a></h3>
     <p>Mar 2026 | <a href="caratheodory.html">Live Demo</a></p>
     <p>Any point inside a convex hull in \(\mathbb{R}^2\) can be written as a convex combination of at most 3 of its vertices - this is Carathéodory's theorem. The interactive tool lets you click anywhere inside a convex polygon and instantly decomposes that point into its barycentric coordinates over the minimal triangle of hull vertices. Drag any vertex to reshape the polygon; the decomposition updates live. The page also includes an essay on the theorem, its proof, and why it keeps appearing in LP, SVMs, and sparse approximation.</p>
@@ -264,4 +277,3 @@ manual AR and MA term calculations, and likelihood-based parameter estimation.
 
 </body>
 </html>
-

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Muon Routing Atlas</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white !important;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      color: white !important;
+      text-decoration: none;
+      font-size: 1em;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 1rem 0 0.3rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    figcaption {
+      color: #555;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.65rem;
+      text-align: left;
+    }
+
+    th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #ddd;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+        font-size: 1rem;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-links">
+    <a href="projects_and_interests.html" class="go-back">← Go Back</a>
+    <a href="index.html" class="go-back">Home</a>
+  </div>
+
+  <h1>Muon Routing Atlas</h1>
+  <p style="text-align: center; font-size: 1rem; color: #666;">May 2026</p>
+  <p style="text-align: center;">
+    <a href="https://github.com/pratyakshpatel/having-fun-with-muon" target="_blank">GitHub repository</a>
+  </p>
+
+  <h2>Question</h2>
+  <p>
+    Muon is an orthogonalized optimizer that often improves transformer pretraining, but the practical question is more specific: does Muon need to be applied to every hidden matrix, or can it be routed selectively to the parts of the transformer where it matters most?
+  </p>
+
+  <p>
+    This project treats optimizer assignment as the experimental variable. The harness trains compact decoder-only language models and compares AdamW against Muon routed to all hidden matrices, MLP matrices, attention matrices, V/O projections, Q/K projections, no-Q/K, and layerwise regions.
+  </p>
+
+  <h2>Implementation</h2>
+  <ul>
+    <li>Built a reproducible PyTorch training pipeline for TinyStories and FineWeb-Edu sample-10BT.</li>
+    <li>Implemented AdamW and Muon+AdamW hybrid optimization with explicit parameter group routing.</li>
+    <li>Logged resolved configs, optimizer groups, validation curves, qualitative samples, update norms, effective ranks, and report assets.</li>
+    <li>Added tmux scripts for smoke tests, routing sweeps, FineWeb-Edu experiments, layerwise runs, batch-size stress tests, and report generation.</li>
+  </ul>
+
+  <h2>Main Result</h2>
+  <p>
+    All-hidden Muon is consistently the best routing in the completed runs. The surprise is that Muon without Q/K is consistently second-best and recovers most of the all-hidden Muon gain: about 83.2% on TinyStories 12M and 84.0% on FineWeb-Edu 85M.
+  </p>
+
+  <figure>
+    <img src="assets/muon_routing_atlas/results_final_loss_main.png" alt="Final validation loss for Muon routing ablations" />
+    <figcaption>Final validation loss across the main routing ablations. Lower is better.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="assets/muon_routing_atlas/results_gain_recovery.png" alt="Fraction of all-hidden Muon gain recovered by each routing" />
+    <figcaption>No-Q/K routing recovers most, but not all, of the all-hidden Muon gain.</figcaption>
+  </figure>
+
+  <h2>Routing Takeaways</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Claim</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Muon beats AdamW</td>
+        <td>Supported strongly across the main comparisons.</td>
+      </tr>
+      <tr>
+        <td>All-hidden Muon is best</td>
+        <td>Supported in every seed-replicated main comparison.</td>
+      </tr>
+      <tr>
+        <td>No-Q/K matches all-hidden</td>
+        <td>Not supported. It is second-best, but still worse than all-hidden.</td>
+      </tr>
+      <tr>
+        <td>MLP-only or V/O-only explains the full gain</td>
+        <td>Not supported on FineWeb-Edu 85M. Each recovers only about 25-26% individually.</td>
+      </tr>
+      <tr>
+        <td>FFN + V/O together matter</td>
+        <td>Supported. No-Q/K recovers about 84% of the all-hidden gain on FineWeb-Edu.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Geometry</h2>
+  <p>
+    The update geometry is not uniform across modules. On FineWeb-Edu 85M, Muon update norms are larger for FFN <code>gate</code> and <code>up</code> matrices than for attention V/O or Q/K matrices, which suggests that the FFN pathway receives stronger update pressure under Muon.
+  </p>
+
+  <figure>
+    <img src="assets/muon_routing_atlas/results_update_norm_geometry.png" alt="Muon update norms by transformer module" />
+    <figcaption>Mean update norms by module for FineWeb-Edu 85M runs.</figcaption>
+  </figure>
+
+  <h2>Batch Size</h2>
+  <p>
+    A FineWeb-Edu 35M batch-size sweep showed that absolute validation loss worsened as effective tokens per optimizer step increased, while the optimizer ranking stayed stable: all-hidden Muon best, no-Q/K second, AdamW worst.
+  </p>
+
+  <figure>
+    <img src="assets/muon_routing_atlas/results_batch_size_scaling.png" alt="Batch-size sensitivity for Muon and AdamW" />
+    <figcaption>Batch-size sensitivity on FineWeb-Edu 35M.</figcaption>
+  </figure>
+
+  <h2>Conclusion</h2>
+  <p>
+    Selective Muon routing works surprisingly well, but it does not fully replace all-hidden Muon. The strongest interpretation from these runs is that most of Muon's benefit comes from non-Q/K hidden matrices, especially the combined FFN + V/O pathway. Q/K appears supplementary rather than central.
+  </p>
+
+  <footer>
+    <a href="projects_and_interests.html">Back to projects</a>
+  </footer>
+</body>
+</html>
