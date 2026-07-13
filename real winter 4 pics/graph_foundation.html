@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pratyaksh Patel | Technical Blog</title>
+<link href="https://latex.vercel.app/style.css" rel="stylesheet"/>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script async="" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+<style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 1.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .note-box {
+      background: #f4f7fb;
+      border-left: 4px solid #5277a3;
+      padding: 1rem;
+      margin: 1.4rem 0;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="nav-links">
+<a class="go-back" href="technical_blog.html">← Go Back</a>
+<a class="go-back" href="index.html">Home</a>
+</div>
+<main>
+<h1>Are Graph Foundation Models Actually Foundation Models?</h1>
+<article>
+<p class="meta">13 July, 2026</p>
+<p>For the last few months, every third graph paper I opened seemed to contain the phrase <em>foundation model</em>. Sometimes it meant a GNN trained on many datasets, sometimes an LLM taught to read graphs as text, and sometimes a very large graph transformer. All of these can be useful. But after a point I started wondering whether the phrase described a real new paradigm or was simply doing unpaid marketing work for graph learning.</p>
+
+<p>The problem is that graphs make the dream unusually slippery. Language models inherit a shared alphabet. Vision models inherit pixels and patches. A molecule and an Instagram network may both be written as \(G=(V,E)\), but an atom feature is not a user feature, a chemical bond is not a follow edge, and their labels arise from completely different worlds.</p>
+<p>So this blog is me trying to answer one question properly: <strong>what must a graph model do before we call it a foundation model?</strong> I will move from prompting and in-context learning to feature-invariant models, structural vocabularies, synthetic graph priors, and billion-parameter graph transformers. Then comes the awkward evidence: a June 2026 reevaluation found that most recent GFMs for node prediction still lose to properly tuned GNNs, with the main exceptions coming from prior-data fitted networks [11].</p>
+<p>My answer is this: some GFMs are already foundation models, but only after we state the universe they are foundational <em>for</em>. A model may be foundational for molecules, knowledge-graph reasoning, or node classification across arbitrary feature spaces without being the graph equivalent of GPT. The dangerous part is not the term. It is silently changing its scope.</p>
+<div aria-label="Language, vision and graphs have different kinds of shared input vocabulary" class="viz" role="img">
+<svg viewbox="0 0 760 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow-a" markerheight="8" markerwidth="8" orient="auto" refx="7" refy="3">
+<polygon fill="#444" points="0 0, 8 3, 0 6"></polygon>
+</marker>
+</defs>
+<rect fill="#fff" height="400" width="760" x="0" y="0"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="28">Why the usual foundation-model recipe breaks on graphs</text>
+<rect fill="#eef2f8" height="240" rx="8" stroke="#bcc9d9" width="210" x="28" y="58"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="133" y="86">Language</text>
+<rect fill="#5277a3" height="34" rx="4" width="42" x="55" y="112"></rect>
+<rect fill="#5277a3" height="34" rx="4" width="42" x="107" y="112"></rect>
+<rect fill="#5277a3" height="34" rx="4" width="42" x="159" y="112"></rect>
+<text fill="#fff" font-size="10" text-anchor="middle" x="76" y="134">the</text>
+<text fill="#fff" font-size="10" text-anchor="middle" x="128" y="134">ball</text>
+<text fill="#fff" font-size="10" text-anchor="middle" x="180" y="134">moves</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="133" y="184">shared token space</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="133" y="204">across documents</text>
+<line marker-end="url(#arrow-a)" stroke="#5277a3" stroke-width="2" x1="78" x2="188" y1="238" y2="238"></line>
+<text fill="#555" font-size="10" text-anchor="middle" x="133" y="270">pretrain once, reuse broadly</text>
+<rect fill="#f7f3e8" height="240" rx="8" stroke="#d8c99d" width="210" x="275" y="58"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="380" y="86">Vision</text>
+<rect fill="#d3993f" height="38" opacity="0.75" width="38" x="318" y="110"></rect>
+<rect fill="#d3993f" height="38" opacity="0.45" width="38" x="360" y="110"></rect>
+<rect fill="#d3993f" height="38" opacity="0.85" width="38" x="402" y="110"></rect>
+<rect fill="#d3993f" height="38" opacity="0.35" width="38" x="318" y="152"></rect>
+<rect fill="#d3993f" height="38" opacity="0.65" width="38" x="360" y="152"></rect>
+<rect fill="#d3993f" height="38" opacity="0.5" width="38" x="402" y="152"></rect>
+<text fill="#555" font-size="11" text-anchor="middle" x="380" y="222">shared patch geometry</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="380" y="242">across images</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="270">the pixels mean different things,</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="286">but they arrive in the same shape</text>
+<rect fill="#f5eeee" height="240" rx="8" stroke="#d7b9b9" width="210" x="522" y="58"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="627" y="86">Graphs</text>
+<circle cx="566" cy="132" fill="#9b4d4d" r="11"></circle>
+<circle cx="626" cy="112" fill="#4f7f58" r="11"></circle>
+<circle cx="680" cy="148" fill="#5277a3" r="11"></circle>
+<circle cx="600" cy="186" fill="#d3993f" r="11"></circle>
+<line stroke="#777" x1="566" x2="626" y1="132" y2="112"></line>
+<line stroke="#777" x1="626" x2="680" y1="112" y2="148"></line>
+<line stroke="#777" x1="566" x2="600" y1="132" y2="186"></line>
+<line stroke="#777" x1="600" x2="680" y1="186" y2="148"></line>
+<text fill="#555" font-size="11" text-anchor="middle" x="627" y="222">new topology, features,</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="627" y="242">relations and labels</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="627" y="270">there is no obvious universal token</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="627" y="286">called “a node”</text>
+<rect fill="#f7f7f7" height="38" rx="19" stroke="#d5d5d5" width="484" x="138" y="333"></rect>
+<text fill="#444" font-size="12" text-anchor="middle" x="380" y="357">The hard problem is not scale alone. It is finding what remains transferable.</text>
+</svg>
+<div class="viz-caption">
+    Language and vision have an input interface that survives across datasets. Graphs share mathematical notation, but often not a common semantic or feature interface.
+  </div>
+</div>
+<h2>First, what does “foundation model” even mean?</h2>
+<p>
+The modern use of the term comes from the Stanford report by Bommasani and many others [1]. Their definition is broad but not meaningless: a foundation model is trained on broad data at scale and can be adapted to a wide range of downstream tasks. The word <em>foundation</em> was chosen because the model is not a finished application. It becomes a base on top of which many applications are built.
+</p>
+<p>
+That definition contains three separate promises that often get mixed together. There is <strong>breadth of pretraining</strong>, meaning the model has seen enough varied data to learn reusable regularities. There is <strong>breadth of adaptation</strong>, meaning the same backbone can support many tasks. And there is <strong>adaptation efficiency</strong>, meaning we do not have to train an equally expensive model from scratch every time the world changes.
+</p>
+<p>
+We can write the dream in a very boring mathematical way. Let \(\mathcal{D}_{\text{pre}}\) be a broad collection of pretraining datasets and tasks. We first learn shared parameters:
+</p>
+<p>
+\[
+\theta^* = \arg\min_{\theta}
+\mathbb{E}_{(D,\tau)\sim\mathcal{D}_{\text{pre}}}
+\left[\mathcal{L}_{\tau}(f_{\theta};D)\right].
+\]
+</p>
+<p>
+Then, for a new task \(\tau'\) with a small amount of task data \(D_{\tau'}\), an adaptation mechanism \(A\) produces a useful predictor:
+</p>
+<p>
+\[
+f_{\tau'} = A(\theta^*, D_{\tau'}).
+\]
+</p>
+<p>
+In an ordinary one-model-per-dataset pipeline, almost all useful intelligence is learned inside \(D_{\tau'}\). In a foundation-model pipeline, a meaningful fraction of the intelligence is already inside \(\theta^*\). The adaptation data tells the model what we want, not how the entire world works from zero.
+</p>
+<p>
+This gives us a useful first test. If a model is pretrained on one citation graph and then evaluated on a held-out set of nodes from that same citation graph, it may be an excellent GNN, but it is not doing the important foundation-model trick. If it moves to a new graph with new labels and needs only a small head, a prompt, a demonstration set, or one forward pass, now the claim becomes interesting.
+</p>
+<div class="note-box">
+<p>
+    “Large” and “foundation” are not synonyms. A large model trained for one fixed graph and one fixed target can still be a task-specific model. A smaller model that transfers across many unseen graph problems may be more foundational in the only sense that matters.
+  </p>
+</div>
+<h2>The foundation-ness ladder</h2>
+<p>A lot of confusion disappears if we stop treating foundation-ness as binary. Graph transfer has levels. Moving from train nodes to test nodes inside one graph is not the same achievement as moving from a social network to a molecular graph. A model can pass one level and fail the next.</p>
+<table>
+<tr>
+<th>Level</th>
+<th>What changes at test time?</th>
+<th>What the model must transfer</th>
+</tr>
+<tr>
+<td>1. Same-graph transfer</td>
+<td>new nodes, edges or labels inside one known graph</td>
+<td>local statistical regularities</td>
+</tr>
+<tr>
+<td>2. Cross-graph transfer</td>
+<td>new graph, same feature and label schema</td>
+<td>structural and semantic patterns</td>
+</tr>
+<tr>
+<td>3. Fully inductive transfer</td>
+<td>new graph, new feature dimensions and new labels</td>
+<td>an input- and label-invariant inference rule</td>
+</tr>
+<tr>
+<td>4. Cross-domain transfer</td>
+<td>new graph family with different semantics and topology</td>
+<td>domain-independent structural knowledge</td>
+</tr>
+<tr>
+<td>5. Cross-task transfer</td>
+<td>node, edge and whole-graph tasks are mixed</td>
+<td>a common task interface</td>
+</tr>
+<tr>
+<td>6. Cross-architecture transfer</td>
+<td>the new task needs a different receptive field or operator</td>
+<td>the ability to change how graph computation itself happens</td>
+</tr>
+</table>
+<p>
+Most classic GNNs are comfortable around level one and sometimes level two. GraphSAGE is inductive in the traditional sense: the learned neighborhood aggregator can be applied to unseen nodes or graphs, as long as the feature semantics and task remain compatible. But if the training graph has 128-dimensional paper embeddings and the test graph has 17 continuous road features, the first learned weight matrix itself no longer fits:
+</p>
+<p>
+\[
+X_A\in\mathbb{R}^{n_A\times 128},
+\qquad
+X_B\in\mathbb{R}^{n_B\times 17}.
+\]
+</p>
+<p>
+The issue is not only that the dimensions differ. Dimension seven in \(X_A\) may represent a latent topic. Dimension seven in \(X_B\) may represent average road speed. A universal graph encoder cannot assume that columns have stable meanings. It must either align them, ignore their identities, translate them through another modality, or learn an inference procedure that treats the entire feature table as context.
+</p>
+<p>
+Labels are equally annoying. One graph may have three classes, another may have forty, and class index two means nothing across them. The model must be invariant to label permutations. If I rename “fraud” from class zero to class one, the answer should rename itself, not collapse. This is why fully inductive graph models care about feature permutation, label permutation, and changing dimensionality in a way ordinary GNN papers rarely had to.
+</p>
+
+<div aria-label="A ladder showing increasingly difficult levels of graph transfer" class="viz" role="img">
+<svg viewbox="0 0 760 430" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#fff" height="430" width="760" x="0" y="0"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="30">The ladder from ordinary generalization to a universal GFM</text>
+<rect fill="#e9f1ea" height="48" rx="6" stroke="#b7d2bc" width="165" x="72" y="330"></rect>
+<text fill="#333" font-size="11" text-anchor="middle" x="154" y="350">same graph</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="154" y="366">new nodes</text>
+<rect fill="#eef2f8" height="48" rx="6" stroke="#bcc9d9" width="165" x="176" y="268"></rect>
+<text fill="#333" font-size="11" text-anchor="middle" x="258" y="288">new graph</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="258" y="304">same schema</text>
+<rect fill="#f7f3e8" height="48" rx="6" stroke="#d8c99d" width="165" x="280" y="206"></rect>
+<text fill="#333" font-size="11" text-anchor="middle" x="362" y="226">new feature + labels</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="362" y="242">fully inductive</text>
+<rect fill="#f6eee8" height="48" rx="6" stroke="#d7c0af" width="165" x="384" y="144"></rect>
+<text fill="#333" font-size="11" text-anchor="middle" x="466" y="164">new domain + task</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="466" y="180">semantic transfer</text>
+<rect fill="#f5eeee" height="48" rx="6" stroke="#d7b9b9" width="200" x="488" y="82"></rect>
+<text fill="#333" font-size="11" text-anchor="middle" x="588" y="102">new computation regime</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="588" y="118">architecture adapts too</text>
+<line stroke="#555" stroke-dasharray="5 5" stroke-width="2" x1="80" x2="682" y1="390" y2="64"></line>
+<text fill="#555" font-size="10" x="111" y="406">easier</text>
+<text fill="#555" font-size="10" x="650" y="55">harder</text>
+<text fill="#555" font-size="11" x="85" y="74">More things are allowed to change</text>
+<text fill="#555" font-size="11" x="85" y="92">without rebuilding the model.</text>
+</svg>
+<div class="viz-caption">
+    Calling all six levels “generalization” hides the actual achievement. A useful GFM claim should state exactly how far up this ladder the model is tested.
+  </div>
+</div>
+<h2>Why molecules and knowledge graphs got there first</h2>
+<p>
+Some graph domains have a secret advantage: they already contain a shared vocabulary. Molecular graphs are the cleanest example. Carbon in one molecule is still carbon in another. Bonds have stable physical meaning. A model pretrained over millions of molecules does not have to ask what a node is every morning. It can learn reusable chemical structure because the alphabet survives across datasets.
+</p>
+<p>
+Knowledge graphs have a weaker but still useful version of this. Entity identities and relation names may change, but the task often has a stable form: infer a missing head, tail, or relation from triples. Models such as ULTRA learn transferable relation-level reasoning patterns and can perform zero-shot link prediction on knowledge graphs with unseen entity and relation vocabularies [15]. The words change; the logical shape of the problem stays recognisable.
+</p>
+<p>
+This is why a domain-specific foundation model is not a contradiction. A biomedical foundation model can be foundational across proteins, molecules, assays, and property-prediction tasks while remaining useless for a friendship network. The term should describe breadth relative to a meaningful universe, not mystical universality over every adjacency matrix humanity can generate.
+</p>
+<p>
+The trouble begins when evidence from these friendly domains is used to imply universal graph intelligence. A molecule graph, a road network, and a recommender graph differ in much more than size. Their edges encode different mechanisms. Their labels arise from different causal processes. Their useful symmetries differ. A model transferring inside chemistry has learned something broad and valuable, but it has not automatically discovered the grammar of all relations.
+</p>
+<h2>Route one: turn every task into the same graph-shaped question</h2>
+<p>
+One major line of work attacks task heterogeneity. Node classification, edge classification, and graph classification appear to require different output heads. Prompt-based GFMs try to rewrite them into one common interface.
+</p>
+<p>
+PRODIGY was an early important example [4]. It constructs an in-context graph containing query instances and demonstrations, allowing a pretrained model to handle new graph classification tasks on unseen graphs without parameter updates. The analogy to language-model prompting is direct: instead of changing the model, show it examples of the new task inside the input.
+</p>
+<p>
+One For All, or OFA, pushes the unification idea further [5]. It represents node-, edge-, and graph-level classification through prompted subgraphs and uses text-attributed nodes to align features and labels across domains. A class label is no longer merely integer four. It can be a textual class node with semantic meaning. This creates a common interface because text becomes the bridge between incompatible graph datasets.
+</p>
+<p>
+GOFA then combines graph encoding with generative language modeling [6]. Instead of restricting the model to a fixed classification head, it asks for three attractive properties: self-supervised pretraining, fluid movement across tasks, and graph awareness. A graph encoder preserves topology; an LLM decoder gives a flexible task language. In principle, this lets the same model answer graph questions, classify objects, and generate explanations.
+</p>
+
+<p>
+Serializing topology into text also creates its own mess. A graph does not have one canonical reading order. Long adjacency lists are expensive. Multi-hop relations can disappear inside a linear prompt. An LLM may know the meanings of node descriptions but still struggle to execute precise graph algorithms. So LLM-based GFMs are often strongest when semantic text is central and the graph is a supporting structure, not when raw topology is the whole problem.
+</p>
+<h2>Route two: make the model indifferent to feature and label identities</h2>
+<p>
+GraphAny takes almost the opposite approach [7]. Instead of translating arbitrary graphs into natural language, it designs an inference rule that can operate when feature dimensions and label classes change. It treats node classification on a new graph as a closed-form linear problem over several graph propagations, then learns how to combine those candidate solutions.
+</p>
+<p>
+A simplified version looks like this. Start with several graph operators \(S_k\): perhaps no propagation, one-step smoothing, two-step smoothing, or other linear graph filters. Each operator produces a view:
+</p>
+<p>
+\[
+Z_k = S_k X.
+\]
+</p>
+<p>
+Using the labeled nodes \(L\), solve a regularized linear classifier analytically:
+</p>
+<p>
+\[
+W_k^* = (Z_{k,L}^{\top}Z_{k,L}+\lambda I)^{-1}
+Z_{k,L}^{\top}Y_L.
+\]
+</p>
+<p>
+Each operator gives a candidate prediction \(\hat{Y}_k=Z_kW_k^*\). GraphAny then learns an attention rule that mixes these predictions per node. Crucially, the attention is built from entropy-normalized distances between predictions rather than raw feature coordinates or fixed class identities. This makes the learned combination robust to changing feature dimensions and label permutations.
+</p>
+<p>
+I find this conceptually beautiful because the pretrained object is not a universal representation of every node. It is a reusable <em>strategy for choosing graph computations</em>. The model learns something like: when the candidate predictions look this uncertain and disagree in this pattern, trust this amount of smoothing. That strategy can survive when the input columns and class names change.
+</p>
+<p>
+But the same elegance exposes the limitation. If all candidate experts are simple linear graph filters, then the foundation model cannot magically express a function outside that basis. The original GraphAny paper itself notes limited expressiveness as an open issue [7]. It can generalize broadly across feature spaces, but its computation vocabulary is fixed.
+</p>
+<p>
+AnyGraph uses a different mechanism: a graph mixture-of-experts and lightweight routing to handle structural and feature distribution shifts across dozens of datasets [8]. Again, the core idea is not one monolithic universal transformation. It is a reusable router that chooses among specialised graph experts. This may be a clue. The graph equivalent of a foundation model might look less like one homogeneous transformer and more like a system that composes the right graph operator for the current dataset.
+</p>
+<h2>Route three: invent a graph vocabulary</h2>
+<p>
+Language models transfer because words and subwords recur. Vision models transfer because edges, textures, shapes, and object parts recur. What is the graph version of a reusable token?
+</p>
+<p>
+GFT proposes computation trees [9]. When a message-passing GNN updates a node, the node receives a tree-shaped unfolding of its neighborhood. Different original graphs can produce similar computation trees even if their global identities and domains are unrelated. GFT treats these trees as entries in a transferable structural vocabulary, pretrains by reconstructing them, and adapts the learned vocabulary across tasks and domains.
+</p>
+<p>
+This is a clever shift. Instead of asking whether a football player and a carbon atom share semantics, ask whether the local relation pattern around them shares a computational shape. A central node connected to two dense communities, a bridge between clusters, a hub with many leaves, or a repeated cycle can occur in wildly different domains. Structure is the candidate common language.
+</p>
+<p>
+The hard question is whether structural similarity implies transferable predictive meaning. A star motif in a social network may indicate an influencer. A star motif in a transaction graph may indicate a merchant or a fraud mule. A star motif in a molecule may indicate a particular chemical arrangement. The structure recurs, but the label mechanism may invert. Transferable vocabulary is necessary; it is not sufficient.
+</p>
+<p>
+This is where negative transfer enters. If a model confidently imports the wrong meaning of a motif, pretraining can make it worse than starting fresh. A serious GFM must know not only what patterns repeat, but when the interpretation of those patterns has changed.
+</p>
+<h2>Route four: learn to solve datasets, not just examples</h2>
+<p>The most convincing recent progress comes from prior-data fitted networks, or PFNs. Instead of pretraining on one enormous natural dataset, they generate many synthetic datasets from a broad prior over possible data-generating processes. The transformer receives an entire labeled dataset as context and learns to predict missing labels. One forward pass approximates inference under the learned synthetic prior.</p>
+<p>
+For graphs, the model is trying to learn:
+</p>
+<p>
+\[
+p(Y_U\mid G,X,Y_L)
+\approx
+f_{\theta}(G,X,Y_L),
+\]
+</p>
+<p>
+where \(L\) is the set of labeled nodes and \(U\) the unlabeled nodes. The model is not given a fixed classifier head for “seven classes from Cora.” It sees the features, graph, and currently available labels together, then infers the target rule in context.
+</p>
+<p>
+GraphPFN builds a synthetic prior over attributed graph datasets [10]. It samples graph structure using combinations of stochastic block models and preferential attachment, then uses graph-aware structural causal models to generate node attributes and targets. The network is exposed during pretraining to many possible relationships among topology, features, and labels. At test time, a real graph becomes one more dataset-level inference problem.
+</p>
+
+<div aria-label="Prior-data fitted graph foundation model pipeline" class="viz" role="img">
+<svg viewbox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow-b" markerheight="8" markerwidth="8" orient="auto" refx="7" refy="3">
+<polygon fill="#444" points="0 0, 8 3, 0 6"></polygon>
+</marker>
+</defs>
+<rect fill="#fff" height="410" width="760" x="0" y="0"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="30">PFN idea: pretrain on whole graph problems</text>
+<rect fill="#eef6ef" height="235" rx="8" stroke="#b7d2bc" width="175" x="30" y="70"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="118" y="96">synthetic graph prior</text>
+<circle cx="78" cy="142" fill="#4f7f58" r="9"></circle>
+<circle cx="126" cy="124" fill="#4f7f58" r="9"></circle>
+<circle cx="160" cy="164" fill="#9b4d4d" r="9"></circle>
+<circle cx="92" cy="205" fill="#d3993f" r="9"></circle>
+<circle cx="156" cy="224" fill="#5277a3" r="9"></circle>
+<line stroke="#777" x1="78" x2="126" y1="142" y2="124"></line>
+<line stroke="#777" x1="126" x2="160" y1="124" y2="164"></line>
+<line stroke="#777" x1="78" x2="92" y1="142" y2="205"></line>
+<line stroke="#777" x1="92" x2="156" y1="205" y2="224"></line>
+<text fill="#555" font-size="10" text-anchor="middle" x="118" y="263">sample topology, features,</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="118" y="279">labels and causal rules</text>
+<line marker-end="url(#arrow-b)" stroke="#444" stroke-width="1.8" x1="218" x2="278" y1="188" y2="188"></line>
+<rect fill="#eef2f8" height="235" rx="8" stroke="#bcc9d9" width="180" x="290" y="70"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="380" y="96">PFN pretraining</text>
+<rect fill="#fff" height="38" rx="5" stroke="#ccc" width="124" x="318" y="122"></rect>
+<rect fill="#fff" height="38" rx="5" stroke="#ccc" width="124" x="318" y="174"></rect>
+<rect fill="#fff" height="38" rx="5" stroke="#ccc" width="124" x="318" y="226"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="380" y="146">labeled nodes</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="380" y="198">graph + features</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="380" y="250">predict hidden labels</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="287">repeat over millions of tasks</text>
+<line marker-end="url(#arrow-b)" stroke="#444" stroke-width="1.8" x1="482" x2="542" y1="188" y2="188"></line>
+<rect fill="#f7f3e8" height="235" rx="8" stroke="#d8c99d" width="176" x="554" y="70"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="642" y="96">new real graph</text>
+<rect fill="#fff" height="36" rx="5" stroke="#ccc" width="128" x="578" y="122"></rect>
+<rect fill="#fff" height="36" rx="5" stroke="#ccc" width="128" x="578" y="170"></rect>
+<rect fill="#fff" height="36" rx="5" stroke="#ccc" width="128" x="578" y="218"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="642" y="145">different columns</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="642" y="193">different classes</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="642" y="241">one forward inference</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="642" y="287">adapt in context</text>
+<rect fill="#f7f7f7" height="38" rx="19" stroke="#d5d5d5" width="476" x="142" y="340"></rect>
+<text fill="#444" font-size="12" text-anchor="middle" x="380" y="364">The pretrained object is an inference algorithm over graph datasets.</text>
+</svg>
+<div class="viz-caption">
+    A PFN does not merely embed one graph. It learns across sampled graph problems so that features, labels and task rules can be inferred from context at test time.
+  </div>
+</div>
+<p>
+The June 2026 fair evaluation is important because it compared nine recent GFMs against strongly tuned GNNs under one protocol [11]. The results split the field into two groups. Non-PFN graph foundation models consistently underperformed the tuned GNN baselines on the considered node-property datasets. PFN-based methods, especially GraphPFN, were the ones that usually won. Fine-tuned GraphPFN was reported as the best overall model across all evaluated datasets.
+</p>
+
+<p>
+There is a cost. GNN inference is usually fast after training. PFNs inspect the dataset in context and can use inference-time ensembling. In the reevaluation, GNN inference was typically below a second, while PFN-based GFMs could take seconds to minutes, with some configurations much longer [11]. Foundation models shift cost around. They reduce task-specific model development and hyperparameter search, but they do not make computation disappear.
+</p>
+<h2>Route five: scale the graph model until laws appear</h2>
+<p>
+GraphBFF is the most literal attempt to bring the language-model scaling story to general industrial graphs [12]. The work presents a 1.4-billion-parameter heterogeneous graph transformer pretrained on one billion graph samples. It introduces a full recipe for sampling, batching, pretraining, extending to new feature and node types, probing, and fine-tuning. More importantly, it reports the first neural scaling-law study over general heterogeneous graphs.
+</p>
+<p>
+The familiar form is:
+</p>
+<p>
+\[
+L(N,D)=L_{\infty}+\frac{A}{N^{\alpha}}+
+\frac{B}{D^{\beta}},
+\]
+</p>
+<p>
+where \(N\) is model size and \(D\) is training data size. If data is fixed, making the model larger eventually saturates. If model size is fixed, adding more data eventually saturates. Loss keeps falling predictably when both scale together. This is exactly the kind of evidence that made foundation-model scaling feel like a paradigm rather than a collection of lucky pretrained checkpoints.
+</p>
+<p>
+GraphBFF is evaluated on ten unseen real-world downstream graph tasks spanning node- and link-level classification and regression. Frozen representations with simple probes outperform task-specific baselines across the ten tasks, sometimes by very large margins. The paper also evaluates few-shot probing and zero-shot link prediction. This is serious evidence that large-scale heterogeneous graph pretraining can create reusable representations [12].
+</p>
+<p>
+But there are caveats. The pretraining data is proprietary and cannot be released. The tasks come from a large industrial graph universe whose node types, relations, and semantics may share hidden regularities. This does not weaken the industrial result, but it narrows what we can conclude. A model can be foundational across a company’s connected ecosystem without being foundational across molecules, football, roads, and arbitrary scientific graphs.
+</p>
+
+<h2>The vocabulary problem is only half the problem</h2>
+<p>
+Suppose we solve feature alignment. We can accept arbitrary column counts, map text to a common space, or use a PFN to infer feature meaning from examples. Suppose we also solve label alignment. Are we done?
+</p>
+<p>
+No, because the correct graph algorithm can change across tasks. Consider a two-layer message-passing GNN:
+</p>
+<p>
+\[
+H^{(\ell+1)}=\sigma(\tilde{A}H^{(\ell)}W^{(\ell)}).
+\]
+</p>
+<p>
+After two layers, a node representation mainly depends on a two-hop neighborhood. This may be perfect for local homophily. It may be fundamentally wrong for a task that needs information from twenty hops away, a high-pass filter, exact counting, long cycles, or global connectivity. Pretraining does not remove the receptive-field limit.
+</p>
+<p>
+A 2026 paper asks this directly: can graph foundation models generalize over architecture? [13] Its criticism is that models such as GraphAny may be tested across many datasets but still use a fixed basis of short-range message-passing operators. The benchmark diversity looks broad in domain, graph size, feature count, and homophily, yet the underlying tasks may all be solvable by similar local architectures. The model therefore appears universal partly because the evaluation never asks it to change its computational personality.
+</p>
+<p>
+The proposed GOBLIN framework discovers and mixes task-specific linear graph operators at inference time. The broad lesson matters more than the particular method: a true universal GFM may need to infer <em>how to compute on the graph</em>, not only how to map its final embedding to labels.
+</p>
+<p>
+This reminds me of model selection in classical machine learning. We would never expect one fixed kernel bandwidth to work for every dataset merely because the final classifier is adaptable. Graph depth, propagation direction, frequency response, positional encoding, and global attention are all graph equivalents of architectural assumptions. A foundation model that freezes them forever is foundational only over tasks compatible with those assumptions.
+</p>
+<h2>So what did the fair evaluation actually expose?</h2>
+<p>The 2026 reevaluation did not prove that GFMs are fake [11]. It exposed that papers had been comparing different adaptation budgets, datasets, definitions of zero-shot inference, and baseline strength. Under one stronger protocol, most non-PFN methods failed to beat tuned GraphSAGE, GCN, GAT, and related models.</p>
+
+<p>
+A foundation model deserves a harder comparison because it spends more resources before the downstream task begins. The relevant question is not merely:
+</p>
+<p>
+\[
+\text{Does GFM accuracy} &gt; \text{one default GCN accuracy}?
+\]
+</p>
+<p>
+It is closer to:
+</p>
+<p>
+\[
+\frac{	ext{quality across unseen tasks}}
+{	ext{pretraining cost}+	ext{adaptation cost}+	ext{inference cost}}
+&gt;
+\frac{	ext{quality of strong task-specific development}}
+{	ext{training and tuning cost}}.
+\]
+</p>
+<p>
+That ratio changes by application. In a research benchmark with one fixed dataset, training a good GNN may be easier. In an industrial platform receiving hundreds of new graph tasks, a pretrained model that works immediately may save enormous engineering time even if each inference is slower. Foundation models are partly an economic claim about reuse.
+</p>
+<div aria-label="Comparison of the claims and costs of graph foundation models and tuned GNNs" class="viz" role="img">
+<svg viewbox="0 0 760 390" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#fff" height="390" width="760" x="0" y="0"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="28">The real comparison is a system trade-off</text>
+<rect fill="#eef6ef" height="240" rx="8" stroke="#b7d2bc" width="300" x="45" y="70"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="195" y="98">Tuned task-specific GNN</text>
+<text fill="#444" font-size="11" x="78" y="135">+ fast inference</text>
+<text fill="#444" font-size="11" x="78" y="164">+ strong on one known dataset</text>
+<text fill="#444" font-size="11" x="78" y="193">+ smaller memory footprint</text>
+<text fill="#444" font-size="11" x="78" y="222">− retrain and retune per task</text>
+<text fill="#444" font-size="11" x="78" y="251">− fixed feature and label schema</text>
+<text fill="#444" font-size="11" x="78" y="280">− limited reuse across teams</text>
+<rect fill="#eef2f8" height="240" rx="8" stroke="#bcc9d9" width="300" x="415" y="70"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="565" y="98">Graph foundation model</text>
+<text fill="#444" font-size="11" x="448" y="135">+ reuse across many graph tasks</text>
+<text fill="#444" font-size="11" x="448" y="164">+ few-shot or in-context adaptation</text>
+<text fill="#444" font-size="11" x="448" y="193">+ shared graph knowledge</text>
+<text fill="#444" font-size="11" x="448" y="222">− expensive pretraining</text>
+<text fill="#444" font-size="11" x="448" y="251">− sometimes slower inference</text>
+<text fill="#444" font-size="11" x="448" y="280">− transfer can be negative</text>
+<rect fill="#f7f7f7" height="30" rx="15" stroke="#d5d5d5" width="390" x="185" y="337"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="380" y="357">The winner depends on how often the task changes.</text>
+</svg>
+<div class="viz-caption">
+    A GFM can be valuable even when its single-task inference is not the cheapest. The point is amortising pretraining and model development over many future tasks.
+  </div>
+</div>
+<h2>My test for whether a GFM is actually foundational</h2>
+<p>I do not think the field needs one police-approved definition. But every paper calling itself a GFM should report a clear scope card. I would want six things.</p>
+<h3>1. State the pretraining universe</h3>
+<p>
+What kinds of graphs were used? How many datasets, domains, node types, relation types, feature schemas, and task-generating processes? “Large-scale graph data” is not enough. One billion samples from one connected industrial universe can be deeper but less diverse than ten million samples from many unrelated graph families.
+</p>
+<h3>2. State exactly what is unseen</h3>
+<p>
+Are test nodes unseen? Test graphs? Feature columns? Class counts? Domains? Task types? Relation vocabularies? Architectures? The word <em>unseen</em> should be followed by a noun. Otherwise it is doing the same marketing job as <em>foundation</em>.
+</p>
+<h3>3. Separate probing, few-shot, fine-tuning and zero-shot</h3>
+<p>
+A frozen encoder with a trained linear probe is not zero-shot, but it is a valid and useful evaluation. In-context prediction using target labels as demonstrations is not supervision-free, but it may require no gradient updates. Full fine-tuning can still demonstrate good transfer, but it should not be presented as immediate adaptation. These regimes answer different questions.
+</p>
+<h3>4. Compare against serious target-specific baselines</h3>
+<p>
+Tune the GNN. Give it the same feature information. Report the search budget. Include simple methods such as label propagation or linear models when appropriate. A foundation model should win because pretraining transfers knowledge, not because the baseline was prevented from learning.
+</p>
+<h3>5. Count all the costs</h3>
+<p>
+Report pretraining compute, target adaptation time, hyperparameter search, inference latency, memory, and ensembling. A model that saves six hours of tuning but adds twenty minutes to every inference may be fantastic for one workflow and terrible for another.
+</p>
+<h3>6. Test negative transfer and failure boundaries</h3>
+<p>
+Give the model graphs from a domain where its assumptions break. Change homophily, feature noise, graph density, class imbalance, useful receptive field, and causal relationship between topology and labels. A foundation model should not only perform well when pretraining helps. It should reveal when its foundation is the wrong foundation.
+</p>
+<p>
+I would summarise these into a completely unofficial score:
+</p>
+<p>
+\[
+\text{Foundation value}
+\propto
+\frac{	ext{breadth}\times\text{adaptation efficiency}
+\times\text{robustness}\times\text{baseline advantage}}
+{	ext{pretraining}+	ext{adaptation}+	ext{inference cost}}.
+\]
+</p>
+<p>
+This is not a benchmark metric. It is a sanity check. A model with enormous breadth but no advantage is not useful. A model with great accuracy but expensive retraining on every target is not behaving foundationally. A model with excellent average transfer but catastrophic negative transfer needs a reliable routing or uncertainty mechanism.
+</p>
+<h2>The most promising direction may be a layered system</h2>
+<p>After reading this literature, I no longer expect the graph GPT moment to be one gigantic homogeneous model that consumes every graph identically. Graphs are too varied. The more plausible system has layers.</p>
+<p>
+At the bottom is a flexible graph interface. It handles arbitrary feature dimensions, missing text, multiple node and edge types, and changing graph sizes. Covariance-based feature operators such as All-In are one recent attempt: they build representations invariant in distribution to feature permutations and robust to dimensional mismatch [14]. PFN-style tokenization is another. Text encoders can be used when semantics are available, but they should not be mandatory.
+</p>
+<p>
+Above that sits a vocabulary of structural operators: local smoothing, high-pass filters, long-range propagation, motifs, computation trees, paths, subgraphs, temporal transitions, and heterogeneous relations. Instead of fixing one architecture, a router chooses or composes the useful operators for the target problem.
+</p>
+<p>
+Above that is dataset-level inference. Given labeled examples, the model infers what the columns, labels, and structural correlations mean. This is where PFNs are exciting. The task is not represented by a permanent output head; it is represented by context.
+</p>
+<p>
+Language can then provide a task interface. It describes instructions, label semantics, domain constraints, and explanations. It should not be forced to encode every adjacency list itself. Graph structure and language can co-train while retaining separate strengths.
+</p>
+<p>
+Finally, retrieval can bring relevant graph datasets, motifs, experts, or synthetic priors into context. When a new fraud graph arrives, the model should not rely equally on molecule and road experience. It should retrieve structurally and semantically related problems, adapt its operator mixture, and express uncertainty when no useful precedent exists.
+</p>
+
+<h2>What would this mean for the kinds of graphs I care about?</h2>
+<p>
+Take recommendation. A user-item graph is often bipartite, temporal, heterogeneous, and highly non-stationary. A GFM pretrained across many marketplaces could learn reusable ideas about exposure, popularity, long-tail items, repeated interaction, and two-sided matching. But moving from movie recommendation to dating or job matching changes the meaning of acceptance and the cost of a bad recommendation. Structural transfer helps; objective transfer can be dangerous.
+</p>
+
+<p>
+Take football. A possession graph and a molecular graph may share local motifs, but nobody should expect a chemistry-pretrained label head to predict the next pass. The transferable part might be much lower-level: temporal interaction patterns, spatial neighborhoods, role-conditioned edges, bottlenecks, and long-range dependency operators. A graph foundation model for sport would probably be domain-specific, pretrained across leagues, teams, event providers, tracking schemas, and tasks such as next-event prediction, receiver prediction, possession value, and tactical classification.
+</p>
+<p>
+That would still be a real foundation model. It would replace dozens of separately trained sports graph models with one adaptable backbone. The fact that it cannot classify proteins is irrelevant. Nobody rejects a language model because it cannot directly simulate fluid dynamics from a mesh.
+</p>
+<h2>Are graphs missing a GPT moment, or are we asking for the wrong moment?</h2>
+<p>
+GPT benefited from a remarkable fact: an enormous fraction of human tasks can be represented as sequences of tokens. Translation, summarisation, question answering, code, dialogue, classification, and even tool instructions all fit through one interface. The next-token objective is not identical to every downstream task, but it is close enough to absorb broad competence.
+</p>
+<p>
+Graphs do not have one equally dominant task. Link prediction is not node regression. Molecular energy prediction is not community detection. A graph may be the input, the output, a memory, a constraint, or a changing environment. We may never get one objective as unreasonably effective as next-token prediction.
+</p>
+<p>
+That does not mean graph foundation models fail. It may mean their success will look different. Instead of one universal graph model, we may get several foundation layers:
+</p>
+<p>
+A molecular foundation model that learns physical and chemical structure. A knowledge-graph foundation model that learns transferable relational reasoning. A recommender foundation model that learns interaction dynamics. A general node-property PFN that adapts across arbitrary tables and topologies. A graph-language model that handles semantically described graphs. And an industrial heterogeneous-graph model pretrained over a company’s entire data universe.
+</p>
+
+<h2>My verdict on the current models</h2>
+<p>
+PRODIGY, OFA, and GOFA are foundational in how they unify tasks and use demonstrations, prompts, or language to adapt [4–6]. Their scope is strongest on graphs that can be placed into a meaningful common semantic interface.
+</p>
+<p>
+GraphAny and AnyGraph are foundational in fully inductive node classification and feature-space adaptation [7,8]. They show that a learned graph inference strategy can survive changing dimensions and labels. Their weakness is that broad dataset transfer does not automatically imply broad computational transfer.
+</p>
+<p>
+GFT is foundational in its attempt to define a reusable structural vocabulary [9]. Whether computation trees carry stable predictive meaning across the full diversity of graphs is still an open question, but the vocabulary problem is exactly the right problem.
+</p>
+<p>GraphPFN is, to me, the strongest clean evidence for a general node-property foundation model right now [10,11]. It learns over synthetic graph tasks, adapts through context, beats tuned GNNs in a fair comparison, and handles changing feature and label spaces. It is slower at inference and scoped to node prediction, but the behaviour is genuinely foundational.</p>
+<p>
+GraphBFF is the strongest evidence that scale can create reusable industrial graph representations and predictable graph scaling laws [12]. Its private data and bounded industrial universe make universal conclusions difficult, but a foundation model does not become fake because the foundation is built for a real ecosystem rather than a public benchmark.
+</p>
+
+<h2>Closing note</h2>
+<p>
+So, are graph foundation models actually foundation models?
+</p>
+<p>
+Some of them, yes. But the honest sentence needs a few extra words. Foundation model <em>for what graph universe, what tasks, what adaptation regime, and what kinds of change?</em>
+</p>
+
+<p>What we do not yet have is a model that can move from a molecule to a road network to a football possession, accept new features and labels, infer a task from a few examples, choose the right graph computation, and beat a tuned specialist at reasonable cost. That is the graph GPT fantasy. Current systems each solve a piece of it.</p>
+<p>
+The field is progressing fastest when it stops copying the surface details of language models and attacks the graph-specific obstacles directly: no shared vocabulary, unstable feature spaces, changing labels, structural distribution shift, negative transfer, and architecture mismatch. PFNs treat the dataset as context. GFT searches for structural tokens. GraphAny learns feature- and label-invariant inference. GraphBFF tests whether scale behaves predictably. GOBLIN asks the backbone itself to adapt.
+</p>
+
+<p>
+Until then, I am happy to keep the name, with one condition: every time we say “graph foundation model,” we should also say where the foundation ends.
+</p>
+<h2>References and links</h2>
+<ol class="references">
+<li>Bommasani, R., Hudson, D. A., Adeli, E., et al. (2021). On the Opportunities and Risks of Foundation Models. <a href="https://arxiv.org/abs/2108.07258" target="_blank">arXiv:2108.07258</a>.</li>
+<li>Mao, H., Chen, Z., Tang, W., et al. (2024). Position: Graph Foundation Models Are Already Here. <a href="https://openreview.net/forum?id=Edz0QXKKAo" target="_blank">OpenReview</a>.</li>
+<li>Wang, Z., Liu, Z., Ma, T., et al. (2025). Graph Foundation Models: A Comprehensive Survey. <a href="https://arxiv.org/abs/2505.15116" target="_blank">arXiv:2505.15116</a>.</li>
+<li>Huang, Q., Ren, H., Chen, P., et al. (2023). PRODIGY: Enabling In-context Learning Over Graphs. <em>NeurIPS 2023</em>. <a href="https://openreview.net/forum?id=pLwYhNNnoR" target="_blank">OpenReview</a>.</li>
+<li>Liu, H., Feng, J., Kong, L., et al. (2024). One For All: Towards Training One Graph Model For All Classification Tasks. <em>ICLR 2024</em>. <a href="https://openreview.net/forum?id=4IT2pgc9v6" target="_blank">OpenReview</a>.</li>
+<li>Kong, L., Feng, J., Liu, H., et al. (2025). GOFA: A Generative One-For-All Model for Joint Graph Language Modeling. <em>ICLR 2025</em>. <a href="https://openreview.net/forum?id=mIjblC9hfm" target="_blank">OpenReview</a>.</li>
+<li>Zhao, J., Mostafa, H., Galkin, M., Bronstein, M., Zhu, Z., &amp; Tang, J. (2024/2025). Fully-Inductive Node Classification on Arbitrary Graphs / GraphAny. <a href="https://arxiv.org/abs/2405.20445" target="_blank">arXiv:2405.20445</a>.</li>
+<li>Xia, L., &amp; Huang, C. (2024). AnyGraph: Graph Foundation Model in the Wild. <a href="https://arxiv.org/abs/2408.10700" target="_blank">arXiv:2408.10700</a>.</li>
+<li>Wang, Z., Zhang, Z., Chawla, N. V., Zhang, C., &amp; Ye, Y. (2024). GFT: Graph Foundation Model with Transferable Tree Vocabulary. <em>NeurIPS 2024</em>. <a href="https://arxiv.org/abs/2411.06070" target="_blank">arXiv:2411.06070</a>.</li>
+<li>Eremeev, D., Platonov, O., Bazhenov, G., Babenko, A., &amp; Prokhorenkova, L. (2025). GraphPFN: A Prior-Data Fitted Graph Foundation Model. <a href="https://arxiv.org/abs/2509.21489" target="_blank">arXiv:2509.21489</a>.</li>
+<li>Platonov, O., Bazhenov, G., Eremeev, D., &amp; Prokhorenkova, L. (2026). A Fair Evaluation of Graph Foundation Models for Node Property Prediction. <a href="https://arxiv.org/abs/2606.24509" target="_blank">arXiv:2606.24509</a>.</li>
+<li>Bechler-Speicher, M., Gottlieb, Y., Isakov, A., et al. (2026). Billion-Scale Graph Foundation Models. <a href="https://arxiv.org/abs/2602.04768" target="_blank">arXiv:2602.04768</a>.</li>
+<li>Gutteridge, B., et al. (2026). Can Graph Foundation Models Generalize Over Architecture? <a href="https://arxiv.org/abs/2603.22984" target="_blank">arXiv:2603.22984</a>.</li>
+<li>Paolino, R., et al. (2026). Bridging Input Feature Spaces Towards Graph Foundation Models. <a href="https://arxiv.org/abs/2605.04834" target="_blank">arXiv:2605.04834</a>.</li>
+<li>Galkin, M., Yuan, X., Mostafa, H., Tang, J., &amp; Zhu, Z. (2024). Towards Foundation Models for Knowledge Graph Reasoning. <em>ICLR 2024</em>. <a href="https://openreview.net/forum?id=jVEoydFOl9" target="_blank">OpenReview</a>.</li>
+<li>Wang, Y., Fan, W., Wang, S., &amp; Ma, Y. (2025). Towards Graph Foundation Models: A Transferability Perspective. <a href="https://arxiv.org/abs/2503.09363" target="_blank">arXiv:2503.09363</a>.</li>
+</ol>
+</article>
+</main>
+</body>
+</html>
