@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pratyaksh Patel | Technical Blog</title>
+<link href="https://latex.vercel.app/style.css" rel="stylesheet"/>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-69CER33QN8');
+</script>
+<style>
+  body {
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    background: #f9f9f9;
+    color: #333;
+    line-height: 1.7;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    margin-top: 2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    margin-top: 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  a:hover { font-size: 1.05em; }
+
+  .nav-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .go-back {
+    display: inline-block;
+    margin-bottom: 0;
+    padding: 0.5rem 1rem;
+    background: #333;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+
+  .go-back:hover {
+    background: #555;
+    font-size: 1.05em;
+  }
+
+  p { margin-bottom: 1rem; }
+
+  .meta {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .viz {
+    margin: 1.2rem 0 1.4rem;
+    padding: 0.9rem;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+  }
+
+  .viz svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .viz-caption {
+    margin-top: 0.7rem;
+    font-size: 0.95rem;
+    color: #555;
+  }
+
+  .note-box {
+    background: #f4f7fb;
+    border-left: 4px solid #5277a3;
+    padding: 1rem;
+    margin: 1.4rem 0;
+    border-radius: 4px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th { background: #eee; }
+
+  ol.references {
+    margin-top: 0.6rem;
+    padding-left: 1.1rem;
+  }
+
+  @media (max-width: 500px) {
+    body { font-size: 1rem; padding: 1rem; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.15rem; }
+    table { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="nav-links">
+  <a class="go-back" href="technical_blog.html">← Go Back</a>
+  <a class="go-back" href="index.html">Home</a>
+</div>
+<main>
+<h1>Mech Design in Ads.</h1>
+<article>
+<p class="meta">17 July, 2026</p>
+
+<p>I had been working around auctions for a while before I understood that the auction itself was a piece of software.</p>
+
+<p>Not software in the narrow sense of servers and APIs. I mean that its rules were an algorithm. Take some private inputs from people who do not fully trust one another, process those inputs, choose an outcome, charge some money, and somehow make the entire thing difficult to game. A tiny change in the payment rule could change what everybody said, which changed who won, which changed whether the market worked at all.</p>
+
+<p>This was especially hard to ignore in ad tech. Every impression creates a small market that lives for a few milliseconds. Advertisers privately know what the impression might be worth to them. The publisher wants revenue. The exchange sees bids but not true values. Buyers shade, pace, learn, and react to one another. The system cannot simply ask, “what is this impression worth?” and trust the answers.</p>
+
+<p>Then I started noticing the same shape elsewhere. A college cannot merely ask students where they want to go and allocate seats greedily. A city cannot ask everyone how much they value a bridge and split the bill equally. A dating app cannot rank people as if recommendations were one-sided products. A voting rule cannot assume that every ballot is a diary entry rather than a strategic move.</p>
+
+<p>In all of these cases, the central problem is not prediction. It is that the input changes when people understand how the input will be used.</p>
+
+<p>That sentence is mechanism design.</p>
+
+<p>Game theory usually begins with a game and asks what self-interested players will do. Mechanism design runs the movie backward. It begins with an outcome we want, accepts that people have private information and their own objectives, and asks what game would make the desired outcome emerge from their behaviour. Leonid Hurwicz called mechanisms communication systems; the modern theory built around implementation, incentive compatibility, and the revelation principle earned Hurwicz, Eric Maskin, and Roger Myerson the 2007 Economics Nobel [1].</p>
+
+<p>This blog is my attempt to build the subject in the order that finally made it click for me. First the designer’s problem, then truthfulness, the strange genius of second-price auctions, VCG payments, Myerson’s virtual values, matching without money, impossibility theorems, ad auctions, and finally what happens when the mechanism itself is learned by a neural network.</p>
+
+<p>The big idea is simple: <strong>you do not design only the outcome. You design the incentives that produce the outcome.</strong></p>
+
+<div aria-label="Game theory starts with rules and predicts behaviour, while mechanism design starts with a goal and designs rules" class="viz" role="img">
+<svg viewBox="0 0 760 390" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow-one" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="3">
+    <polygon fill="#444" points="0 0, 8 3, 0 6"></polygon>
+  </marker>
+</defs>
+<rect fill="#fff" height="390" width="760"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="30">The same strategic system, read in opposite directions</text>
+<rect fill="#eef2f8" height="125" rx="8" stroke="#bcc9d9" width="670" x="45" y="62"></rect>
+<text fill="#333" font-size="13" x="70" y="88">Game theory</text>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="130" x="82" y="112"></rect>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="150" x="305" y="112"></rect>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="140" x="548" y="112"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="147" y="138">given rules</text>
+<text fill="#444" font-size="11" text-anchor="middle" x="380" y="138">strategic behaviour</text>
+<text fill="#444" font-size="11" text-anchor="middle" x="618" y="138">equilibrium</text>
+<line marker-end="url(#arrow-one)" stroke="#5277a3" stroke-width="2" x1="218" x2="295" y1="134" y2="134"></line>
+<line marker-end="url(#arrow-one)" stroke="#5277a3" stroke-width="2" x1="462" x2="538" y1="134" y2="134"></line>
+<rect fill="#f7f3e8" height="125" rx="8" stroke="#d8c99d" width="670" x="45" y="214"></rect>
+<text fill="#333" font-size="13" x="70" y="240">Mechanism design</text>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="130" x="82" y="264"></rect>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="150" x="305" y="264"></rect>
+<rect fill="#fff" height="44" rx="5" stroke="#ccc" width="140" x="548" y="264"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="147" y="290">desired outcome</text>
+<text fill="#444" font-size="11" text-anchor="middle" x="380" y="290">incentive constraints</text>
+<text fill="#444" font-size="11" text-anchor="middle" x="618" y="290">design the rules</text>
+<line marker-end="url(#arrow-one)" stroke="#d3993f" stroke-width="2" x1="218" x2="295" y1="286" y2="286"></line>
+<line marker-end="url(#arrow-one)" stroke="#d3993f" stroke-width="2" x1="462" x2="538" y1="286" y2="286"></line>
+</svg>
+<div class="viz-caption">Game theory predicts behaviour inside a fixed institution. Mechanism design treats the institution itself as the variable.</div>
+</div>
+
+<h2>The designer does not know the important part</h2>
+
+<p>Imagine I have one football ticket and two friends, A and B. A values it at ₹2,000. B values it at ₹1,200. If I knew those numbers, efficiency would be easy: give the ticket to A. But I do not know them. Each friend knows only their own value, and both understand that whatever they tell me may affect the ticket and the price.</p>
+
+<p>This is the information problem at the centre of the subject. Agent \(i\) has a private <em>type</em> \(\theta_i\). A type can be a willingness to pay, a cost of completing a job, a preference ordering over colleges, risk, quality, or any private information relevant to the decision. The complete type profile is</p>
+
+<p>
+\[
+\theta=(\theta_1,\ldots,\theta_n)\in\Theta_1\times\cdots\times\Theta_n.
+\]
+</p>
+
+<p>The designer chooses a mechanism \(M\). At the cleanest level it contains a message space \(S_i\) for every agent and an outcome rule \(g\):</p>
+
+<p>
+\[
+M=(S_1,\ldots,S_n,g),
+\qquad
+g:S_1\times\cdots\times S_n\rightarrow X.
+\]
+</p>
+
+<p>If money is allowed, it is useful to separate the allocation \(x(s)\) from payments \(p(s)\). With quasilinear utility, agent \(i\)'s payoff is</p>
+
+<p>
+\[
+u_i(\theta_i,s)=v_i(x(s),\theta_i)-p_i(s).
+\]
+</p>
+
+<p>The designer cares about some objective \(W(x,\theta)\). It might be total welfare, revenue, fairness, stability, low congestion, or a compromise among several of them. If the designer magically observed all types, they could select a social choice rule</p>
+
+<p>
+\[
+f(\theta)\in\arg\max_{x\in X} W(x,\theta).
+\]
+</p>
+
+<p>But the designer sees messages, not types. The entire discipline lives inside that gap.</p>
+
+<p>A prediction model usually assumes its features are sitting there waiting to be measured. A mechanism cannot. The feature vector may be an action chosen by somebody who knows the model. Change the scoring rule and the data-generating process changes with it. This is why mechanisms feel closer to control systems than ordinary supervised learning. The policy acts on people; people react; their reaction becomes the new input.</p>
+
+<table>
+<tr><th>Setting</th><th>Private type</th><th>Designer’s goal</th><th>Strategic failure</th></tr>
+<tr><td>Auction</td><td>value for an item</td><td>efficiency or revenue</td><td>bid shading, collusion, false identities</td></tr>
+<tr><td>Procurement</td><td>cost of doing the work</td><td>low cost with acceptable quality</td><td>inflated costs, under-delivery</td></tr>
+<tr><td>College matching</td><td>ranked preferences</td><td>stable seat allocation</td><td>misordered lists, exploding offers</td></tr>
+<tr><td>Public project</td><td>personal value of the project</td><td>efficient provision and funding</td><td>free-riding</td></tr>
+<tr><td>Ad marketplace</td><td>value of an impression or click</td><td>revenue, relevance, liquidity</td><td>shading, pacing games, poor quality</td></tr>
+</table>
+
+<h2>Good outcomes are not enough</h2>
+
+<p>A mechanism designer rarely gets to optimize one clean number. There are constraints that behave like engineering requirements. Remove one, and the mechanism may look brilliant on paper while nobody uses it.</p>
+
+<h3>Incentive compatibility</h3>
+
+<p>Does following the intended strategy make sense for each participant? In the strongest form, dominant-strategy incentive compatibility, telling the truth is optimal regardless of what everyone else reports:</p>
+
+<p>
+\[
+u_i(\theta_i,\theta_i,\theta_{-i})
+\geq
+u_i(\theta_i,\hat{\theta}_i,\theta_{-i})
+\quad
+\forall i,\theta_i,\hat{\theta}_i,\theta_{-i}.
+\]
+</p>
+
+<p>The first \(\theta_i\) inside utility is the true type. The second is the report. The inequality says that pretending to be any other type cannot help, whatever the others do.</p>
+
+<p>Bayesian incentive compatibility is weaker. Truthfulness need only maximize expected utility under beliefs about other agents’ types. That can still be useful, but it asks the participant to know or trust a distribution. Dominant strategies are operationally beautiful because the user does not need to model the room.</p>
+
+<h3>Individual rationality</h3>
+
+<p>Participation should beat the outside option. If opting out gives utility zero, we want</p>
+
+<p>
+\[
+u_i(\theta_i,\theta_i,\theta_{-i})\geq 0.
+\]
+</p>
+
+<p>A truthful mechanism that reliably makes participants worse off is not much of a mechanism. It is a compulsory form.</p>
+
+<h3>Efficiency, revenue and budget balance</h3>
+
+<p>Efficiency chooses the outcome with maximum total reported value. Revenue asks how much the designer collects. Budget balance asks whether the mechanism can finance itself without outside money. These goals are not identical, and sometimes they are mathematically incompatible. Much of mechanism design is learning exactly which nice properties cannot coexist.</p>
+
+<div class="note-box">
+<p>A mechanism is not “truthful” because its instructions request honesty. It is truthful when honesty survives as an optimal strategy after every participant has read the rules and tried to exploit them.</p>
+</div>
+
+<h2>The second-price trick</h2>
+
+<p>Return to the ticket. Suppose I run the obvious sealed first-price auction: highest bid wins and pays their own bid. A values the ticket at ₹2,000. Should A bid ₹2,000? Probably not. Winning at ₹2,000 creates zero surplus. A wants to bid below value, but how far below depends on what B might bid. The rule has turned a simple value report into a prediction contest.</p>
+
+<p>Now change one line. Highest bid still wins, but the winner pays the second-highest bid. This is the Vickrey auction, introduced in William Vickrey’s 1961 paper [2]. It looks like a pricing curiosity. It is actually an information-extraction device.</p>
+
+<p>Let A’s true value be \(v\), and let \(m\) be the highest bid from everybody else. A’s own bid cannot change \(m\). It changes only whether A crosses the threshold and wins.</p>
+
+<p>If \(v&gt;m\), A wants to win because the payoff \(v-m\) is positive. Any bid above \(m\) wins, and bidding \(v\) does exactly that. If \(v&lt;m\), A wants to lose because winning produces \(v-m&lt;0\). Bidding \(v\) loses. In neither case can a lie improve the outcome. Therefore</p>
+
+<p>
+\[
+b_i=v_i
+\]
+</p>
+
+<p>is a weakly dominant strategy.</p>
+
+<p>The important part is not that the winner gets a discount. The payment is the smallest bid at which the winner would still have won. It separates the report that decides allocation from the price paid. My bid says whether I cross the critical threshold; the other bids determine where that threshold lies.</p>
+
+<div aria-label="First-price and second-price auctions create different bidding incentives" class="viz" role="img">
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow-two" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="3">
+    <polygon fill="#444" points="0 0, 8 3, 0 6"></polygon>
+  </marker>
+</defs>
+<rect fill="#fff" height="410" width="760"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="28">One changed payment rule, two different information problems</text>
+<rect fill="#f5eeee" height="275" rx="8" stroke="#d7b9b9" width="315" x="45" y="62"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="202" y="91">First-price auction</text>
+<rect fill="#fff" height="40" rx="5" stroke="#ccc" width="208" x="98" y="118"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="202" y="143">winner pays own bid</text>
+<line marker-end="url(#arrow-two)" stroke="#9b4d4d" stroke-width="2" x1="202" x2="202" y1="169" y2="207"></line>
+<text fill="#555" font-size="11" text-anchor="middle" x="202" y="231">How much can I shade</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="202" y="248">without losing?</text>
+<rect fill="#fff" height="43" rx="5" stroke="#ccc" width="208" x="98" y="271"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="202" y="289">report mixes private value</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="202" y="303">with beliefs about rivals</text>
+<rect fill="#eef6ef" height="275" rx="8" stroke="#b7d2bc" width="315" x="400" y="62"></rect>
+<text fill="#333" font-size="13" text-anchor="middle" x="558" y="91">Second-price auction</text>
+<rect fill="#fff" height="40" rx="5" stroke="#ccc" width="208" x="454" y="118"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="558" y="143">winner pays next bid</text>
+<line marker-end="url(#arrow-two)" stroke="#4f7f58" stroke-width="2" x1="558" x2="558" y1="169" y2="207"></line>
+<text fill="#555" font-size="11" text-anchor="middle" x="558" y="231">Do I value the item above</text>
+<text fill="#555" font-size="11" text-anchor="middle" x="558" y="248">the critical price?</text>
+<rect fill="#fff" height="43" rx="5" stroke="#ccc" width="208" x="454" y="271"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="558" y="289">report can reveal value;</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="558" y="303">rivals determine payment</text>
+<rect fill="#f7f7f7" height="34" rx="17" stroke="#d5d5d5" width="470" x="145" y="359"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="380" y="381">The payment rule determines what the bid means.</text>
+</svg>
+<div class="viz-caption">A first-price bid is value minus strategy. A second-price bid can be the value itself because the winner does not set their own price.</div>
+</div>
+
+<p>Truthful does not mean everybody always tells the truth in practice. Bidders can be confused, budget constrained, collusive, risk-seeking, or care about future auctions. The theorem rests on a model: private values, quasilinear utility, one item, no externalities between bidders. Mechanism design is powerful precisely because it makes those assumptions visible.</p>
+
+<h2>The revelation principle, or the most useful simplification in the field</h2>
+
+<p>At first, designing a mechanism seems impossible. Agents could submit bids, send messages, play several rounds, randomize, bargain, or take arbitrary actions. The strategy space contains every weird game we could invent.</p>
+
+<p>The revelation principle collapses that search [1,3]. If some complicated mechanism implements a social choice rule in equilibrium, then there exists a direct mechanism in which agents report their types and truthful reporting is an equilibrium that produces the same outcome.</p>
+
+<p>The intuition is almost embarrassingly neat. Imagine the complicated mechanism already exists, and type \(\theta_i\) would cause agent \(i\) to play equilibrium strategy \(s_i^*(\theta_i)\). Build a mediator. Each agent reports a type to the mediator; the mediator plays the corresponding equilibrium strategy in the old game on their behalf.</p>
+
+<p>
+\[
+g'(\hat{\theta})
+=g\bigl(s_1^*(\hat{\theta}_1),\ldots,s_n^*(\hat{\theta}_n)\bigr).
+\]
+</p>
+
+<p>If lying to the mediator helped, the agent could have mimicked that lie’s strategy in the original mechanism. But the original strategies were an equilibrium. So truth-telling must be optimal in the mediated version.</p>
+
+<p>This does <em>not</em> say every real mechanism should literally ask for types. It says that for the purpose of finding what outcomes are implementable, we can focus on truthful direct mechanisms. Instead of searching over every possible game, we search over allocation and payment rules subject to incentive constraints. An institutional problem becomes an optimization problem.</p>
+
+<p>That move is one reason the field became mathematically tractable. It is also a recurring trick in computer science: replace a huge behavioural search with a canonical interface that preserves what matters.</p>
+
+<h2>VCG: make people pay for the harm they cause</h2>
+
+<p>The Vickrey auction handles one item. Vickrey–Clarke–Groves mechanisms extend its logic to much more general allocation problems [2,4,5]. The designer first chooses the efficient outcome:</p>
+
+<p>
+\[
+x^*(\hat{\theta})
+\in\arg\max_{x\in X}\sum_{j=1}^{n}v_j(x,\hat{\theta}_j).
+\]
+</p>
+
+<p>Then agent \(i\) pays for the externality their presence imposes on everybody else:</p>
+
+<p>
+\[
+p_i(\hat{\theta})=
+\max_{x\in X}\sum_{j\neq i}v_j(x,\hat{\theta}_j)
+-
+\sum_{j\neq i}v_j(x^*(\hat{\theta}),\hat{\theta}_j).
+\]
+</p>
+
+<p>The first term is the welfare everyone else could achieve if \(i\) did not exist. The second is the welfare everyone else receives in the chosen outcome when \(i\) does exist. The difference is the cost of \(i\)'s presence.</p>
+
+<p>In the single-ticket auction, without the winner the second-highest bidder would get the ticket and enjoy their value. With the winner present, everybody else gets zero. The externality is therefore the second-highest value. The Vickrey payment drops straight out.</p>
+
+<p>A richer example is route allocation. Suppose three delivery companies want access to a scarce road segment, but only a compatible subset can use it. VCG can choose the combination with maximum total value and charge each winner for the welfare displaced by their inclusion. A winner does not pay what they claimed the road was worth. They pay what their presence cost the rest of the system.</p>
+
+<p>Now look at agent \(i\)'s utility under VCG. Ignoring a term determined only by other agents, it becomes total reported welfare:</p>
+
+<p>
+\[
+u_i
+=v_i(x^*,\theta_i)-p_i
+=\sum_j v_j(x^*,\theta_j)-h_i(\theta_{-i}).
+\]
+</p>
+
+<p>Since the mechanism chooses \(x^*\) to maximize that sum, the agent cannot improve by distorting their own value. Their private objective has been made to point in the same direction as social welfare.</p>
+
+<p>This is one of those formulas that feels like a magic trick the first time. But VCG has real weaknesses. Payments can be computationally expensive because the allocation problem may need to be solved once with every agent removed. The mechanism may fail budget balance in public-good settings. It can be vulnerable to collusion and false-name bids. And welfare maximization is not revenue maximization.</p>
+
+<p>The mechanism aligns one carefully stated objective under one carefully stated model. It does not abolish economics.</p>
+
+<h2>Efficiency is not revenue: Myerson changes the score</h2>
+
+<p>Suppose I am not a benevolent ticket allocator. I am the seller and I care about expected revenue. Giving the object to the highest value is efficient, but it need not extract the most money.</p>
+
+<p>Roger Myerson’s 1981 result shows how to design the optimal single-item auction under standard assumptions [6]. The surprising move is to stop ranking bidders by raw value and rank them by <em>virtual value</em>:</p>
+
+<p>
+\[
+\phi_i(v)=v-\frac{1-F_i(v)}{f_i(v)},
+\]
+</p>
+
+<p>where \(F_i\) is bidder \(i\)'s value distribution and \(f_i\) its density. The first term is the value. The second is an information-rent correction: how much surplus the mechanism must leave with this type to keep higher types truthful.</p>
+
+<p>Under regularity conditions, the revenue-optimal mechanism allocates to the bidder with the highest non-negative virtual value, then charges the critical payment needed to remain the winner. If every virtual value is negative, the seller keeps the object.</p>
+
+<p>For a bidder whose value is uniform on \([0,1]\),</p>
+
+<p>
+\[
+F(v)=v,\qquad f(v)=1,\qquad \phi(v)=2v-1.
+\]
+</p>
+
+<p>The virtual value becomes non-negative only at \(v\geq 1/2\). So the optimal auction has a reserve price of \(1/2\). Even when someone values the item positively, the seller may refuse to sell. That deliberate inefficiency raises expected revenue.</p>
+
+<p>This is the point where mechanism design stops being a chapter about clever auction formats and becomes a theory of trade-offs. The objective is encoded into the mechanism. Ask for welfare and you get VCG. Ask for seller revenue and distributions enter through virtual values. Ask for fairness, simplicity, robustness, or low regret and the rule changes again.</p>
+
+<div aria-label="VCG maximizes value while Myerson maximizes virtual value" class="viz" role="img">
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#fff" height="410" width="760"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="28">Two objectives look at the same bidders through different scores</text>
+<line stroke="#555" stroke-width="1.5" x1="95" x2="685" y1="315" y2="315"></line>
+<line stroke="#555" stroke-width="1.5" x1="95" x2="95" y1="80" y2="315"></line>
+<text fill="#555" font-size="10" x="674" y="338">value (v)</text>
+<text fill="#555" font-size="10" x="53" y="84">score</text>
+<line stroke="#5277a3" stroke-width="3" x1="95" x2="665" y1="315" y2="95"></line>
+<line stroke="#9b4d4d" stroke-width="3" x1="95" x2="665" y1="390" y2="95"></line>
+<line stroke="#aaa" stroke-dasharray="5 5" x1="380" x2="380" y1="315" y2="205"></line>
+<circle cx="380" cy="315" fill="#9b4d4d" r="5"></circle>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="350">reserve (v=1/2)</text>
+<text fill="#5277a3" font-size="11" x="544" y="134">value: (v)</text>
+<text fill="#9b4d4d" font-size="11" x="520" y="181">virtual value: (2v-1)</text>
+<rect fill="#eef2f8" height="44" rx="6" stroke="#bcc9d9" width="235" x="105" y="28"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="222" y="47">VCG ranks raw values</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="222" y="61">to maximize welfare</text>
+<rect fill="#f5eeee" height="44" rx="6" stroke="#d7b9b9" width="235" x="420" y="28"></rect>
+<text fill="#444" font-size="10" text-anchor="middle" x="537" y="47">Myerson ranks virtual values</text>
+<text fill="#444" font-size="10" text-anchor="middle" x="537" y="61">to maximize expected revenue</text>
+</svg>
+<div class="viz-caption">For a uniform value distribution, Myerson’s score is negative below one half. The revenue-maximizing seller would rather withhold the item than sell below the reserve.</div>
+</div>
+
+<h2>Sometimes money is not allowed</h2>
+
+<p>Auctions dominate mechanism-design explanations because payments make incentives wonderfully adjustable. But many important markets cannot use prices. Universities do not auction every seat to the highest bidder. Hospitals cannot simply sell transplant organs. People do not bid cash for dates, at least not in any market I want to join.</p>
+
+<p>Now the mechanism has fewer levers. The main object becomes a preference ranking, and the desired property is often <em>stability</em>.</p>
+
+<p>A matching is unstable if there exists a blocking pair: two participants who prefer one another to the partners assigned by the mechanism. If such a pair exists, the allocation contains the seed of its own collapse. They can leave and match privately.</p>
+
+<p>Gale and Shapley’s deferred-acceptance algorithm guarantees a stable matching [7]. In the one-to-one version, one side proposes down its preference list. Each receiver tentatively holds the best proposal so far and rejects the rest. Rejected proposers continue. The process ends when nobody wishes to propose again.</p>
+
+<p>The word <em>tentatively</em> is doing all the work. A receiver does not commit too early. Better proposals can replace worse ones. Rejections are final, so the algorithm must terminate after finitely many proposals.</p>
+
+<p>If some proposer \(a\) and receiver \(b\) formed a blocking pair at the end, \(a\) must have proposed to \(b\) before reaching their assigned match. Then \(b\) either held \(a\) or rejected \(a\) for somebody preferred. Because held partners only improve over time, \(b\)'s final match cannot be worse than \(a\). Contradiction. No blocking pair exists.</p>
+
+<p>But even here the side that proposes matters. The result is proposer-optimal among all stable matchings and receiver-pessimal. Truthful reporting is strategy-proof for the proposing side under the standard model, not symmetrically for everyone. Stability, fairness between sides, and strategy-proofness pull in different directions.</p>
+
+<p>This is incredibly relevant to recommendation systems. A recommender usually asks, “what should user \(u\) see?” A matching market asks a harder question: “what allocation remains acceptable when every recommendation also has preferences, capacity, and the power to reject?” Job platforms, colleges, dating apps, and organ exchange are not ordinary ranking problems with a second table attached. They are markets.</p>
+
+<h2>The impossibility results are not bugs in the proof</h2>
+
+<p>After Vickrey and Gale–Shapley, it is easy to become overconfident. Perhaps every social problem has a beautiful payment or proposal rule waiting to be found.</p>
+
+<p>Then the impossibility theorems arrive.</p>
+
+<p>The Gibbard–Satterthwaite theorem says, roughly, that with at least three possible outcomes and unrestricted preferences, every deterministic, onto, strategy-proof voting rule is dictatorial [8,9]. If all outcomes are genuinely possible and no single voter controls the result, somebody can benefit from misreporting in some situation.</p>
+
+<p>This does not say democracy is useless. It says that a completely general voting mechanism cannot simultaneously be non-dictatorial, always responsive, deterministic, and immune to strategic voting. Escapes exist only by relaxing something: restrict preferences, randomize, weaken strategy-proofness, accept a smaller outcome space, or tolerate some manipulability.</p>
+
+<p>Public goods have their own collisions. We may want efficient provision, truthful revelation, individual rationality, and exact budget balance. In general, we cannot have all of them under broad conditions. VCG can create truthfulness and efficiency, but the transfers need not add up neatly. Fixing the budget can destroy the incentives.</p>
+
+<table>
+<tr><th>Property we want</th><th>Why it matters</th><th>What can conflict with it</th></tr>
+<tr><td>Strategy-proofness</td><td>participants need not game the rule</td><td>non-dictatorial voting with unrestricted preferences</td></tr>
+<tr><td>Efficiency</td><td>maximize total value</td><td>revenue, budget balance, distributional goals</td></tr>
+<tr><td>Stability</td><td>no pair wants to defect</td><td>equal treatment of both sides, full strategy-proofness</td></tr>
+<tr><td>Budget balance</td><td>no outside subsidy or surplus</td><td>efficient truthful public-good provision</td></tr>
+<tr><td>Simplicity</td><td>people can understand and trust the rule</td><td>the theoretically optimal bespoke mechanism</td></tr>
+</table>
+
+<p>I like these results because they make mechanism design unusually honest. The output is not always “here is the optimal algorithm.” Sometimes it is a map of the frontier: here are the properties you can combine, here is the one you must sacrifice, and here is the cost of pretending otherwise.</p>
+
+<h2>Ad auctions are mechanism design running at machine speed</h2>
+
+<p>Mechanism design became concrete for me through advertising because the participants do not submit preferences once a year. They submit bids continuously, through software, into a market that changes while they learn it.</p>
+
+<p>Sponsored-search auctions historically used the generalized second-price mechanism. Advertisers are ranked into slots, often using a bid adjusted by quality. Each winner pays an amount related to the bidder below. It sounds like the Vickrey auction stretched across several positions. It is not the same thing.</p>
+
+<p>Edelman, Ostrovsky, and Schwarz showed that GSP generally has no dominant-strategy equilibrium and truth-telling is not generally an equilibrium [10]. With one item, “pay the next bid” creates the critical payment. With several slots of different click volumes, each winner changes the displacement chain below them. A true VCG payment charges the total externality imposed on others; GSP’s local next-bid payment does not generally equal that externality.</p>
+
+<p>Modern programmatic display auctions commonly use first-price rules; OpenRTB 2.6 explicitly defines first-price and second-price-plus auction types [14]. When the winner pays their bid, a DSP again faces the shading problem. Let \(v\) be the predicted value of an impression and \(b\leq v\) the submitted bid. A simplified expected surplus is</p>
+
+<p>
+\[
+U(b\mid v)=(v-b)\Pr(\text{win}\mid b).
+\]
+</p>
+
+<p>Bid too low and the margin is lovely on impressions you rarely win. Bid too high and you win often but overpay. The optimal bid depends on the competitive landscape, floors, fees, pacing, value calibration, and how the auction reports outcomes. The mechanism determines what the bidder’s machine-learning model must learn.</p>
+
+<p>This is why “predict conversion probability and multiply by value” is only half a bidder. A good bid system also needs a model of the market induced by the auction. And the exchange must think one level higher: if it changes the rule, every DSP will retrain and the bid distribution itself will move.</p>
+
+<p>There are more objectives than price. The publisher cares about revenue and user experience. The advertiser cares about incremental value, not merely winning. The platform may include quality to avoid irrelevant ads. Budgets create pacing constraints across time. Repeated interaction creates learning, retaliation, and possible collusion. Privacy changes what values can be estimated. Latency limits how complicated the allocation can become.</p>
+
+<p>An ad auction is not a static (\arg\max) over bids. It is a dynamic mechanism embedded inside forecasting, optimization, identity, measurement, and distributed systems.</p>
+
+<div aria-label="The repeated feedback loop between an auction rule and bidder learning" class="viz" role="img">
+<svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow-three" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="3">
+    <polygon fill="#444" points="0 0, 8 3, 0 6"></polygon>
+  </marker>
+</defs>
+<rect fill="#fff" height="420" width="760"></rect>
+<text fill="#333" font-size="15" text-anchor="middle" x="380" y="30">In repeated markets, the rule changes the data that comes back</text>
+<rect fill="#eef2f8" height="60" rx="8" stroke="#bcc9d9" width="170" x="295" y="62"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="380" y="88">auction rule</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="105">ranking, floor, payment</text>
+<rect fill="#eef6ef" height="60" rx="8" stroke="#b7d2bc" width="180" x="515" y="179"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="605" y="205">market outcomes</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="605" y="222">wins, prices, conversions</text>
+<rect fill="#f7f3e8" height="60" rx="8" stroke="#d8c99d" width="180" x="290" y="298"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="380" y="324">bidder learning</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="380" y="341">value, shading, pacing</text>
+<rect fill="#f5eeee" height="60" rx="8" stroke="#d7b9b9" width="180" x="65" y="179"></rect>
+<text fill="#333" font-size="12" text-anchor="middle" x="155" y="205">new bid distribution</text>
+<text fill="#555" font-size="10" text-anchor="middle" x="155" y="222">strategic response</text>
+<line marker-end="url(#arrow-three)" stroke="#5277a3" stroke-width="2" x1="467" x2="534" y1="114" y2="177"></line>
+<line marker-end="url(#arrow-three)" stroke="#4f7f58" stroke-width="2" x1="553" x2="453" y1="242" y2="298"></line>
+<line marker-end="url(#arrow-three)" stroke="#d3993f" stroke-width="2" x1="289" x2="207" y1="311" y2="240"></line>
+<line marker-end="url(#arrow-three)" stroke="#9b4d4d" stroke-width="2" x1="207" x2="310" y1="178" y2="121"></line>
+<rect fill="#f7f7f7" height="34" rx="17" stroke="#d5d5d5" width="526" x="117" y="376"></rect>
+<text fill="#444" font-size="11" text-anchor="middle" x="380" y="398">The mechanism is part of the environment, not a scoring layer after prediction.</text>
+</svg>
+<div class="viz-caption">In a one-shot model, bids are inputs. In a real marketplace, bids are responses to yesterday’s rules and outcomes.</div>
+</div>
+
+<h2>The designer can be gamed too</h2>
+
+<p>Most elegant results assume the mechanism is committed, agents know the relevant rules, and the designer’s objective has been stated correctly. Real systems are less polite.</p>
+
+<p>Participants may collude. One person may create several identities. A platform may quietly optimize a proxy. A scoring rule can reward visible effort instead of useful work. Agents can enter or leave. Values may be interdependent: learning that everyone else thinks a painting is fake changes what I think it is worth. Budgets and risk break quasilinear utility. Repeated play lets participants experiment against the mechanism.</p>
+
+<p>There is also Goodhart’s law hiding nearby. If a school rewards teachers for test scores, the score becomes an object of strategy. If a marketplace rewards sellers for click-through rate, listings learn to attract clicks. If a content platform pays for watch time, creators optimize watch time. The metric is not merely measured after behaviour. Once tied to allocation or payment, it becomes a mechanism.</p>
+
+<p>This gives a practical design checklist:</p>
+
+<table>
+<tr><th>Question</th><th>What to inspect</th></tr>
+<tr><td>What is private?</td><td>values, costs, preferences, quality, effort, identity, future intentions</td></tr>
+<tr><td>What can participants change?</td><td>reports, timing, entry, identities, coalitions, effort, observable features</td></tr>
+<tr><td>What equilibrium is assumed?</td><td>dominant strategy, Bayes–Nash, repeated-game learning, approximate best response</td></tr>
+<tr><td>Which constraints are hard?</td><td>truthfulness, participation, budget, capacity, fairness, privacy, latency</td></tr>
+<tr><td>What happens off distribution?</td><td>new bidder population, collusion, model error, shocks, adversarial adaptation</td></tr>
+<tr><td>Can people understand it?</td><td>simplicity, auditability, recourse, predictable payments, trust</td></tr>
+</table>
+
+<p>A theoretically optimal rule that nobody trusts may attract the wrong participants or cause defensive behaviour. Transparency can improve participation but also make gaming easier. Complexity can raise revenue in a model while increasing operational mistakes. The institution has users.</p>
+
+<h2>What changes when a neural network designs the auction?</h2>
+
+<p>Myerson solved the standard single-item problem beautifully. Multi-item, multi-bidder auction design becomes much nastier. Values can be additive, complementary, or substitutable. The allocation space explodes, and the optimal mechanism may not have a clean analytic form.</p>
+
+<p>This motivated automated mechanism design and, eventually, neural approaches. RegretNet represents allocation and payment rules with neural networks and trains them to maximize expected revenue while penalizing incentive violations [11]. A simplified objective is</p>
+
+<p>
+\[
+\min_w
+-\mathbb{E}_{v\sim F}\!\left[\sum_i p_i^w(v)\right]
++\lambda\sum_i \operatorname{Regret}_i(w),
+\]
+</p>
+
+<p>where ex-post regret measures the gain agent \(i\) could obtain by reporting the best lie:</p>
+
+<p>
+\[
+\operatorname{Regret}_i(w)=
+\mathbb{E}_{v}\left[
+\max_{v_i'}u_i^w(v_i;v_i',v_{-i})
+-u_i^w(v_i;v_i,v_{-i})
+\right].
+\]
+</p>
+
+<p>If regret is zero, truth-telling is optimal. If it is small, the mechanism is approximately incentive compatible under the tested distribution and optimization procedure.</p>
+
+<p>I find this direction fascinating because it turns institution design into constrained learning. But it also creates a dangerous temptation: treat empirical regret like a proof. The inner maximization may miss a profitable deviation. The training distribution may not resemble deployment. A bidder may coordinate with others, split identities, or exploit numerical quirks the evaluator never searched.</p>
+
+<p>Learned mechanisms need the usual ML evaluation plus strategic evaluation. We should ask about distribution shift, worst-case regret, coalition deviations, interpretability, computational cost, and whether the learned rule is simple enough to communicate. A tiny revenue lift may not justify a mechanism nobody can audit.</p>
+
+<p>The same issue becomes sharper with AI agents. Software bidders can test strategies faster than humans, coordinate through common models, and react to mechanisms at machine speed. Mechanism design gives us tools for aligning self-interested agents, but mechanisms are incomplete contracts: no rule can specify every future contingency. A 2026 preprint argues formally and experimentally that mechanisms alone can leave welfare gaps when AI agents lack any intrinsic concern for others [12]. I would treat that as an early result, not a settled theorem about all agent systems, but the warning is correct. Incentives shape behaviour only over what the mechanism can observe and reward.</p>
+
+<h2>Mechanism design is really interface design for incentives</h2>
+
+<p>There is a computer-science reading of this entire field that I like.</p>
+
+<p>The mechanism exposes an interface. Agents submit messages. The allocation rule is a function. Payments are feedback. Incentive compatibility is a behavioural correctness condition. Individual rationality is an adoption constraint. Budget balance is a resource constraint. The revelation principle gives a canonical API. Impossibility theorems are lower bounds.</p>
+
+<p>But this interface is unusual because the caller is adversarial, adaptive, and has private state. You cannot test it only with fixed inputs. You have to test the incentive to generate those inputs.</p>
+
+<p>That is why mechanism design keeps appearing wherever ML systems meet people. A ranking model allocates attention. A pricing model transfers surplus. A recommendation system changes future preferences and supply. A reputation score induces effort toward whatever it measures. A reward model becomes a mechanism for an AI policy. Once an output changes payoffs, prediction and incentives are coupled.</p>
+
+<p>The clean workflow is therefore not:</p>
+
+<p>
+\[
+\text{collect data}\rightarrow\text{fit model}\rightarrow\text{deploy score}.
+\]
+</p>
+
+<p>It is closer to:</p>
+
+<p>
+\[
+\text{choose objective}
+\rightarrow
+\text{model private information}
+\rightarrow
+\text{design rules}
+\rightarrow
+\text{solve strategic response}
+\rightarrow
+\text{evaluate the induced system}.
+\]
+</p>
+
+<p>The model is one component. The equilibrium is the product.</p>
+
+<h2>My practical test for a mechanism</h2>
+
+<p>If I had to review a new marketplace, allocation rule, or agent incentive system tomorrow, I would not begin by asking whether the algorithm is optimal. I would ask seven smaller questions.</p>
+
+<h3>1. Optimal for whom?</h3>
+<p>Revenue, total welfare, one side of the market, fairness, and growth are different objectives. “Optimal” without a named objective is marketing.</p>
+
+<h3>2. What does each participant know privately?</h3>
+<p>If the mechanism needs information that nobody benefits from revealing, the information will arrive distorted or not at all.</p>
+
+<h3>3. What is the easiest profitable lie?</h3>
+<p>Do not begin with exotic attacks. Try a lower bid, a delayed entry, a reordered list, a second identity, a coalition, or effort aimed only at the metric.</p>
+
+<h3>4. How much strategic sophistication is required?</h3>
+<p>A Bayes–Nash equilibrium may be mathematically valid and operationally terrible if ordinary participants need accurate beliefs about everybody else. Simple dominant strategies are valuable because they reduce cognitive tax.</p>
+
+<h3>5. Which assumption breaks first?</h3>
+<p>Independent private values? Unlimited budgets? Stable preferences? One-shot play? No collusion? Exact optimization? The first broken assumption usually predicts the first failure.</p>
+
+<h3>6. Where does the money or scarce resource go?</h3>
+<p>Track transfers, platform fees, subsidies, externalities, rejected participants, and unallocated capacity. Local incentive alignment can hide system-level waste.</p>
+
+<h3>7. What will people learn after a thousand rounds?</h3>
+<p>Static truthfulness is not the whole story in repeated digital markets. Bidders learn, platforms update, and the equilibrium moves. Evaluate the loop, not only one auction.</p>
+
+<h2>Closing note</h2>
+
+<p>Mechanism design began to make sense to me when I stopped thinking of it as auction theory and started thinking of it as the engineering of reactions.</p>
+
+<p>A rule does not sit outside the system. It enters everybody’s utility function. A first-price rule creates shading. A second-price rule can make value revelation safe. A VCG payment turns private payoff toward social welfare by charging externality. A reserve price trades efficiency for revenue. Deferred acceptance prevents matching markets from unravelling. Voting impossibility tells us when no clever rule can satisfy the entire wish list.</p>
+
+<p>The most important output is sometimes a mechanism. Sometimes it is an impossibility frontier. And sometimes it is simply the realization that the data we were planning to model is itself a strategic response.</p>
+
+<p>This matters more as decisions become automated. Ads, jobs, creators, drivers, sellers, datacenter resources, and AI agents are increasingly allocated by rules that execute millions of times. We can make those rules faster with machine learning. We can make them more personalized. We can even learn the mechanism itself.</p>
+
+<p>But the old question remains underneath all of it: once everyone understands the rule and acts in their own interest, what world does the rule create?</p>
+
+<p>Game theory predicts the answer. Mechanism design lets us choose the question.</p>
+
+<h2>References and links</h2>
+<ol class="references">
+  <li>The Royal Swedish Academy of Sciences (2007). Mechanism Design Theory: Scientific Background for the Sveriges Riksbank Prize in Economic Sciences. <a href="https://www.nobelprize.org/prizes/economic-sciences/2007/advanced-information/" target="_blank">NobelPrize.org</a>.</li>
+  <li>Vickrey, W. (1961). Counterspeculation, Auctions, and Competitive Sealed Tenders. <em>The Journal of Finance</em>, 16(1), 8–37. <a href="https://cramton.umd.edu/market-design-papers/vickrey-counterspeculation-auctions-and-competitive-sealed-tenders.pdf" target="_blank">Paper</a>.</li>
+  <li>Myerson, R. B. (1979). Incentive Compatibility and the Bargaining Problem. <em>Econometrica</em>, 47(1), 61–73. <a href="https://doi.org/10.2307/1912346" target="_blank">DOI</a>.</li>
+  <li>Clarke, E. H. (1971). Multipart Pricing of Public Goods. <em>Public Choice</em>, 11, 17–33. <a href="https://doi.org/10.1007/BF01726210" target="_blank">DOI</a>.</li>
+  <li>Groves, T. (1973). Incentives in Teams. <em>Econometrica</em>, 41(4), 617–631. <a href="https://doi.org/10.2307/1914085" target="_blank">DOI</a>.</li>
+  <li>Myerson, R. B. (1981). Optimal Auction Design. <em>Mathematics of Operations Research</em>, 6(1), 58–73. <a href="https://pubsonline.informs.org/doi/10.1287/moor.6.1.58" target="_blank">INFORMS</a>.</li>
+  <li>Gale, D., &amp; Shapley, L. S. (1962). College Admissions and the Stability of Marriage. <em>The American Mathematical Monthly</em>, 69(1), 9–15. <a href="https://www.rand.org/content/dam/rand/pubs/papers/2012/P2240.pdf" target="_blank">RAND paper</a>.</li>
+  <li>Gibbard, A. (1973). Manipulation of Voting Schemes: A General Result. <em>Econometrica</em>, 41(4), 587–601. <a href="https://doi.org/10.2307/1914083" target="_blank">DOI</a>.</li>
+  <li>Satterthwaite, M. A. (1975). Strategy-proofness and Arrow’s Conditions. <em>Journal of Economic Theory</em>, 10(2), 187–217. <a href="https://doi.org/10.1016/0022-0531(75)90050-2" target="_blank">DOI</a>.</li>
+  <li>Edelman, B., Ostrovsky, M., &amp; Schwarz, M. (2007). Internet Advertising and the Generalized Second-Price Auction: Selling Billions of Dollars Worth of Keywords. <em>American Economic Review</em>, 97(1), 242–259. <a href="https://www.aeaweb.org/articles?id=10.1257/aer.97.1.242" target="_blank">AEA</a>.</li>
+  <li>Dütting, P., Feng, Z., Narasimhan, H., Parkes, D. C., &amp; Ravindranath, S. S. (2019). Optimal Auctions through Deep Learning. <em>ICML 2019</em>. <a href="https://proceedings.mlr.press/v97/duetting19a.html" target="_blank">PMLR</a>.</li>
+  <li>Huang, X. A., Tharas, C., Marro, S., Truong, V. Q., Schölkopf, B., La Malfa, E., &amp; Jin, Z. (2026). Mechanism Design Is Not Enough: Prosocial Agents for Cooperative AI. <a href="https://arxiv.org/abs/2605.08426" target="_blank">arXiv:2605.08426</a>.</li>
+  <li>The Royal Swedish Academy of Sciences (2012). Stable Allocations and the Practice of Market Design. <a href="https://www.nobelprize.org/prizes/economic-sciences/2012/advanced-information/" target="_blank">NobelPrize.org</a>.</li>
+  <li>IAB Tech Lab (2022). OpenRTB Version 2.6. <a href="https://iabtechlab.com/wp-content/uploads/2022/04/OpenRTB-2-6_FINAL.pdf" target="_blank">Specification</a>.</li>
+</ol>
+</article>
+</main>
+</body>
+</html>
