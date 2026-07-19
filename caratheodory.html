@@ -139,6 +139,8 @@
       h2 { font-size: 1.15rem; }
     }
   </style>
+  <link rel="stylesheet" href="theme.css" />
+  <script src="theme.js"></script>
 </head>
 
 <body>
@@ -385,10 +387,12 @@ I find that philosophically interesting. In mathematics we often look for canoni
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx*dx + dy*dy; }
 
   // --- Colors ---
-  const COLS = ['#2d6cdf', '#e05252', '#444'];
+  const cssColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  let COLS = [];
 
   // --- Draw ---
   function draw() {
+    COLS = [cssColor('--canvas-blue'), cssColor('--canvas-red'), cssColor('--canvas-neutral')];
     ctx.clearRect(0, 0, IW, IH);
 
     // Hull polygon
@@ -397,9 +401,9 @@ I find that philosophically interesting. In mathematics we often look for canoni
       ctx.moveTo(hull[0].x, hull[0].y);
       for (let i = 1; i < hull.length; i++) ctx.lineTo(hull[i].x, hull[i].y);
       ctx.closePath();
-      ctx.fillStyle = '#f8f9fb';
+      ctx.fillStyle = cssColor('--canvas-hull');
       ctx.fill();
-      ctx.strokeStyle = '#c0c0c0';
+      ctx.strokeStyle = cssColor('--canvas-border');
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
@@ -410,9 +414,11 @@ I find that philosophically interesting. In mathematics we often look for canoni
       ctx.beginPath();
       ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(45,108,223,0.09)';
+      ctx.fillStyle = document.documentElement.dataset.theme === 'dark'
+        ? 'rgba(110,168,255,0.12)'
+        : 'rgba(45,108,223,0.09)';
       ctx.fill();
-      ctx.strokeStyle = '#2d6cdf';
+      ctx.strokeStyle = COLS[0];
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -439,14 +445,14 @@ I find that philosophically interesting. In mathematics we often look for canoni
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.fillStyle   = inDecomp ? COLS[colIdx] : '#efefef';
+      ctx.fillStyle   = inDecomp ? COLS[colIdx] : cssColor('--canvas-node');
       ctx.fill();
-      ctx.strokeStyle = inDecomp ? '#fff' : '#aaa';
+      ctx.strokeStyle = inDecomp ? cssColor('--canvas-contrast') : cssColor('--canvas-node-border');
       ctx.lineWidth   = inDecomp ? 2.5 : 1.5;
       ctx.stroke();
 
       // Vertex number label
-      ctx.fillStyle    = inDecomp ? '#fff' : '#777';
+      ctx.fillStyle    = inDecomp ? cssColor('--canvas-contrast') : cssColor('--canvas-node-text');
       ctx.font         = `${inDecomp ? 600 : 400} 11px sans-serif`;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
@@ -457,12 +463,12 @@ I find that philosophically interesting. In mathematics we often look for canoni
     if (selPt) {
       ctx.beginPath();
       ctx.arc(selPt.x, selPt.y, 5.5, 0, Math.PI * 2);
-      ctx.fillStyle   = '#111';
+      ctx.fillStyle   = cssColor('--canvas-point');
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = cssColor('--canvas-contrast');
       ctx.lineWidth   = 2;
       ctx.stroke();
-      ctx.fillStyle    = '#222';
+      ctx.fillStyle    = cssColor('--canvas-point-label');
       ctx.font         = '600 12px sans-serif';
       ctx.textAlign    = 'left';
       ctx.textBaseline = 'alphabetic';
@@ -471,6 +477,8 @@ I find that philosophically interesting. In mathematics we often look for canoni
 
     updateInfo();
   }
+
+  window.addEventListener('themechange', draw);
 
   function updateInfo() {
     const el = document.getElementById('coord-info');
