@@ -104,6 +104,45 @@
       margin-bottom: 1.2rem;
     }
 
+    .project-description {
+      margin-bottom: 0.35rem;
+    }
+
+    .project-description.collapsed {
+      position: relative;
+      max-height: 3.9rem;
+      overflow: hidden;
+    }
+
+    .project-description.collapsed::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2rem;
+      background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+      pointer-events: none;
+    }
+
+    .read-more-toggle {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #0066cc;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    .read-more-toggle:hover,
+    .read-more-toggle:focus {
+      color: #004c99;
+      text-decoration: underline;
+    }
+
     @media (max-width: 500px) {
       body {
         padding: 1rem;
@@ -119,6 +158,10 @@
       }
       h3 {
         font-size: 1.15rem;
+      }
+
+      .project-description.collapsed {
+        max-height: 4.6rem;
       }
     }
   </style>
@@ -139,7 +182,7 @@
       <a href="https://github.com/pratyakshpatel/having-fun-with-muon" target="_blank">Project Link</a> |
       <a href="muon_routing_atlas.html">Report</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Built a single-GPU GPT-style pretraining harness to test where Muon optimization helps most inside transformer blocks.</li>
       <li>Compared AdamW against Muon routed to all hidden matrices, MLP-only, attention-only, V/O-only, Q/K-only, no-Q/K, and layerwise regions.</li>
       <li>Logged optimizer groups, validation loss, samples, update geometry, and reproducible run metadata across TinyStories and FineWeb-Edu experiments.</li>
@@ -147,16 +190,27 @@
       <li>Showed that MLP-only and V/O-only were individually insufficient on FineWeb-Edu, suggesting a coupled FFN + V/O pathway rather than a single-module explanation.</li>
     </ul>
 
+    <h3>Having Fun With Manim</h3>
+    <p>
+      <a href="https://github.com/pratyakshpatel/having-fun-with-manim" target="_blank">Project Link</a>
+    </p>
+    <ul class="project-description">
+      <li>Built a collection of Manim animation projects with source code, narration scripts, and final video masters.</li>
+      <li><a href="https://github.com/pratyakshpatel/having-fun-with-manim/tree/main/adtech" target="_blank">Ad auction explainer</a>: visualizes the auction mechanics behind online advertising, with the final render available as <a href="https://github.com/pratyakshpatel/having-fun-with-manim/blob/main/adtech/the_auction_behind_the_ad_1080p.mp4" target="_blank">the_auction_behind_the_ad_1080p.mp4</a>.</li>
+      <li><a href="https://github.com/pratyakshpatel/having-fun-with-manim/tree/main/anchor-pca" target="_blank">Anchor PCA presentation</a>: builds the scene order, notes, and animation source for PCA intuition, with multiple final video cuts.</li>
+      <li><a href="https://github.com/pratyakshpatel/having-fun-with-manim/tree/main/xgxt/xg_xt_manim" target="_blank">xG/xT football analytics explainer</a>: combines Manim source, requirements, and voiceover scripting for explaining expected goals and expected threat.</li>
+    </ul>
+
     <h3><a href="caratheodory.html">Carathéodory's Theorem - Interactive Visualizer</a></h3>
     <p>Mar 2026 | <a href="caratheodory.html">Live Demo</a></p>
-    <p>Any point inside a convex hull in \(\mathbb{R}^2\) can be written as a convex combination of at most 3 of its vertices - this is Carathéodory's theorem. The interactive tool lets you click anywhere inside a convex polygon and instantly decomposes that point into its barycentric coordinates over the minimal triangle of hull vertices. Drag any vertex to reshape the polygon; the decomposition updates live. The page also includes an essay on the theorem, its proof, and why it keeps appearing in LP, SVMs, and sparse approximation.</p>
+    <p class="project-description">Any point inside a convex hull in \(\mathbb{R}^2\) can be written as a convex combination of at most 3 of its vertices - this is Carathéodory's theorem. The interactive tool lets you click anywhere inside a convex polygon and instantly decomposes that point into its barycentric coordinates over the minimal triangle of hull vertices. Drag any vertex to reshape the polygon; the decomposition updates live. The page also includes an essay on the theorem, its proof, and why it keeps appearing in LP, SVMs, and sparse approximation.</p>
 
     <h3>Variance-Controlled SGD: Adaptive Batch Size via Gradient Noise</h3>
     <p>Mar 2026 |
       <a href="https://github.com/pratyakshpatel/Variance-Controlled-SGD" target="_blank">Project Link</a> |
       <a href="variance_controlled_sgd_report.html">Report</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Implemented a reproducible PyTorch research pipeline comparing fixed-batch SGD with an adaptive batching policy driven by online gradient variance estimates.</li>
       <li>Derived and deployed a control rule of the form \(b_t = \min(b_{\max}, \max(b_{\min}, C\,\sigma_t^2/(\|\bar g_t\|^2 + \epsilon)))\), with smoothing to reduce oscillatory batch-size updates.</li>
       <li>Logged iteration-level metrics including loss, gradient norm, gradient variance, signal-to-noise ratio, and effective batch size; exported all runs as CSV for analysis.</li>
@@ -168,7 +222,7 @@
     <p>Oct–Nov 2025 | 
       <a href="https://github.com/pratyakshpatel/football-analytics-project" target="_blank">Project Link</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Modeled player interactions as possession-level graphs and trained a Graph Neural Network to learn threat-aware player embeddings from pass events.</li>
       <li>Computed expected threat (xT) maps via Bellman iterations and derived enriched player feature vectors capturing position, pass style, and pressure behavior.</li>
       <li>Learned a neural compatibility scorer using player embeddings and co-occurrence patterns to predict synergy between player pairs.</li>
@@ -181,7 +235,7 @@
     <p>Oct–Nov 2024 | ECO318 - Money, Banking and Financial Markets |
       <a href="https://drive.google.com/file/d/1eyzSqyT7gtOgDx8j69jj0t8cL6Ly6i4E/view" target="_blank">Project Link</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Explored how war narratives affect energy and finance sectors using LDA topic modeling on news data.</li>
       <li>Connected macroeconomic reactions to geopolitical sentiment and volatility trends.</li>
     </ul>
@@ -190,7 +244,7 @@
     <p>Sept–Nov 2024 | DSE315 - Data Science in Practise |
       <a href="https://drive.google.com/drive/folders/1RCtOp2nghuuf_5kpHoDobcHf3mbLiaS3" target="_blank">Project Link</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Used 15 years of UK electricity data to model seasonal patterns using SARIMA.</li>
       <li>Validated with ADF and Ljung-Box tests to confirm stationarity and independence.</li>
       <li>Compared forecast accuracy against ARIMA and exponential smoothing models.</li>
@@ -200,7 +254,7 @@
     <p>Sept–Nov 2024 | DSE312 - Computer Vision|
       <a href="https://drive.google.com/file/d/1LdUTFV5Ucjgc7ojozVUTr8iTKvlTOgw2/view" target="_blank">Project Link</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Trained YOLOv8 on a custom dataset; achieved mAP@50 of 0.973 for vehicle detection.</li>
       <li>Developed a scalable inference pipeline to count vehicles and estimate traffic density from CCTV frames.</li>
     </ul>
@@ -215,7 +269,7 @@
     <p>August 2025 |
       <a href="https://github.com/pratyakshpatel/From-Scratch/tree/main/TRANSFOMER" target="_blank">Project Link</a>
     </p>
-    <p> 
+    <p class="project-description">
 I implemented a Transformer model completely from scratch using only NumPy, covering key components like multi-head self-attention, feedforward layers, and positional embeddings. The model stacks multiple Transformer blocks with residual connections and layer normalization. Finally, it projects outputs through a language modeling head, enabling sequence-to-sequence predictions.
 I am planning to implement more complex architectures from scratch in coming times.
     </p>
@@ -227,7 +281,7 @@ I am planning to implement more complex architectures from scratch in coming tim
     <p>August 2025 |
       <a href="https://github.com/pratyakshpatel/From-Scratch/tree/main/ARIMA" target="_blank">Project Link</a>
     </p>
-    <p> 
+    <p class="project-description">
 This implementation builds an ARIMA (AutoRegressive Integrated Moving Average) model entirely from scratch using only numpy. 
 It avoids high-level libraries like statsmodels, making every step transparent: differencing for stationarity, 
 manual AR and MA term calculations, and likelihood-based parameter estimation. 
@@ -243,7 +297,7 @@ manual AR and MA term calculations, and likelihood-based parameter estimation.
     <p>July 2025 |
       <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/Isolation%20Forest" target="_blank">Project Link</a>
     </p>
-    <p>
+    <p class="project-description">
       We've all learnt and implemented random forest; it's one of the first algorithms we encounter in ML. Most of the time, we strive to find patterns using such algorithms. Another paradigm is anomaly detection - and that's how I came across Isolation Forests.
       In this project, I wrote the full Isolation Forest algorithm from scratch using NumPy. The model builds binary trees by recursively splitting randomly sampled data to isolate outliers quickly. I used synthetic 2D data (normal + uniform noise), calculated anomaly scores based on average path lengths, and visualized the decision boundaries.
     </p>
@@ -252,7 +306,7 @@ manual AR and MA term calculations, and likelihood-based parameter estimation.
     <p>June 2025 |
       <a href="https://github.com/pratyakshpatel/Paper-Implementations/tree/main/GSA%20on%20truck%20fleet" target="_blank">Project Link</a>
     </p>
-    <p>
+    <p class="project-description">
       Implemented GSA on the <a href="https://link.springer.com/article/10.1007/s12046-024-02578-w" target="_blank">Heterogeneous Truck Fleet Optimization</a> problem. Inspired by evolutionary algorithms introduced in my AI course, I explored GSA - a nature-inspired metaheuristic. I implemented it on the same truck fleet problem to compare its effectiveness with genetic algorithms and MIP.
     </p>
 
@@ -260,7 +314,7 @@ manual AR and MA term calculations, and likelihood-based parameter estimation.
     <p>DSE316 - Applied Optimization |
       <a href="https://github.com/pratyakshpatel/Heterogeneous-Truck-Fleet-Optimization-Using-MINLP-and-Genetic-Algorithm" target="_blank">Project Link</a>
     </p>
-    <ul>
+    <ul class="project-description">
       <li>Developed a truck fleet optimization model minimizing delivery cost under capacity and time constraints.</li>
       <li>Implemented a Mixed Integer Program using PuLP and benchmarked it against genetic algorithm solutions.</li>
       <li>Converted real-world logistics into mathematical constraints for optimal allocation.</li>
@@ -273,6 +327,32 @@ manual AR and MA term calculations, and likelihood-based parameter estimation.
 <footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.95rem; color: #555;">
   &copy; 2025 Pratyaksh Patel
 </footer>
+
+<script>
+  document.querySelectorAll('.project-description').forEach((description) => {
+    description.classList.add('collapsed');
+
+    if (description.scrollHeight <= description.clientHeight + 1) {
+      description.classList.remove('collapsed');
+      return;
+    }
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'read-more-toggle';
+    toggle.textContent = 'Read more';
+    toggle.setAttribute('aria-expanded', 'false');
+
+    toggle.addEventListener('click', () => {
+      const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!isExpanded));
+      toggle.textContent = isExpanded ? 'Read more' : 'Show less';
+      description.classList.toggle('collapsed', isExpanded);
+    });
+
+    description.insertAdjacentElement('afterend', toggle);
+  });
+</script>
 
 </body>
 </html>
