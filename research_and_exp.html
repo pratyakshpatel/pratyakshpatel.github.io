@@ -55,6 +55,12 @@
       font-weight: 600;
     }
 
+    h4 {
+      font-size: 1.05rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
     p {
       margin-bottom: 1rem;
     }
@@ -96,6 +102,63 @@
       font-size: 1em;
     }
 
+    .experience-company {
+      margin-bottom: 1rem;
+    }
+
+    .experience-timeline {
+      margin-bottom: 1.5rem;
+    }
+
+    .experience-role {
+      position: relative;
+      margin-left: 0.25rem;
+      padding: 0 0 1.5rem 1.75rem;
+    }
+
+    .experience-role:last-child {
+      padding-bottom: 0;
+    }
+
+    .experience-role::before {
+      content: "";
+      position: absolute;
+      top: 0.55rem;
+      bottom: -0.55rem;
+      left: 0.3rem;
+      width: 2px;
+      background: #bbb;
+    }
+
+    .experience-role:last-child::before {
+      display: none;
+    }
+
+    .experience-role::after {
+      content: "";
+      position: absolute;
+      top: 0.4rem;
+      left: 0;
+      width: 0.65rem;
+      height: 0.65rem;
+      border: 2px solid #666;
+      border-radius: 50%;
+      background: white;
+      box-sizing: border-box;
+    }
+
+    .experience-meta,
+    .experience-date {
+      margin: 0;
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .experience-description {
+      margin-top: 0.45rem;
+      margin-bottom: 0;
+    }
+
     a:hover {
       font-size: 1.05em;
     }
@@ -127,14 +190,25 @@
     <h1>Research and Experience</h1>
 
     <section>
-      <h2>Internships</h2>
-      <h3>MiQ Digital - Present</h3>
-      <p>
-        Working as a data science intern, an opportunity I secured through on campus placement.
-        
-      </p>
+      <h2>Experience</h2>
+      <div class="experience-company-block">
+        <h3 class="experience-company">MiQ Digital</h3>
+        <div class="experience-timeline">
+          <article class="experience-role">
+            <h4>Data Scientist</h4>
+            <p class="experience-meta">Full-time</p>
+            <p class="experience-date">July 2026 - Present</p>
+            <p class="experience-description">Working on agentic AI.</p>
+          </article>
 
-      
+          <article class="experience-role">
+            <h4>Data Science Intern</h4>
+            <p class="experience-meta">Internship</p>
+            <p class="experience-date">January 2026 - July 2026</p>
+            <p class="experience-description">Secured the role through an on-campus placement.</p>
+          </article>
+        </div>
+      </div>
 
       <h3>DocScrib (Zeo Route Planner – YC W20)</h3>
       <p>
