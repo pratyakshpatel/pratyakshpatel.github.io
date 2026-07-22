@@ -51,24 +51,22 @@
 .newsletter-widget {
   position: fixed;
   z-index: 1000;
-  top: 50%;
-  left: 1rem;
-  width: auto;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   max-width: none;
   margin: 0;
-  padding: 0;
-  background: transparent;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.42);
   border: 0;
+  border-radius: 0;
   box-shadow: none;
-  transform: translateY(-50%);
 }
 
-.newsletter-widget.is-open {
-  width: min(280px, calc(100vw - 2rem));
-  padding: 1rem;
-  background: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+.newsletter-widget[hidden] {
+  display: none;
 }
 
 .newsletter-widget h2,
@@ -76,7 +74,7 @@
   display: none;
 }
 
-.newsletter-widget-toggle,
+.newsletter-nav-toggle,
 .newsletter-widget .newsletter-widget-close {
   color: white;
   background: #333;
@@ -86,18 +84,19 @@
   cursor: pointer;
 }
 
-.newsletter-widget-toggle {
-  padding: 0.65rem 0.9rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+.newsletter-nav-toggle {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
 }
 
-.newsletter-widget-toggle:hover,
+.newsletter-nav-toggle:hover,
 .newsletter-widget-close:hover {
   background: #555;
   border-color: #555;
 }
 
-.newsletter-widget-toggle:focus-visible,
+.newsletter-nav-toggle:focus-visible,
 .newsletter-widget-close:focus-visible {
   outline: 3px solid #777;
   outline-offset: 2px;
@@ -114,7 +113,14 @@
 }
 
 .newsletter-widget .newsletter-form {
-  padding-top: 2.25rem;
+  position: relative;
+  box-sizing: border-box;
+  width: min(420px, 100%);
+  padding: 3rem 1.25rem 1.25rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.24);
 }
 
 .newsletter-widget .newsletter-fields {
@@ -123,6 +129,10 @@
 
 .newsletter-widget .newsletter-form button[type="submit"] {
   width: 100%;
+}
+
+html.newsletter-dialog-open {
+  overflow: hidden;
 }
 
 .newsletter-form label {
@@ -201,22 +211,8 @@
     width: 100%;
   }
 
-  .newsletter-widget {
-    top: auto;
-    right: 1rem;
-    bottom: 1rem;
-    left: auto;
-    padding: 0;
-    transform: none;
-  }
-
-  .newsletter-widget.is-open {
-    width: calc(100vw - 2rem);
-    padding: 1rem;
-  }
-
-  .newsletter-widget-toggle {
-    padding: 0.55rem 0.75rem;
-    font-size: 0.9rem;
+  .newsletter-nav-toggle {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
   }
 }
