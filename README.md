@@ -3,8 +3,8 @@ The website is always under construction, please reach out to me in case you hav
 
 ## Newsletter subscription
 
-The site uses Buttondown's public embedded-subscription form with the username `pratyaksh`. The endpoint appears in `index.html`, `technical_blog.html`, and `eye_sir_bee.html`:
+The site uses Buttondown's public embedded-subscription form with the username `pratyaksh`. The endpoint appears on the homepage, both blog indexes, and every individual article linked from `technical_blog.html` and `eye_sir_bee.html`:
 
 `https://buttondown.com/api/emails/embed-subscribe/pratyaksh`
 
-To change the username later, replace `pratyaksh` in all three form actions and update this section. Never add a Buttondown API key to frontend code. Double opt-in and welcome-email settings are managed in the Buttondown dashboard. Publishing a blog post does not automatically send an email; configure RSS-to-email or another Buttondown automation separately if that behavior is wanted.
+To change the username later, replace `pratyaksh` in every newsletter form action and update this section. Never add a Buttondown API key to frontend code. Double opt-in and welcome-email settings are managed in the Buttondown dashboard. Publishing a blog post does not automatically send an email; configure RSS-to-email or another Buttondown automation separately if that behavior is wanted.

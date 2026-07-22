@@ -34,6 +34,20 @@
   margin-bottom: 1.25rem;
 }
 
+.newsletter--compact {
+  max-width: 650px;
+  margin-top: 2.5rem;
+  padding: 1.25rem;
+}
+
+.newsletter--compact h2 {
+  font-size: 1.15rem;
+}
+
+.newsletter--compact .newsletter-note {
+  font-size: 0.82rem;
+}
+
 .newsletter-form label {
   display: block;
   margin-bottom: 0.4rem;
