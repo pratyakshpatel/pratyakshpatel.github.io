@@ -8,6 +8,7 @@
 
   <!-- LaTeX.css -->
   <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+  <link rel="stylesheet" href="assets/newsletter.css" />
 
   <!-- MathJax -->
   <script id="MathJax-script" async
@@ -201,9 +202,25 @@
   </article>
 </main>
 
+<section class="newsletter" aria-labelledby="newsletter-heading">
+  <h2 id="newsletter-heading">enjoyed this? get the next essay by email.</h2>
+  <p class="newsletter-description">occasional writing on machine learning, graphs, ad tech, football analytics and optimisation.</p>
+  <form action="https://buttondown.com/api/emails/embed-subscribe/pratyaksh" method="post" class="newsletter-form" data-newsletter-form data-location="technical_blog_footer">
+    <label for="newsletter-email">email address</label>
+    <div class="newsletter-fields">
+      <input id="newsletter-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required />
+      <input type="hidden" name="embed" value="1" />
+      <button type="submit">subscribe</button>
+    </div>
+    <p class="newsletter-note">no spam. you may need to confirm through email. by subscribing, you agree to receive new-post emails and can unsubscribe at any time. <a href="privacy.html">privacy</a>.</p>
+  </form>
+</section>
+
 <footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; font-size: 0.95rem; color: #555;">
   &copy; 2025 Pratyaksh Patel
 </footer>
+
+<script src="assets/newsletter.js"></script>
 
 </body>
 </html>
