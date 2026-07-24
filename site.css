@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
-  --paper: #e8e2d5;
-  --paper-panel: rgba(255, 255, 255, 0.38);
+  --paper: #d8ccb2;
+  --paper-panel: rgba(255, 255, 255, 0.3);
   background-color: var(--paper);
   color: #000;
   font-synthesis: none;
@@ -15,8 +15,11 @@
 
 html {
   background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)' opacity='.12'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)' opacity='.16'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg, rgba(67, 49, 25, 0.035) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 6px);
+  background-size: 180px 180px, auto, auto;
   color: #000;
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
@@ -25,7 +28,7 @@ html {
 body {
   width: auto;
   max-width: 50rem !important;
-  margin: 0 !important;
+  margin: 0 auto !important;
   padding: 2rem 1.25rem 3rem !important;
   background: transparent !important;
   color: #000 !important;
@@ -358,7 +361,7 @@ footer {
 }
 
 .project-description.collapsed::after {
-  background: linear-gradient(rgba(232, 226, 213, 0), var(--paper)) !important;
+  background: linear-gradient(rgba(216, 204, 178, 0), var(--paper)) !important;
 }
 
 .experience-role::before {
