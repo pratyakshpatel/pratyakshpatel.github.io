@@ -110,7 +110,7 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-article,
+article:not(.experience-role),
 section,
 .blog-category {
   margin-bottom: 2rem !important;
