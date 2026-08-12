@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pratyaksh Patel | Technical Blog</title>
+
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css" />
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+
+  <style>
+    body {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    a:hover {
+      font-size: 1.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .go-back {
+      display: inline-block;
+      margin-bottom: 0;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .go-back:hover {
+      background: #555;
+      font-size: 1.05em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .meta {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .viz {
+      margin: 1.2rem 0 1.4rem;
+      padding: 0.9rem;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+    }
+
+    .viz svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    ol.references {
+      margin-top: 0.6rem;
+      padding-left: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        font-size: 1rem;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="site.css" />
+</head>
+
+<body>
+
+<div class="nav-links">
+  <a href="technical_blog.html" class="go-back">← Go Back</a>
+  <a href="index.html" class="go-back">Home</a>
+</div>
+
+<main>
+
+<h1>Dont go deep.</h1>
+
+<article>
+
+<p class="meta">12 August, 2026</p>
+
+<p>
+I was looking for the most pointless neural network I could build.
+</p>
+
+<p>
+Take an input, pass it through one hundred fully connected layers, and remove every activation function. No ReLU. No sigmoid. No normalization. Nothing between the matrices except more matrices. It looks deep in the architecture diagram, consumes memory like a deep model, and gives back:
+</p>
+
+<p>
+\[
+f(x)=W_{100}W_{99}\cdots W_2W_1x.
+\]
+</p>
+
+<p>
+But the product of matrices is another matrix. If I define
+</p>
+
+<p>
+\[
+W:=W_{100}W_{99}\cdots W_2W_1,
+\]
+</p>
+
+<p>
+then the entire network becomes \(f(x)=Wx\). One hundred layers collapse into one. It is linear regression wearing a deep learning costume.
+</p>
+
+<p>
+That should end the story. It does not.
+</p>
+
+<p>
+The network is linear as a function of its input, but training it is a nonlinear dynamical system. It can sit on long plateaus and then learn suddenly. It can prefer low-rank solutions even when no rank constraint appears in the objective. Make the factorization deeper and that preference can become stronger, despite the set of end-to-end matrices remaining unchanged. The architecture has gained no new functions, yet gradient descent can choose a different answer.
+</p>
+
+<p>
+This is the strange point of deep linear networks. They separate two ideas that are usually fused together in deep learning: what a model can represent, and what optimization makes it learn.
+</p>
+
+<h2>The function is shallow, but the parameterization is deep</h2>
+
+<p>
+Consider a depth-\(N\) linear network:
+</p>
+
+<p>
+\[
+h_0=x, \qquad h_j=W_jh_{j-1}, \qquad f_\theta(x)=W_NW_{N-1}\cdots W_1x.
+\]
+</p>
+
+<p>
+The parameters are \(\theta=(W_1,\ldots,W_N)\), while the end-to-end predictor depends only on their product:
+</p>
+
+<p>
+\[
+W(\theta)=W_NW_{N-1}\cdots W_1.
+\]
+</p>
+
+<p>
+If the hidden layers are wide enough and introduce no rank bottleneck, every end-to-end matrix available to a one-layer model is also available to the deep model. The two models therefore have the same function class. This caveat matters. A narrow hidden layer would force \(\operatorname{rank}(W)\) to be at most its width and would genuinely change what the network can represent. I am interested in the full-width case, where depth adds parameters without adding functions.
+</p>
+
+<p>
+Even here, the parameter spaces are radically different. The shallow model assigns one point \(W\) to one predictor. The deep model assigns an enormous family of points to the same predictor. For any invertible matrix \(R\), the two factorizations
+</p>
+
+<p>
+\[
+W_2W_1
+\quad\text{and}\quad
+(W_2R^{-1})(RW_1)
+\]
+</p>
+
+<p>
+produce exactly the same end-to-end matrix. Predictions cannot tell these parameter settings apart, but gradient descent moves through them differently. The redundancy is invisible in function space and very real in parameter space.
+</p>
+
+<div class="viz" role="img" aria-label="A direct linear map and a deep factorization representing the same end-to-end matrix">
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="dl1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="300" fill="#fff"/>
+
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Same end-to-end function, different optimization geometry</text>
+
+    <text x="95" y="71" font-size="12" fill="#555" text-anchor="middle">One layer</text>
+    <rect x="35" y="94" width="90" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="80" y="124" font-size="13" fill="#333" text-anchor="middle">x</text>
+    <line x1="126" y1="119" x2="288" y2="119" stroke="#444" stroke-width="1.5" marker-end="url(#dl1)"/>
+    <text x="207" y="108" font-size="12" fill="#2d6cdf" text-anchor="middle">W</text>
+    <rect x="295" y="94" width="90" height="50" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="340" y="124" font-size="13" fill="#333" text-anchor="middle">Wx</text>
+
+    <text x="95" y="204" font-size="12" fill="#555" text-anchor="middle">Four layers</text>
+    <rect x="35" y="222" width="70" height="44" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="70" y="249" font-size="13" fill="#333" text-anchor="middle">x</text>
+    <line x1="106" y1="244" x2="159" y2="244" stroke="#444" marker-end="url(#dl1)"/>
+    <text x="133" y="234" font-size="10" fill="#2d6cdf" text-anchor="middle">W₁</text>
+    <rect x="165" y="222" width="58" height="44" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="194" y="249" font-size="11" fill="#333" text-anchor="middle">h₁</text>
+    <line x1="224" y1="244" x2="277" y2="244" stroke="#444" marker-end="url(#dl1)"/>
+    <text x="251" y="234" font-size="10" fill="#2d6cdf" text-anchor="middle">W₂</text>
+    <rect x="283" y="222" width="58" height="44" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="312" y="249" font-size="11" fill="#333" text-anchor="middle">h₂</text>
+    <line x1="342" y1="244" x2="395" y2="244" stroke="#444" marker-end="url(#dl1)"/>
+    <text x="369" y="234" font-size="10" fill="#2d6cdf" text-anchor="middle">W₃</text>
+    <rect x="401" y="222" width="58" height="44" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="430" y="249" font-size="11" fill="#333" text-anchor="middle">h₃</text>
+    <line x1="460" y1="244" x2="513" y2="244" stroke="#444" marker-end="url(#dl1)"/>
+    <text x="487" y="234" font-size="10" fill="#2d6cdf" text-anchor="middle">W₄</text>
+    <rect x="519" y="222" width="104" height="44" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="571" y="249" font-size="12" fill="#333" text-anchor="middle">W₄W₃W₂W₁x</text>
+
+    <line x1="460" y1="119" x2="690" y2="119" stroke="#bbb" stroke-dasharray="5 4"/>
+    <line x1="460" y1="244" x2="690" y2="244" stroke="#bbb" stroke-dasharray="5 4"/>
+    <text x="575" y="106" font-size="11" fill="#777" text-anchor="middle">convex objective in W</text>
+    <text x="575" y="201" font-size="11" fill="#777" text-anchor="middle">non-convex objective in factors</text>
+    <text x="690" y="182" font-size="12" fill="#e05252" text-anchor="end">W = W₄W₃W₂W₁</text>
+  </svg>
+  <p class="viz-caption">Figure 1. A full-width deep linear network and a single linear layer can represent the same end-to-end matrix. What changes is not the function class but the coordinates through which gradient descent reaches that matrix.</p>
+</div>
+
+<h2>The exact place where equivalence breaks</h2>
+
+<p>
+Suppose the training examples are stored as columns of \(X\), the targets as columns of \(Y\), and we use squared loss:
+</p>
+
+<p>
+\[
+\ell(W)=\frac{1}{2}\lVert WX-Y\rVert_F^2.
+\]
+</p>
+
+<p>
+As a function of the single matrix \(W\), this is a convex problem. Its gradient is
+</p>
+
+<p>
+\[
+\nabla_W\ell(W)=(WX-Y)X^\top.
+\]
+</p>
+
+<p>
+Direct gradient flow is therefore as plain as it looks:
+</p>
+
+<p>
+\[
+\dot W=-\nabla_W\ell(W).
+\]
+</p>
+
+<p>
+Now write the same matrix as \(W=W_N\cdots W_1\). Let
+</p>
+
+<p>
+\[
+A_j=W_N\cdots W_{j+1}, \qquad B_j=W_{j-1}\cdots W_1,
+\]
+</p>
+
+<p>
+so that \(W=A_jW_jB_j\). The chain rule gives
+</p>
+
+<p>
+\[
+\frac{\partial \ell}{\partial W_j}
+=A_j^\top\nabla_W\ell(W)B_j^\top.
+\]
+</p>
+
+<p>
+Every layer sees the same end-to-end gradient, but it sees that gradient filtered through all the layers before and after it. If each factor follows gradient flow, \(\dot W_j=-\partial\ell/\partial W_j\), then the product evolves as
+</p>
+
+<p>
+\[
+\dot W
+=-\sum_{j=1}^{N}A_jA_j^\top\,\nabla_W\ell(W)\,B_j^\top B_j.
+\]
+</p>
+
+<p>
+This is not ordinary gradient flow on \(W\). The matrices on the left and right of the gradient change throughout training because they are built from the factors themselves. Depth has converted a fixed Euclidean update into a state-dependent, direction-dependent transformation of the gradient. In modern language, the factorization behaves like an adaptive preconditioner that the model creates for itself.
+</p>
+
+<p>
+The predictions may depend only on \(W\), but the velocity of \(W\) remembers how it was factorized. That is the whole trick.
+</p>
+
+<h2>A one-number network is already nonlinear</h2>
+
+<p>
+The easiest way to see the strange dynamics is to throw away the matrices.
+</p>
+
+<p>
+Take a scalar depth-\(N\) network whose end-to-end weight is
+</p>
+
+<p>
+\[
+p=w_Nw_{N-1}\cdots w_1,
+\]
+</p>
+
+<p>
+and ask it to match a positive target \(y\) using
+</p>
+
+<p>
+\[
+\ell(p)=\frac{1}{2}(p-y)^2.
+\]
+</p>
+
+<p>
+Assume the factors start positive and balanced, so \(w_1=\cdots=w_N=a\) and \(p=a^N\). The gradient-flow equation for each factor is
+</p>
+
+<p>
+\[
+\dot a=-(p-y)a^{N-1}.
+\]
+</p>
+
+<p>
+Differentiate \(p=a^N\):
+</p>
+
+<p>
+\[
+\dot p
+=Na^{N-1}\dot a
+=-Na^{2N-2}(p-y)
+=Np^{2-2/N}(y-p).
+\]
+</p>
+
+<p>
+There it is. The predictor is one scalar multiplication, but its learning rule is nonlinear and depends explicitly on depth.
+</p>
+
+<p>
+For a one-layer model, \(\dot p=y-p\). For depth two, \(\dot p=2p(y-p)\). For depth four, \(\dot p=4p^{3/2}(y-p)\). If \(p\) begins extremely close to zero, the deeper model barely moves because the gradient is multiplied by a power of \(p\). Once \(p\) grows, the same multiplier makes movement much faster. Long silence, then a sudden transition.
+</p>
+
+<p>
+Saxe, McClelland, and Ganguli found precisely this kind of behaviour in their exact analysis of deep linear learning dynamics: plateaus followed by rapid drops in error, even though the network's input-output map remained linear. These are usually described as nonlinear learning phenomena. Here they emerge without a nonlinear activation anywhere in sight.
+</p>
+
+<div class="viz" role="img" aria-label="Depth-dependent scalar gradient flow showing slower motion near zero for deeper factorizations">
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="300" fill="#fff"/>
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">The same scalar predictor acquires a different clock</text>
+
+    <line x1="70" y1="242" x2="710" y2="242" stroke="#999" stroke-width="1.5"/>
+    <line x1="70" y1="242" x2="70" y2="48" stroke="#999" stroke-width="1.5"/>
+    <text x="390" y="276" font-size="11" fill="#666" text-anchor="middle">training time</text>
+    <text x="26" y="150" font-size="11" fill="#666" text-anchor="middle" transform="rotate(-90 26 150)">end-to-end weight p(t)</text>
+
+    <line x1="70" y1="72" x2="710" y2="72" stroke="#ccc" stroke-dasharray="5 4"/>
+    <text x="704" y="63" font-size="10" fill="#777" text-anchor="end">target y</text>
+
+    <path d="M70 232 C150 184, 225 132, 340 94 C455 76, 585 72, 710 72" fill="none" stroke="#2d6cdf" stroke-width="2.5"/>
+    <path d="M70 238 C210 237, 280 212, 350 138 C420 80, 550 72, 710 72" fill="none" stroke="#e0a52d" stroke-width="2.5"/>
+    <path d="M70 240 C310 240, 360 231, 414 172 C465 91, 560 73, 710 72" fill="none" stroke="#e05252" stroke-width="2.5"/>
+
+    <rect x="100" y="56" width="12" height="12" fill="#2d6cdf"/>
+    <text x="120" y="66" font-size="11" fill="#333">N = 1: ṗ = y - p</text>
+    <rect x="100" y="80" width="12" height="12" fill="#e0a52d"/>
+    <text x="120" y="90" font-size="11" fill="#333">N = 2: ṗ = 2p(y - p)</text>
+    <rect x="100" y="104" width="12" height="12" fill="#e05252"/>
+    <text x="120" y="114" font-size="11" fill="#333">N = 4: ṗ = 4p³ᐟ²(y - p)</text>
+
+    <text x="302" y="225" font-size="10" fill="#888" text-anchor="middle">small product, tiny effective update</text>
+    <text x="500" y="137" font-size="10" fill="#888" text-anchor="middle">rapid transition</text>
+  </svg>
+  <p class="viz-caption">Figure 2. Schematic trajectories for balanced positive scalar factorizations initialized near zero. Depth does not change the target function, but the multiplier \(Np^{2-2/N}\) can create an increasingly long plateau before rapid learning. The curves are illustrative rather than a numerical reproduction of one fixed experiment.</p>
+</div>
+
+<h2>A non-convex problem without bad local minima</h2>
+
+<p>
+There is another reason deep linear networks became a useful theoretical laboratory. They are non-convex for the most boring possible reason: matrix multiplication.
+</p>
+
+<p>
+The loss \(\ell(W)\) may be convex in the product matrix, while
+</p>
+
+<p>
+\[
+\phi(W_1,\ldots,W_N)=\ell(W_N\cdots W_1)
+\]
+</p>
+
+<p>
+is non-convex in the individual factors. If one factor changes, the effect of that change depends multiplicatively on all the others. Yet the landscape is much kinder than the word non-convex suggests. For squared loss, classical and later results show that every local minimum of a deep linear network is global under the standard setup. Critical points that are not global minima are saddles.
+</p>
+
+<p>
+That does not mean optimization is trivial. Kawaguchi showed that sufficiently deep linear networks can contain non-strict or "bad" saddle points whose Hessian has no negative eigenvalue. The network can also suffer vanishing or exploding gradients because every layer's update contains products of other layers. No poor local minima does not mean no slow regions, no delicate initialization, or guaranteed success for every finite-step optimizer.
+</p>
+
+<p>
+This is a useful correction to a common instinct. Looking only at the locations of local minima can miss the real difficulty. The path can be hard even when the destination map looks friendly.
+</p>
+
+<h2>When fitting the data does not determine the answer</h2>
+
+<p>
+If a regression problem has a unique optimal end-to-end matrix, shallow and deep parameterizations may eventually agree on that matrix. Their journeys differ, but their destination is fixed. The more interesting case is overparameterized or underdetermined learning, where many matrices fit the observed data perfectly.
+</p>
+
+<p>
+Then optimization must choose.
+</p>
+
+<p>
+This choice is implicit regularization. There is no explicit penalty in the loss saying "prefer this solution." The preference is produced by the parameterization, initialization, learning rate, and optimization dynamics. Ordinary gradient descent on an underdetermined linear regression initialized at zero famously selects a minimum Euclidean-norm solution. Factorize the same predictor into several matrices and the preference changes.
+</p>
+
+<p>
+Matrix completion is the cleanest place to watch this happen. Let \(M^\star\in\mathbb{R}^{d\times d}\) be an unknown matrix, and suppose we observe only entries indexed by a set \(\Omega\). We train by minimizing
+</p>
+
+<p>
+\[
+\ell(W)
+=\frac{1}{2}\sum_{(i,j)\in\Omega}
+\left(W_{ij}-M^\star_{ij}\right)^2
+=\frac{1}{2}\left\lVert P_\Omega(W-M^\star)\right\rVert_F^2,
+\]
+</p>
+
+<p>
+where \(P_\Omega\) keeps observed entries and sets the rest to zero. Any matrix matching the visible entries has zero training loss. Most such matrices say nonsense about the hidden entries. If the true matrix is low rank, however, choosing a low-rank completion can recover the missing structure.
+</p>
+
+<p>
+Now parameterize \(W\) as
+</p>
+
+<p>
+\[
+W=W_NW_{N-1}\cdots W_1
+\]
+</p>
+
+<p>
+with full-dimensional factors. Nothing in this parameterization forces the product to be low rank. Every factor can be \(d\times d\), so the product can have rank \(d\). Nothing in the loss penalizes rank either. Still, gradient descent from a small initialization tends to discover low-rank products. More surprisingly, making the factorization deeper can intensify that tendency.
+</p>
+
+<div class="viz" role="img" aria-label="Matrix completion where observed entries admit many solutions and deep factorization favors a low-rank completion">
+  <svg viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="mc1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 9 3, 0 6" fill="#444"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="310" fill="#fff"/>
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Zero training loss leaves the missing entries undecided</text>
+
+    <text x="115" y="54" font-size="11" fill="#555" text-anchor="middle">partially observed matrix</text>
+    <g transform="translate(35,68)">
+      <rect x="0" y="0" width="160" height="160" fill="#fafafa" stroke="#aaa"/>
+      <g stroke="#ddd">
+        <line x1="32" y1="0" x2="32" y2="160"/><line x1="64" y1="0" x2="64" y2="160"/><line x1="96" y1="0" x2="96" y2="160"/><line x1="128" y1="0" x2="128" y2="160"/>
+        <line x1="0" y1="32" x2="160" y2="32"/><line x1="0" y1="64" x2="160" y2="64"/><line x1="0" y1="96" x2="160" y2="96"/><line x1="0" y1="128" x2="160" y2="128"/>
+      </g>
+      <rect x="0" y="0" width="32" height="32" fill="#2d6cdf" opacity="0.70"/>
+      <rect x="64" y="0" width="32" height="32" fill="#2d6cdf" opacity="0.45"/>
+      <rect x="128" y="32" width="32" height="32" fill="#2d6cdf" opacity="0.65"/>
+      <rect x="32" y="64" width="32" height="32" fill="#2d6cdf" opacity="0.55"/>
+      <rect x="96" y="64" width="32" height="32" fill="#2d6cdf" opacity="0.80"/>
+      <rect x="0" y="96" width="32" height="32" fill="#2d6cdf" opacity="0.40"/>
+      <rect x="64" y="128" width="32" height="32" fill="#2d6cdf" opacity="0.72"/>
+      <rect x="128" y="128" width="32" height="32" fill="#2d6cdf" opacity="0.50"/>
+      <text x="80" y="184" font-size="10" fill="#888" text-anchor="middle">blue entries are training data</text>
+    </g>
+
+    <line x1="210" y1="148" x2="310" y2="148" stroke="#444" stroke-width="1.5" marker-end="url(#mc1)"/>
+    <text x="260" y="137" font-size="10" fill="#666" text-anchor="middle">many exact fits</text>
+
+    <rect x="320" y="76" width="170" height="60" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="405" y="100" font-size="11" fill="#333" text-anchor="middle">high-rank completion</text>
+    <text x="405" y="120" font-size="10" fill="#e05252" text-anchor="middle">fits Ω, misses structure</text>
+
+    <rect x="320" y="166" width="170" height="60" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="405" y="190" font-size="11" fill="#333" text-anchor="middle">low-rank completion</text>
+    <text x="405" y="210" font-size="10" fill="#2d6cdf" text-anchor="middle">fits Ω, recovers structure</text>
+
+    <line x1="505" y1="196" x2="604" y2="196" stroke="#444" stroke-width="1.5" marker-end="url(#mc1)"/>
+    <rect x="615" y="142" width="110" height="108" fill="#f8f8f8" stroke="#cfcfcf" rx="4"/>
+    <text x="670" y="166" font-size="11" fill="#555" text-anchor="middle">deep factorization</text>
+    <text x="670" y="193" font-size="12" fill="#333" text-anchor="middle">W = Wₙ···W₁</text>
+    <text x="670" y="219" font-size="10" fill="#2d6cdf" text-anchor="middle">implicit low-rank</text>
+    <text x="670" y="235" font-size="10" fill="#2d6cdf" text-anchor="middle">preference</text>
+  </svg>
+  <p class="viz-caption">Figure 3. Matrix completion turns generalization into a visible choice. Many matrices interpolate the observed entries, but only some recover the unobserved structure. Full-dimensional factorization does not impose a hard rank constraint, yet its gradient dynamics can prefer low-rank completions.</p>
+</div>
+
+<h2>Depth changes the clock of each singular value</h2>
+
+<p>
+This is where the scalar toy model returns in matrix form.
+</p>
+
+<p>
+Write the end-to-end matrix using a singular value decomposition:
+</p>
+
+<p>
+\[
+W(t)=U(t)\Sigma(t)V(t)^\top,
+\qquad
+\Sigma(t)=\operatorname{diag}\!\left(\sigma_1(t),\ldots,\sigma_r(t)\right).
+\]
+</p>
+
+<p>
+Under gradient flow and a balanced initialization, Arora, Cohen, Hu, and Luo derived the evolution of each singular value:
+</p>
+
+<p>
+\[
+\dot\sigma_r(t)
+=-N\,\sigma_r(t)^{\,2-2/N}
+\left\langle
+\nabla\ell(W(t)),
+u_r(t)v_r(t)^\top
+\right\rangle.
+\]
+</p>
+
+<p>
+The inner product measures how strongly the loss gradient wants to move along the rank-one direction \(u_rv_r^\top\). The striking term is the multiplier
+</p>
+
+<p>
+\[
+N\sigma_r^{,2-2/N}.
+\]
+</p>
+
+<p>
+With no factorization, \(N=1\), the multiplier is one. Every singular direction follows the projected gradient without depending on its current size. At depth two, the multiplier is \(2\sigma_r\). At depth three, it is \(3\sigma_r^{4/3}\). As depth grows, the exponent approaches two.
+</p>
+
+<p>
+Suppose two singular directions receive comparable projected gradients and \(\sigma_a>\sigma_b>0\). Their relative update multipliers are
+</p>
+
+<p>
+\[
+\frac{\sigma_a^{,2-2/N}}{\sigma_b^{,2-2/N}}
+=\left(\frac{\sigma_a}{\sigma_b}\right)^{2-2/N}.
+\]
+</p>
+
+<p>
+Large singular values move faster. Small singular values are held near zero. Increasing depth raises the exponent and widens the difference between their clocks. The model does not explicitly delete small modes. It simply gives already-growing modes a larger effective learning rate and makes weaker modes wait.
+</p>
+
+<p>
+This is a form of rich-get-richer dynamics in the spectrum. A few singular directions emerge early, while the rest remain dormant. Stop training after the observed entries are fitted and the product matrix can look much lower rank than its full-dimensional factors ever required.
+</p>
+
+<div class="viz" role="img" aria-label="Depth amplifies gaps between singular values during gradient flow">
+  <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="760" height="300" fill="#fff"/>
+    <text x="380" y="24" font-size="13" fill="#333" text-anchor="middle">Depth amplifies separation between spectral modes</text>
+
+    <text x="180" y="52" font-size="11" fill="#555" text-anchor="middle">early in training</text>
+    <line x1="50" y1="240" x2="320" y2="240" stroke="#999"/>
+    <line x1="50" y1="240" x2="50" y2="68" stroke="#999"/>
+    <rect x="78" y="188" width="28" height="52" fill="#2d6cdf" opacity="0.75"/>
+    <rect x="126" y="197" width="28" height="43" fill="#2d6cdf" opacity="0.68"/>
+    <rect x="174" y="205" width="28" height="35" fill="#2d6cdf" opacity="0.61"/>
+    <rect x="222" y="214" width="28" height="26" fill="#2d6cdf" opacity="0.54"/>
+    <rect x="270" y="221" width="28" height="19" fill="#2d6cdf" opacity="0.47"/>
+    <text x="180" y="264" font-size="10" fill="#777" text-anchor="middle">singular-value index r</text>
+
+    <text x="580" y="52" font-size="11" fill="#555" text-anchor="middle">later, with deeper factorization</text>
+    <line x1="430" y1="240" x2="710" y2="240" stroke="#999"/>
+    <line x1="430" y1="240" x2="430" y2="68" stroke="#999"/>
+    <rect x="458" y="86" width="28" height="154" fill="#e05252" opacity="0.78"/>
+    <rect x="506" y="142" width="28" height="98" fill="#e05252" opacity="0.68"/>
+    <rect x="554" y="205" width="28" height="35" fill="#e05252" opacity="0.56"/>
+    <rect x="602" y="228" width="28" height="12" fill="#e05252" opacity="0.45"/>
+    <rect x="650" y="235" width="28" height="5" fill="#e05252" opacity="0.35"/>
+    <text x="570" y="264" font-size="10" fill="#777" text-anchor="middle">singular-value index r</text>
+
+    <path d="M323 154 C360 130, 393 130, 426 154" fill="none" stroke="#aaa" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="375" y="119" font-size="10" fill="#888" text-anchor="middle">σᵣ²⁻²ᐟᴺ multiplier</text>
+  </svg>
+  <p class="viz-caption">Figure 4. Conceptual view of the singular-value dynamics. The update multiplier \(\sigma_r^{2-2/N}\) favors modes that are already large and suppresses small ones. A larger depth increases the exponent and strengthens this spectral separation. The bars illustrate the mechanism rather than reproduce a particular run.</p>
+</div>
+
+<h2>The experiment where extra layers help without adding capacity</h2>
+
+<p>
+The NeurIPS 2019 study tested this on matrix completion with full-dimensional factors. The targets were random \(100\times100\) matrices of rank 5 or rank 10. The authors trained factorizations of depths 2, 3, and 4 using small learning rates and near-zero random initialization. Because every hidden dimension was 100, the deeper models had no tighter rank constraint than the shallow one.
+</p>
+
+<p>
+When many entries were visible, all depths recovered the target well. There was enough information for the problem itself to determine the right answer. When few entries were visible, depth mattered. The depth-3 and depth-4 factorizations produced substantially lower reconstruction error than depth 2. The advantage appeared precisely where many zero-training-loss completions remained possible and the optimizer's preference had room to matter.
+</p>
+
+<p>
+The important comparison was not merely test error. The deeper factorizations returned products with lower effective rank. If
+</p>
+
+<p>
+\[
+p_r=\frac{\sigma_r}{\sum_j\sigma_j},
+\]
+</p>
+
+<p>
+then one common effective-rank measure is
+</p>
+
+<p>
+\[
+\operatorname{erank}(W)
+=\exp\!\left(-\sum_r p_r\log p_r\right).
+\]
+</p>
+
+<p>
+It is the exponential of the entropy of the normalized singular-value spectrum. If one singular value dominates, the effective rank approaches one. If \(k\) singular values are equal and the rest are zero, it equals \(k\). The experiments showed deeper factorizations concentrating their spectrum more aggressively.
+</p>
+
+<p>
+This is the clean answer to the original provocation. A hundred linear layers do not create a richer predictor. They create a different route through the same predictors, and in an underdetermined problem the route decides which predictor is selected.
+</p>
+
+<h2>The tempting explanation that turns out to be too neat</h2>
+
+<p>
+At this point there is an obvious thing to say: deep factorization must secretly minimize some low-rank norm.
+</p>
+
+<p>
+The rank of a matrix counts its non-zero singular values:
+</p>
+
+<p>
+\[
+\operatorname{rank}(W)=\sum_r\mathbf{1}\{\sigma_r(W)>0\}.
+\]
+</p>
+
+<p>
+Because rank is discontinuous and difficult to optimize, a standard convex surrogate is the nuclear norm:
+</p>
+
+<p>
+\[
+\lVert W\rVert_*=\sum_r\sigma_r(W).
+\]
+</p>
+
+<p>
+Gunasekar and collaborators studied depth-2 matrix factorization and provided theoretical and empirical evidence connecting gradient descent from infinitesimal initialization to minimum nuclear-norm solutions, with a proof under restricted commuting measurements and a broader conjecture beyond that case. It was natural to imagine a ladder: depth two minimizes the nuclear norm, while greater depth minimizes increasingly rank-like Schatten quasi-norms,
+</p>
+
+<p>
+\[
+\lVert W\rVert_{S_p}^{p}=\sum_r\sigma_r(W)^p,
+\qquad 0<p<1.
+\]
+</p>
+
+<p>
+As \(p\) approaches zero, this expression behaves more like a count of non-zero singular values. The particularly seductive choice is \(p=2/N\), which also appears when explicit squared penalties on the individual factors are collapsed into an end-to-end variational penalty.
+</p>
+
+<p>
+Seductive is not the same as correct.
+</p>
+
+<p>
+Arora and collaborators showed that the existing nuclear-norm theory in the restricted commuting setting extends to arbitrary depth. In other words, that theory cannot explain why depth three behaves differently from depth two. In the data-poor matrix-completion experiments, the factorized solutions also did not generally minimize nuclear norm. Deeper models sometimes accepted a higher nuclear norm while achieving lower effective rank and better recovery.
+</p>
+
+<p>
+Razin and Cohen later sharpened the objection. They constructed natural matrix-factorization problems in which gradient-based optimization moves toward low-rank completion while every norm and quasi-norm of the product diverges. No fixed norm-minimization story can describe such a trajectory.
+</p>
+
+<p>
+The better explanation is dynamical. Depth does not merely add a hidden penalty to the final objective. It changes how different spectral modes move throughout training. The preference lives in the trajectory, not necessarily in a scalar regularizer waiting at the endpoint.
+</p>
+
+<h2>Depth also changes which minimum looks flat</h2>
+
+<p>
+There is a second complication. Even after the end-to-end predictor is fixed, it has infinitely many factorizations, and those factorizations do not have the same curvature.
+</p>
+
+<p>
+For the simplest two-factor case, scaling one factor up and the other down leaves the product untouched:
+</p>
+
+<p>
+\[
+(cW_2)(c^{-1}W_1)=W_2W_1.
+\]
+</p>
+
+<p>
+The function and loss are identical, but the Hessian with respect to \((W_1,W_2)\) can change dramatically. Parameter-space flatness is therefore not a property of the predictor alone. It depends on which representative of the factorization the optimizer chooses.
+</p>
+
+<p>
+A 2024 analysis by Marion and Chizat studied deep linear networks for univariate regression and proved an implicit preference toward relatively flat global minima under gradient flow. The smallest achievable sharpness itself grows with depth, so "flat" must be judged relative to the geometry created by that depth. For small-scale initialization, they also showed that learned factors become approximately rank one and their singular vectors align.
+</p>
+
+<p>
+Once again, the product map hides the story. Two models can implement the same linear function while living in parameter-space neighborhoods with different curvature, different gradient scales, and different sensitivity to finite learning rates.
+</p>
+
+<h2>What deep linear networks are actually good for</h2>
+
+<p>
+Deep linear networks are obviously not replacements for nonlinear models. Collapse all their layers and they still cannot represent XOR, curved decision boundaries, or hierarchical nonlinear features. Their value is diagnostic.
+</p>
+
+<p>
+They strip away nonlinear expressivity while retaining several difficulties associated with deep learning: non-convex parameterization, saddle points, vanishing and exploding gradients, sensitivity to initialization, balancedness across layers, stage-like learning, and implicit regularization. If one of these phenomena survives after every activation is removed, nonlinearity cannot be its full explanation.
+</p>
+
+<p>
+They also make one distinction impossible to ignore:
+</p>
+
+<p>
+\[
+\text{function class}
+\neq
+\text{optimization bias}.
+\]
+</p>
+
+<p>
+An architecture is not specified completely by the set of functions it can express. The coordinates used to express those functions decide how gradients move. The optimizer, parameterization, initialization, and stopping time together define a preference over solutions. In an underdetermined problem, that preference can be the only reason one interpolating solution generalizes and another does not.
+</p>
+
+<h2>What the result does not say</h2>
+
+<p>
+There are several ways to overstate this story, so I want to be precise.
+</p>
+
+<p>
+First, depth does not always help. The strongest low-rank results depend on the task, loss, initialization, and optimization regime. Near-zero or balanced initialization and sufficiently small learning rates are not decorative assumptions. Deep products can train painfully slowly near zero, and badly scaled factors can make gradients vanish or explode.
+</p>
+
+<p>
+Second, full-width deep linear networks have the same end-to-end function class only when no hidden layer forms a bottleneck. A width-\(k\) bottleneck explicitly enforces \(\operatorname{rank}(W)\le k\), which is a different and much simpler source of low rank.
+</p>
+
+<p>
+Third, the singular-value equation above is a gradient-flow result under balancedness conditions. Finite-step gradient descent often tracks this picture when the learning rate is small, but the equation should not be quoted as an exact description of arbitrary optimizers, large learning rates, or arbitrary initialization.
+</p>
+
+<p>
+Finally, a deep nonlinear network is not a deep linear network with a few harmless decorations. ReLU and attention alter the function class and create new geometry. The linear case is a controlled demonstration that parameterization alone can generate rich optimization bias. It is a clue about deep learning, not a complete theory of it.
+</p>
+
+<h2>Back to the useless hundred-layer network</h2>
+
+<p>
+So was the network pointless?
+</p>
+
+<p>
+As a function approximator, yes. If I already know the trained product \(W\), replacing one hundred layers with that single matrix preserves every prediction. Inference has no reason to keep the factorization.
+</p>
+
+<p>
+But training is not only about the final algebraic expression. Before the weights are known, the factorization determines the route by which they are found. A shallow matrix follows the gradient directly. A deep product wraps that gradient in its own evolving geometry. Large singular modes are accelerated, small ones are delayed, and among many perfect fits the network can select a spectrally simpler completion.
+</p>
+
+<p>
+The model is linear in \(x\), nonlinear in time, and biased by depth.
+</p>
+
+<p>
+That is the sentence I was missing when I first collapsed all the matrices and decided there was nothing left to study. I had proved that the architectures compute the same functions. I had not proved that gradient descent sees those functions in the same way.
+</p>
+
+<p>
+One hundred layers can equal one matrix after training. During training, they are an entirely different machine.
+</p>
+
+<h2>References and links</h2>
+
+<ol class="references">
+  <li>Baldi, P., &amp; Hornik, K. (1989). Neural Networks and Principal Component Analysis: Learning from Examples Without Local Minima. <em>Neural Networks, 2</em>(1), 53-58. <a href="https://doi.org/10.1016/0893-6080(89)90014-2" target="_blank">Paper link</a>.</li>
+  <li>Saxe, A. M., McClelland, J. L., &amp; Ganguli, S. (2014). Exact Solutions to the Nonlinear Dynamics of Learning in Deep Linear Neural Networks. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/1312.6120" target="_blank">Paper link</a>.</li>
+  <li>Kawaguchi, K. (2016). Deep Learning Without Poor Local Minima. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1605.07110" target="_blank">Paper link</a>.</li>
+  <li>Gunasekar, S., Woodworth, B., Bhojanapalli, S., Neyshabur, B., &amp; Srebro, N. (2017). Implicit Regularization in Matrix Factorization. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1705.09280" target="_blank">Paper link</a>.</li>
+  <li>Arora, S., Cohen, N., Golowich, N., &amp; Hu, W. (2019). A Convergence Analysis of Gradient Descent for Deep Linear Neural Networks. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/1810.02281" target="_blank">Paper link</a>.</li>
+  <li>Arora, S., Cohen, N., Hu, W., &amp; Luo, Y. (2019). Implicit Regularization in Deep Matrix Factorization. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1905.13655" target="_blank">Paper link</a>.</li>
+  <li>Razin, N., &amp; Cohen, N. (2020). Implicit Regularization in Deep Learning May Not Be Explainable by Norms. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2005.06398" target="_blank">Paper link</a>.</li>
+  <li>Bah, B., Rauhut, H., Terstiege, U., &amp; Westdickenberg, M. (2022). Learning Deep Linear Neural Networks: Riemannian Gradient Flows and Convergence to Global Minimizers. <em>Information and Inference: A Journal of the IMA, 11</em>(1), 307-353. <a href="https://arxiv.org/abs/1910.05505" target="_blank">Paper link</a>.</li>
+  <li>Marion, P., &amp; Chizat, L. (2024). Deep Linear Networks for Regression Are Implicitly Regularized Towards Flat Minima. <em>Advances in Neural Information Processing Systems</em>. <a href="https://papers.nips.cc/paper_files/paper/2024/hash/8c976a95df6a229551cd28c76627edc9-Abstract-Conference.html" target="_blank">Paper link</a>.</li>
+</ol>
+
+</article>
+</main>
+
+</body>
+</html>
