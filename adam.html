@@ -7,16 +7,9 @@
   <title>Adam and Eve</title>
   <link rel="stylesheet" href="https://latex.vercel.app/style.css">
   <link rel="stylesheet" href="site.css">
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']]
-      },
-      svg: { fontCache: 'global' }
-    };
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
   </script>
-  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -25,153 +18,41 @@
     gtag('config', 'G-69CER33QN8');
   </script>
   <style>
-    :root {
-      --ink: #333;
-      --muted: #6c6c6c;
-      --panel: #fff;
-      --line: #d9d9d9;
-      --blue: #3465a4;
-      --red: #b64b4b;
-      --green: #4f7f5b;
-      --gold: #aa7928;
-      --violet: #74569b;
-      --soft-blue: #eaf1fb;
-      --soft-red: #faeded;
-      --soft-green: #edf6ef;
-      --soft-gold: #fbf3e2;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem 1.25rem 4rem;
-      background: var(--paper);
-      color: var(--ink);
-      font-size: 1.1rem;
-      line-height: 1.7;
-    }
-
-    h1 {
-      margin: 2.1rem 0 0.6rem;
-      text-align: center;
-      font-size: 1.65rem;
-      line-height: 1.25;
-    }
-
-    h2 {
-      margin-top: 2.7rem;
-      font-size: 1.32rem;
-      line-height: 1.35;
-    }
-
-    h3 {
-      margin-top: 2rem;
-      font-size: 1.13rem;
-    }
-
-    p { margin: 1.1rem 0; }
-
-    a { color: var(--blue); }
-
-    .nav-links {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.8rem;
-      font-size: 0.96rem;
-    }
-
     .go-back { white-space: nowrap; }
 
-    .meta {
-      margin-bottom: 2.4rem;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.94rem;
-    }
-
-    .lede {
-      font-size: 1.13rem;
-    }
-
-    .equation-note {
-      margin: 1.2rem 0;
-      padding: 0.85rem 1rem;
-      border-left: 3px solid var(--blue);
-      background: #f1f5fa;
-      font-size: 0.98rem;
-    }
-
     .viz {
-      margin: 2rem 0;
-      padding: 1rem;
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      background: var(--panel);
+      overflow: hidden;
     }
 
     .viz svg {
       display: block;
       width: 100%;
-      min-width: 680px;
       height: auto;
       margin: 0 auto;
     }
 
+    .viz .neutral-node {
+      fill: var(--paper-panel);
+    }
+
     .viz-caption {
-      max-width: 680px;
-      margin: 0.8rem auto 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.5;
+      margin: 0.75rem 0 0;
     }
-
-    pre {
-      margin: 1.5rem 0;
-      padding: 1rem 1.1rem;
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      background: #f3f3f3;
-      font-size: 0.92rem;
-      line-height: 1.55;
-    }
-
-    table {
-      width: 100%;
-      margin: 1.6rem 0;
-      border-collapse: collapse;
-      background: var(--panel);
-      font-size: 0.92rem;
-      line-height: 1.45;
-    }
-
-    th, td {
-      padding: 0.75rem 0.7rem;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
-      text-align: left;
-    }
-
-    th { background: #f1f1f1; }
 
     .table-wrap {
-      margin: 1.7rem 0;
+      max-width: 100%;
+      margin: 1.5rem 0;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .table-wrap table { min-width: 720px; }
-
-    .small-caps {
-      font-variant: small-caps;
-      letter-spacing: 0.03em;
+    .table-wrap table {
+      min-width: 42rem;
+      margin: 0 !important;
     }
 
     .references {
       margin-top: 3rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
       font-size: 0.9rem;
       line-height: 1.5;
     }
@@ -179,18 +60,7 @@
     .references li { margin-bottom: 0.72rem; }
 
     .footnote {
-      color: var(--muted);
       font-size: 0.9rem;
-    }
-
-    @media (max-width: 500px) {
-      body {
-        padding: 1.2rem 0.9rem 3rem;
-        font-size: 1rem;
-      }
-
-      h1 { font-size: 1.42rem; }
-      h2 { font-size: 1.22rem; }
     }
   </style>
 </head>
@@ -204,7 +74,7 @@
     <h1>Adam and Eve</h1>
     <div class="meta">13 August, 2026 &middot; Optimization, deep learning, and the geometry hidden inside an update</div>
 
-    <p class="lede">I used Adam for years before noticing something embarrassingly basic: Adam almost never takes the step that the gradient asks it to take.</p>
+    <p>I used Adam for years before noticing something embarrassingly basic: Adam almost never takes the step that the gradient asks it to take.</p>
 
     <p>The gradient has a direction and a magnitude. Adam smooths the direction, divides each coordinate by a different estimate of its recent scale, corrects two startup biases, adds a numerical floor, and only then moves the parameters. If the raw gradient points north-east, Adam may walk almost east. If one coordinate's gradient is a thousand times larger than another, their first Adam steps can still be nearly equal.</p>
 
@@ -239,7 +109,7 @@
     <p>Repeated substitution reveals what \(m_t\) really is:</p>
 
     \[
-      m_t = (1-\beta_1)\sum_{i=1}^{t}\beta_1^{,t-i}g_i,
+      m_t = (1-\beta_1)\sum_{i=1}^{t}\beta_1^{t-i}g_i,
     \]
 
     <p>assuming \(m_0=0\). Recent gradients receive more weight; old ones fade exponentially. When gradients keep the same sign, their evidence accumulates. When they alternate across a steep ravine, they cancel. This is momentum interpreted as a low-pass filter.</p>
@@ -301,7 +171,7 @@ for t = 1, 2, ...:
     v_hat = v / (1 - beta2 ** t)
     parameters -= learning_rate * m_hat / (sqrt(v_hat) + epsilon)</code></pre>
 
-    <div class="viz">
+    <div class="viz" id="optimizer-family">
       <svg viewBox="0 0 760 470" role="img" aria-labelledby="family-title family-desc">
         <title id="family-title">The ideas that meet inside Adam</title>
         <desc id="family-desc">Momentum contributes a first-moment memory. AdaGrad contributes coordinate-wise scaling, which RMSProp makes forgetful. Adam joins momentum and RMSProp with bias correction. AdamW and AMSGrad repair separate later problems. A separate Newton branch leads to BFGS and L-BFGS.</desc>
@@ -312,7 +182,7 @@ for t = 1, 2, ...:
         </defs>
 
         <text x="20" y="25" font-size="15" fill="#666">first-order, stochastic branch</text>
-        <rect x="25" y="45" width="135" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <rect class="neutral-node" x="25" y="45" width="135" height="58" rx="6" stroke="#999"/>
         <text x="92" y="70" text-anchor="middle" font-size="17" fill="#333">SGD</text>
         <text x="92" y="91" text-anchor="middle" font-size="12" fill="#666">current gradient</text>
 
@@ -340,16 +210,16 @@ for t = 1, 2, ...:
         <line x1="565" y1="185" x2="565" y2="245" stroke="#666" stroke-width="2"/>
         <line x1="565" y1="245" x2="460" y2="245" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
         <line x1="565" y1="245" x2="670" y2="245" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
-        <rect x="315" y="258" width="145" height="60" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <rect class="neutral-node" x="315" y="258" width="145" height="60" rx="6" stroke="#999"/>
         <text x="388" y="283" text-anchor="middle" font-size="17" fill="#333">AdamW</text>
         <text x="388" y="304" text-anchor="middle" font-size="12" fill="#666">decouple decay</text>
-        <rect x="605" y="258" width="130" height="60" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <rect class="neutral-node" x="605" y="258" width="130" height="60" rx="6" stroke="#999"/>
         <text x="670" y="283" text-anchor="middle" font-size="17" fill="#333">AMSGrad</text>
         <text x="670" y="304" text-anchor="middle" font-size="12" fill="#666">retain max scale</text>
 
         <line x1="18" y1="347" x2="742" y2="347" stroke="#ccc"/>
         <text x="20" y="374" font-size="15" fill="#666">curvature branch</text>
-        <rect x="70" y="390" width="145" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <rect class="neutral-node" x="70" y="390" width="145" height="58" rx="6" stroke="#999"/>
         <text x="142" y="415" text-anchor="middle" font-size="17" fill="#333">Newton</text>
         <text x="142" y="436" text-anchor="middle" font-size="12" fill="#666">exact Hessian</text>
         <line x1="215" y1="419" x2="302" y2="419" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
@@ -357,7 +227,7 @@ for t = 1, 2, ...:
         <text x="384" y="415" text-anchor="middle" font-size="17" fill="#333">BFGS</text>
         <text x="384" y="436" text-anchor="middle" font-size="12" fill="#666">learn inverse Hessian</text>
         <line x1="457" y1="419" x2="544" y2="419" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
-        <rect x="554" y="390" width="145" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <rect class="neutral-node" x="554" y="390" width="145" height="58" rx="6" stroke="#999"/>
         <text x="626" y="415" text-anchor="middle" font-size="17" fill="#333">L-BFGS</text>
         <text x="626" y="436" text-anchor="middle" font-size="12" fill="#666">remember a few pairs</text>
       </svg>
@@ -374,7 +244,7 @@ for t = 1, 2, ...:
 
     <p>For \(\beta_1=0.9\), the half-life is about \(6.6\) steps. For \(\beta_2=0.999\), it is about \(693\) steps. Adam's numerator changes its mind quickly; its denominator carries a much longer memory of how large gradients have recently been.</p>
 
-    <div class="viz">
+    <div class="viz" id="memory-horizons">
       <svg viewBox="0 0 760 340" role="img" aria-labelledby="memory-title memory-desc">
         <title id="memory-title">Exponential memory in Adam</title>
         <desc id="memory-desc">Two directly labelled decay plots show beta one equal to 0.9 reaching half weight in 6.6 steps, and beta two equal to 0.999 reaching half weight in 693 steps.</desc>
@@ -466,7 +336,7 @@ for t = 1, 2, ...:
 
     <p>This makes Adam look less like “divide by curvature” and more like a softened sign method whose magnitude is controlled by signal-to-noise ratio. A coordinate with a consistent sign approaches a unit-sized normalized update. A coordinate whose gradients are mostly noise is damped. Balles and Hennig developed this interpretation in detail: Adam's numerator largely determines the sign, while relative stochastic variance strongly shapes the magnitude.<a href="#ref-5">[5]</a></p>
 
-    <div class="equation-note"><strong>The categorical distinction:</strong> a Hessian contains derivatives of gradients with respect to parameters. Adam's \(v_t\) contains squared past gradients. Both can produce a diagonal-looking scale, but they are not the same information.</div>
+    <div class="note" id="second-moment-note"><strong>The categorical distinction:</strong> a Hessian contains derivatives of gradients with respect to parameters. Adam's \(v_t\) contains squared past gradients. Both can produce a diagonal-looking scale, but they are not the same information.</div>
 
     <h2>Adam changes the coordinate system</h2>
 
@@ -487,7 +357,7 @@ for t = 1, 2, ...:
 
     <p>But diagonal is the limitation. Rotate the parameterization, and Adam generally traces a different path. It can fix an axis-aligned ellipse; it cannot represent the off-diagonal coupling of a tilted valley. Newton and BFGS can, at a price.</p>
 
-    <div class="viz">
+    <div class="viz" id="preconditioner-geometry">
       <svg viewBox="0 0 760 410" role="img" aria-labelledby="geometry-title geometry-desc">
         <title id="geometry-title">Diagonal scaling versus curvature-aware rotation</title>
         <desc id="geometry-desc">A tilted quadratic valley is shown twice. Adam rescales coordinate axes but its update remains built from a diagonal matrix. Newton or a good BFGS approximation can rotate the step using off-diagonal curvature and point toward the minimum.</desc>
@@ -681,7 +551,7 @@ for t = 1, 2, ...:
 
     <p><strong>Muon</strong> treats a weight matrix as a matrix rather than a bag of unrelated scalars. It orthogonalizes a momentum update, approximately replacing its singular values by ones, commonly through a few Newton-Schulz iterations. Scaling work reported about twice the computational efficiency of AdamW under the paper's compute-optimal language-model experiments.<a href="#ref-20">[20]</a> Yet current Muon recipes still use AdamW for embeddings and other non-matrix parameters. Even the proposed successor does not entirely dismiss Adam; it specializes where matrix geometry is useful.</p>
 
-    <div class="table-wrap">
+    <div class="table-wrap" id="optimizer-comparison">
       <table>
         <thead>
           <tr>
