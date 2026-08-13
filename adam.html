@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A mathematical and narrative dissection of Adam: its history, moment estimates, bias correction, geometry, convergence failures, AdamW, BFGS, quasi-Newton methods, and newer optimizers.">
+  <title>Adam and Eve</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    :root {
+      --ink: #333;
+      --muted: #6c6c6c;
+      --paper: #f9f9f9;
+      --panel: #fff;
+      --line: #d9d9d9;
+      --blue: #3465a4;
+      --red: #b64b4b;
+      --green: #4f7f5b;
+      --gold: #aa7928;
+      --violet: #74569b;
+      --soft-blue: #eaf1fb;
+      --soft-red: #faeded;
+      --soft-green: #edf6ef;
+      --soft-gold: #fbf3e2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+
+    h1 {
+      margin: 2.1rem 0 0.6rem;
+      text-align: center;
+      font-size: 1.65rem;
+      line-height: 1.25;
+    }
+
+    h2 {
+      margin-top: 2.7rem;
+      font-size: 1.32rem;
+      line-height: 1.35;
+    }
+
+    h3 {
+      margin-top: 2rem;
+      font-size: 1.13rem;
+    }
+
+    p { margin: 1.1rem 0; }
+
+    a { color: var(--blue); }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+      font-size: 0.96rem;
+    }
+
+    .go-back { white-space: nowrap; }
+
+    .meta {
+      margin-bottom: 2.4rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .lede {
+      font-size: 1.13rem;
+    }
+
+    .equation-note {
+      margin: 1.2rem 0;
+      padding: 0.85rem 1rem;
+      border-left: 3px solid var(--blue);
+      background: #f1f5fa;
+      font-size: 0.98rem;
+    }
+
+    .viz {
+      margin: 2rem 0;
+      padding: 1rem;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 680px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .viz-caption {
+      max-width: 680px;
+      margin: 0.8rem auto 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    pre {
+      margin: 1.5rem 0;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #f3f3f3;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    table {
+      width: 100%;
+      margin: 1.6rem 0;
+      border-collapse: collapse;
+      background: var(--panel);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    th, td {
+      padding: 0.75rem 0.7rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th { background: #f1f1f1; }
+
+    .table-wrap {
+      margin: 1.7rem 0;
+      overflow-x: auto;
+    }
+
+    .table-wrap table { min-width: 720px; }
+
+    .small-caps {
+      font-variant: small-caps;
+      letter-spacing: 0.03em;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .references li { margin-bottom: 0.72rem; }
+
+    .footnote {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 1.2rem 0.9rem 3rem;
+        font-size: 1rem;
+      }
+
+      h1 { font-size: 1.42rem; }
+      h2 { font-size: 1.22rem; }
+      .nav-links { flex-direction: column; gap: 0.35rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-links" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <article>
+    <h1>Adam and Eve</h1>
+    <div class="meta">13 August, 2026 &middot; Optimization, deep learning, and the geometry hidden inside an update</div>
+
+    <p class="lede">I used Adam for years before noticing something embarrassingly basic: Adam almost never takes the step that the gradient asks it to take.</p>
+
+    <p>The gradient has a direction and a magnitude. Adam smooths the direction, divides each coordinate by a different estimate of its recent scale, corrects two startup biases, adds a numerical floor, and only then moves the parameters. If the raw gradient points north-east, Adam may walk almost east. If one coordinate's gradient is a thousand times larger than another, their first Adam steps can still be nearly equal.</p>
+
+    <p>That sounds like a betrayal of gradient descent. It is actually the point.</p>
+
+    <p>Adam was introduced by Diederik Kingma and Jimmy Ba in December 2014 as a first-order method for stochastic optimization.<a href="#ref-1">[1]</a> Its name means <em>adaptive moment estimation</em>. The name is unusually honest: the optimizer keeps an exponential estimate of the gradient's first raw moment and another of its second raw moment, then uses their ratio to build a new coordinate system for learning.</p>
+
+    <p>This essay is about what that sentence hides. We will arrive at Adam from inside its update, not by marching through a museum of optimizers. Momentum, AdaGrad, and RMSProp will appear exactly where Adam needs them. Then we will take the method apart mathematically, see why AdamW and AMSGrad repair different weaknesses, and put Adam beside Newton, BFGS, L-BFGS, Shampoo, Sophia, Lion, Adafactor, and Muon. The final question is not which optimizer has the grandest equation. It is what each optimizer knows, what that knowledge costs, and whether “better” survives contact with an actual training run.</p>
+
+    <h2>One gradient, one learning rate, one immediate problem</h2>
+
+    <p>Let the parameters be \(\theta\in\mathbb{R}^d\), and let the mini-batch loss at step \(t\) be \(L_t(\theta)\). Plain stochastic gradient descent computes</p>
+
+    \[
+      g_t = \nabla_\theta L_t(\theta_{t-1}),
+      \qquad
+      \theta_t = \theta_{t-1} - \alpha g_t.
+    \]
+
+    <p>The equation is almost offensively clean. Every coordinate shares the same learning rate \(\alpha\), and the optimizer remembers nothing. Yet a neural network rarely offers coordinates of comparable scale. One parameter can receive large, erratic gradients; another can receive tiny but consistently signed ones. A single \(\alpha\) must be small enough not to explode the first coordinate and large enough not to freeze the second.</p>
+
+    <p>On a narrow quadratic valley, the gradient makes the mismatch visible. It points in the direction of steepest local increase, not necessarily toward the minimum. A large component across the valley causes oscillation; a small component along the valley makes progress slow. This is the first crack that Adam tries to seal, but it borrows two different pieces of machinery to do it.</p>
+
+    <h2>Momentum gives the gradient a memory</h2>
+
+    <p>Suppose the gradient changes because each mini-batch is a noisy view of the same underlying direction. Instead of trusting the current batch, keep a moving average:</p>
+
+    \[
+      m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t.
+    \]
+
+    <p>Repeated substitution reveals what \(m_t\) really is:</p>
+
+    \[
+      m_t = (1-\beta_1)\sum_{i=1}^{t}\beta_1^{,t-i}g_i,
+    \]
+
+    <p>assuming \(m_0=0\). Recent gradients receive more weight; old ones fade exponentially. When gradients keep the same sign, their evidence accumulates. When they alternate across a steep ravine, they cancel. This is momentum interpreted as a low-pass filter.</p>
+
+    <p>But momentum solves only the directional part of the problem. If one coordinate is naturally a thousand times larger, its moving average is also roughly a thousand times larger. The ball has memory, but every dimension still shares one speed limit.</p>
+
+    <h2>AdaGrad gives every coordinate its own clock</h2>
+
+    <p>AdaGrad takes a different route. It accumulates the squared gradients coordinate by coordinate:</p>
+
+    \[
+      r_t = r_{t-1} + g_t\odot g_t,
+      \qquad
+      \theta_t = \theta_{t-1} - \alpha\frac{g_t}{\sqrt{r_t}+\varepsilon}.
+    \]
+
+    <p>All products, square roots, and divisions here are element-wise. A coordinate that repeatedly receives large gradients grows a large denominator and slows down. A rarely active feature retains a relatively large effective step. This was precisely the “needle in a haystack” geometry highlighted by Duchi, Hazan, and Singer: sparse but predictive features should not be drowned by frequently updated ones.<a href="#ref-2">[2]</a></p>
+
+    <p>AdaGrad's gift is also its failure mode. Since \(r_t\) only grows, the effective learning rate</p>
+
+    \[
+      \eta_{t,i}=\frac{\alpha}{\sqrt{r_{t,i}}+\varepsilon}
+    \]
+
+    <p>only shrinks. On a long non-stationary training run, ancient gradients retain permanent voting rights. Eventually a coordinate can become cautious not because it is currently unstable, but because it was active a million updates ago.</p>
+
+    <p>RMSProp, presented in Geoffrey Hinton's 2012 neural-net lectures and attributed there to Tijmen Tieleman, changes one symbol and changes the behavior:<a href="#ref-3">[3]</a></p>
+
+    \[
+      v_t = \beta_2 v_{t-1} + (1-\beta_2)g_t\odot g_t.
+    \]
+
+    <p>The sum becomes an exponential moving average. RMSProp keeps AdaGrad's per-coordinate scale, but it forgets. Old curvature-like evidence fades, so the learning rate can recover when the landscape changes.</p>
+
+    <h2>Adam is the splice</h2>
+
+    <p>Adam joins momentum's first-moment memory to RMSProp's second-moment scaling and adds one correction that both moving averages need at startup:</p>
+
+    \[
+    \begin{aligned}
+      g_t &= \nabla_\theta L_t(\theta_{t-1}), \\
+      m_t &= \beta_1m_{t-1}+(1-\beta_1)g_t, \\
+      v_t &= \beta_2v_{t-1}+(1-\beta_2)g_t\odot g_t, \\
+      \widehat m_t &= \frac{m_t}{1-\beta_1^t}, \\
+      \widehat v_t &= \frac{v_t}{1-\beta_2^t}, \\
+      \theta_t &= \theta_{t-1}-\alpha
+      \frac{\widehat m_t}{\sqrt{\widehat v_t}+\varepsilon}.
+    \end{aligned}
+    \]
+
+    <p>The original defaults were \(\alpha=10^{-3}\), \(\beta_1=0.9\), \(\beta_2=0.999\), and \(\varepsilon=10^{-8}\). They became familiar enough to look like constants of nature. They are not. They describe two memory horizons, a global update scale, and the point at which numerical stability begins to dominate the adaptive denominator.</p>
+
+    <pre aria-label="Adam optimizer pseudocode"><code>m = 0; v = 0
+for t = 1, 2, ...:
+    g = gradient(loss, parameters)
+    m = beta1 * m + (1 - beta1) * g
+    v = beta2 * v + (1 - beta2) * g * g
+    m_hat = m / (1 - beta1 ** t)
+    v_hat = v / (1 - beta2 ** t)
+    parameters -= learning_rate * m_hat / (sqrt(v_hat) + epsilon)</code></pre>
+
+    <div class="viz">
+      <svg viewBox="0 0 760 470" role="img" aria-labelledby="family-title family-desc">
+        <title id="family-title">The ideas that meet inside Adam</title>
+        <desc id="family-desc">Momentum contributes a first-moment memory. AdaGrad contributes coordinate-wise scaling, which RMSProp makes forgetful. Adam joins momentum and RMSProp with bias correction. AdamW and AMSGrad repair separate later problems. A separate Newton branch leads to BFGS and L-BFGS.</desc>
+        <defs>
+          <marker id="arrow-family" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#666"/>
+          </marker>
+        </defs>
+
+        <text x="20" y="25" font-size="15" fill="#666">first-order, stochastic branch</text>
+        <rect x="25" y="45" width="135" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <text x="92" y="70" text-anchor="middle" font-size="17" fill="#333">SGD</text>
+        <text x="92" y="91" text-anchor="middle" font-size="12" fill="#666">current gradient</text>
+
+        <line x1="160" y1="65" x2="225" y2="65" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="235" y="37" width="155" height="58" rx="6" fill="#eaf1fb" stroke="#3465a4"/>
+        <text x="312" y="62" text-anchor="middle" font-size="17" fill="#333">Momentum</text>
+        <text x="312" y="83" text-anchor="middle" font-size="12" fill="#666">remember direction</text>
+
+        <line x1="92" y1="103" x2="92" y2="160" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="25" y="170" width="135" height="58" rx="6" fill="#fbf3e2" stroke="#aa7928"/>
+        <text x="92" y="195" text-anchor="middle" font-size="17" fill="#333">AdaGrad</text>
+        <text x="92" y="216" text-anchor="middle" font-size="12" fill="#666">scale each coordinate</text>
+
+        <line x1="160" y1="199" x2="225" y2="199" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="235" y="170" width="155" height="58" rx="6" fill="#edf6ef" stroke="#4f7f5b"/>
+        <text x="312" y="195" text-anchor="middle" font-size="17" fill="#333">RMSProp</text>
+        <text x="312" y="216" text-anchor="middle" font-size="12" fill="#666">let scale forget</text>
+
+        <path d="M390 66 C455 66 430 142 480 142" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <path d="M390 199 C450 199 430 158 480 158" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="490" y="115" width="150" height="70" rx="6" fill="#faeded" stroke="#b64b4b" stroke-width="2"/>
+        <text x="565" y="142" text-anchor="middle" font-size="19" fill="#333">Adam</text>
+        <text x="565" y="164" text-anchor="middle" font-size="12" fill="#666">join + bias-correct</text>
+
+        <line x1="565" y1="185" x2="565" y2="245" stroke="#666" stroke-width="2"/>
+        <line x1="565" y1="245" x2="460" y2="245" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <line x1="565" y1="245" x2="670" y2="245" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="315" y="258" width="145" height="60" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <text x="388" y="283" text-anchor="middle" font-size="17" fill="#333">AdamW</text>
+        <text x="388" y="304" text-anchor="middle" font-size="12" fill="#666">decouple decay</text>
+        <rect x="605" y="258" width="130" height="60" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <text x="670" y="283" text-anchor="middle" font-size="17" fill="#333">AMSGrad</text>
+        <text x="670" y="304" text-anchor="middle" font-size="12" fill="#666">retain max scale</text>
+
+        <line x1="18" y1="347" x2="742" y2="347" stroke="#ccc"/>
+        <text x="20" y="374" font-size="15" fill="#666">curvature branch</text>
+        <rect x="70" y="390" width="145" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <text x="142" y="415" text-anchor="middle" font-size="17" fill="#333">Newton</text>
+        <text x="142" y="436" text-anchor="middle" font-size="12" fill="#666">exact Hessian</text>
+        <line x1="215" y1="419" x2="302" y2="419" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="312" y="390" width="145" height="58" rx="6" fill="#eeeaf5" stroke="#74569b"/>
+        <text x="384" y="415" text-anchor="middle" font-size="17" fill="#333">BFGS</text>
+        <text x="384" y="436" text-anchor="middle" font-size="12" fill="#666">learn inverse Hessian</text>
+        <line x1="457" y1="419" x2="544" y2="419" stroke="#666" stroke-width="2" marker-end="url(#arrow-family)"/>
+        <rect x="554" y="390" width="145" height="58" rx="6" fill="#f3f3f3" stroke="#999"/>
+        <text x="626" y="415" text-anchor="middle" font-size="17" fill="#333">L-BFGS</text>
+        <text x="626" y="436" text-anchor="middle" font-size="12" fill="#666">remember a few pairs</text>
+      </svg>
+      <div class="viz-caption">Adam is not a chronological successor to every optimizer in the diagram. It is a specific splice of two first-order ideas. Newton and BFGS live on a different branch because they try to reconstruct curvature rather than gradient scale.</div>
+    </div>
+
+    <h2>The two memories run on different clocks</h2>
+
+    <p>The defaults \(\beta_1=0.9\) and \(\beta_2=0.999\) are not merely “close to one.” They imply dramatically different horizons. The contribution of an observation \(k\) steps old is proportional to \(\beta^k\). Its half-life is therefore</p>
+
+    \[
+      k_{1/2}=\frac{\log(1/2)}{\log\beta}.
+    \]
+
+    <p>For \(\beta_1=0.9\), the half-life is about \(6.6\) steps. For \(\beta_2=0.999\), it is about \(693\) steps. Adam's numerator changes its mind quickly; its denominator carries a much longer memory of how large gradients have recently been.</p>
+
+    <div class="viz">
+      <svg viewBox="0 0 760 340" role="img" aria-labelledby="memory-title memory-desc">
+        <title id="memory-title">Exponential memory in Adam</title>
+        <desc id="memory-desc">Two directly labelled decay plots show beta one equal to 0.9 reaching half weight in 6.6 steps, and beta two equal to 0.999 reaching half weight in 693 steps.</desc>
+        <line x1="95" y1="35" x2="95" y2="282" stroke="#999"/>
+        <line x1="95" y1="282" x2="715" y2="282" stroke="#999"/>
+        <text x="24" y="51" font-size="13" fill="#666">relative</text>
+        <text x="27" y="68" font-size="13" fill="#666">weight</text>
+        <text x="91" y="302" font-size="12" fill="#666">0</text>
+        <text x="693" y="302" font-size="12" fill="#666">1,000 steps old</text>
+        <text x="65" y="43" font-size="12" fill="#666">1.0</text>
+        <text x="65" y="163" font-size="12" fill="#666">0.5</text>
+        <text x="65" y="284" font-size="12" fill="#666">0</text>
+        <line x1="95" y1="162" x2="715" y2="162" stroke="#ddd" stroke-dasharray="5 5"/>
+
+        <polyline points="95,42 95.6,66 96.2,88 96.9,107 97.5,125 98.1,140 98.7,155 99.1,162 99.3,167 100,179 100.6,189 101.2,198 104.3,233 107.4,253 113.6,272 126,281 157,282 715,282" fill="none" stroke="#3465a4" stroke-width="4"/>
+        <circle cx="99" cy="162" r="5" fill="#3465a4"/>
+        <text x="130" y="95" font-size="16" fill="#333">first moment, β₁ = 0.9</text>
+        <text x="130" y="118" font-size="13" fill="#666">half-life ≈ 6.6 steps</text>
+
+        <polyline points="95,42 126,54 157,65 219,86 281,104 343,121 405,136 467,150 525,162 591,174 653,184 715,194" fill="none" stroke="#b64b4b" stroke-width="4"/>
+        <circle cx="525" cy="162" r="5" fill="#b64b4b"/>
+        <line x1="525" y1="162" x2="525" y2="282" stroke="#b64b4b" stroke-dasharray="4 4"/>
+        <text x="365" y="62" font-size="16" fill="#333">second moment, β₂ = 0.999</text>
+        <text x="365" y="85" font-size="13" fill="#666">half-life ≈ 693 steps</text>
+        <text x="510" y="304" font-size="12" fill="#666">693</text>
+      </svg>
+      <div class="viz-caption">The plotted quantity is \(\beta^k\), the relative weight of a gradient observed \(k\) steps ago. The horizontal axis is shared; the difference in memory is therefore literal, not decorative.</div>
+    </div>
+
+    <p>This asymmetry is useful. Direction should respond when the loss changes; scale should be stable enough not to let one strange mini-batch rewrite every effective learning rate. It also creates a subtle lag: after a regime change, \(m_t\) may adapt while \(v_t\) still describes the old world.</p>
+
+    <h2>Bias correction is not cosmetic</h2>
+
+    <p>Both moving averages start at zero. If gradients are drawn from a stationary distribution with mean \(\mu\), then</p>
+
+    \[
+    \begin{aligned}
+      \mathbb{E}[m_t]
+      &= (1-\beta_1)\sum_{i=1}^{t}\beta_1^{t-i}\mu \\
+      &= (1-\beta_1^t)\mu.
+    \end{aligned}
+    \]
+
+    <p>So \(m_t\) is pulled toward zero by exactly the factor \(1-\beta_1^t\). If \(q=\mathbb{E}[g_t^2]\) coordinate-wise, then similarly</p>
+
+    \[
+      \mathbb{E}[v_t]=(1-\beta_2^t)q.
+    \]
+
+    <p>Dividing by those missing masses gives \(\widehat m_t\) and \(\widehat v_t\). The correction matters especially for \(v_t\): with \(\beta_2=0.999\), its uncorrected first value contains only one-thousandth of \(g_1^2\). Without correction, the denominator starts much too small and the first updates can be much too large.</p>
+
+    <p>The cleanest way to see Adam's early behavior is to give it a constant non-zero gradient. At the first step, bias correction yields</p>
+
+    \[
+      \widehat m_1=g_1,
+      \qquad
+      \widehat v_1=g_1^2,
+    \]
+
+    <p>and therefore</p>
+
+    \[
+      \Delta\theta_1
+      =-\alpha\frac{g_1}{|g_1|+\varepsilon}
+      \approx -\alpha\,\operatorname{sign}(g_1).
+    \]
+
+    <p>Unless a gradient coordinate is comparable to \(\varepsilon\), its magnitude almost disappears. A gradient of \(10^{-3}\) and one of \(10^2\) can both produce an update near \(\alpha\). This is why Adam can move parameters with very different raw gradient scales without requiring a separate hand-tuned learning rate for every layer.</p>
+
+    <h2>The second moment is not curvature</h2>
+
+    <p>The notation \(v_t\) has misled generations of readers into calling it a variance. It is an exponential estimate of the <em>uncentered second moment</em>, because Adam stores \(g_t^2\), not \((g_t-m_t)^2\). For a scalar gradient,</p>
+
+    \[
+      \mathbb{E}[g^2]
+      = \operatorname{Var}(g)+\bigl(\mathbb{E}[g]\bigr)^2.
+    \]
+
+    <p>In a roughly stationary region, write \(\mu=\mathbb{E}[g]\) and \(\sigma^2=\operatorname{Var}(g)\). If the moving averages are well settled, Adam's normalized direction is approximately</p>
+
+    \[
+      \frac{m}{\sqrt v}
+      \approx
+      \frac{\mu}{\sqrt{\mu^2+\sigma^2}}
+      =
+      \frac{\operatorname{sign}(\mu)}
+      {\sqrt{1+\sigma^2/\mu^2}}.
+    \]
+
+    <p>This makes Adam look less like “divide by curvature” and more like a softened sign method whose magnitude is controlled by signal-to-noise ratio. A coordinate with a consistent sign approaches a unit-sized normalized update. A coordinate whose gradients are mostly noise is damped. Balles and Hennig developed this interpretation in detail: Adam's numerator largely determines the sign, while relative stochastic variance strongly shapes the magnitude.<a href="#ref-5">[5]</a></p>
+
+    <div class="equation-note"><strong>The categorical distinction:</strong> a Hessian contains derivatives of gradients with respect to parameters. Adam's \(v_t\) contains squared past gradients. Both can produce a diagonal-looking scale, but they are not the same information.</div>
+
+    <h2>Adam changes the coordinate system</h2>
+
+    <p>Define the diagonal preconditioner</p>
+
+    \[
+      P_t=\operatorname{diag}
+      \left(\frac{1}{\sqrt{\widehat v_t}+\varepsilon}\right).
+    \]
+
+    <p>Then the update is simply</p>
+
+    \[
+      \Delta\theta_t=-\alpha P_t\widehat m_t.
+    \]
+
+    <p>The word <em>preconditioner</em> is doing real work. Adam does not merely choose a smaller or larger global step; it stretches parameter space along coordinate axes. Directions with a history of large gradients are compressed. Directions with small gradients are expanded. Ignoring \(\varepsilon\), this makes the update invariant to positive diagonal rescaling of the gradients, one of the properties emphasized in the original paper.<a href="#ref-1">[1]</a></p>
+
+    <p>But diagonal is the limitation. Rotate the parameterization, and Adam generally traces a different path. It can fix an axis-aligned ellipse; it cannot represent the off-diagonal coupling of a tilted valley. Newton and BFGS can, at a price.</p>
+
+    <div class="viz">
+      <svg viewBox="0 0 760 410" role="img" aria-labelledby="geometry-title geometry-desc">
+        <title id="geometry-title">Diagonal scaling versus curvature-aware rotation</title>
+        <desc id="geometry-desc">A tilted quadratic valley is shown twice. Adam rescales coordinate axes but its update remains built from a diagonal matrix. Newton or a good BFGS approximation can rotate the step using off-diagonal curvature and point toward the minimum.</desc>
+        <defs>
+          <marker id="arrow-geo-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#3465a4"/>
+          </marker>
+          <marker id="arrow-geo-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#b64b4b"/>
+          </marker>
+          <marker id="arrow-geo-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#4f7f5b"/>
+          </marker>
+        </defs>
+
+        <text x="190" y="30" text-anchor="middle" font-size="18" fill="#333">Adam: diagonal preconditioning</text>
+        <g transform="translate(190 205) rotate(-30)">
+          <ellipse cx="0" cy="0" rx="145" ry="53" fill="none" stroke="#ccc" stroke-width="2"/>
+          <ellipse cx="0" cy="0" rx="105" ry="38" fill="none" stroke="#d8d8d8"/>
+          <ellipse cx="0" cy="0" rx="60" ry="22" fill="none" stroke="#e2e2e2"/>
+        </g>
+        <circle cx="190" cy="205" r="5" fill="#333"/>
+        <text x="181" y="226" font-size="12" fill="#666">minimum</text>
+        <circle cx="85" cy="117" r="6" fill="#333"/>
+        <line x1="85" y1="117" x2="149" y2="172" stroke="#3465a4" stroke-width="4" marker-end="url(#arrow-geo-blue)"/>
+        <text x="42" y="92" font-size="13" fill="#333">current point</text>
+        <text x="78" y="177" font-size="13" fill="#3465a4">rescaled axes,</text>
+        <text x="78" y="195" font-size="13" fill="#3465a4">no rotation</text>
+        <line x1="56" y1="325" x2="132" y2="325" stroke="#999" marker-end="url(#arrow-geo-red)"/>
+        <line x1="56" y1="325" x2="56" y2="270" stroke="#999" marker-end="url(#arrow-geo-red)"/>
+        <text x="45" y="350" font-size="12" fill="#666">coordinate axes</text>
+
+        <line x1="380" y1="25" x2="380" y2="385" stroke="#ddd"/>
+
+        <text x="570" y="30" text-anchor="middle" font-size="18" fill="#333">Newton / BFGS: a full metric</text>
+        <g transform="translate(570 205) rotate(-30)">
+          <ellipse cx="0" cy="0" rx="145" ry="53" fill="none" stroke="#ccc" stroke-width="2"/>
+          <ellipse cx="0" cy="0" rx="105" ry="38" fill="none" stroke="#d8d8d8"/>
+          <ellipse cx="0" cy="0" rx="60" ry="22" fill="none" stroke="#e2e2e2"/>
+        </g>
+        <circle cx="570" cy="205" r="5" fill="#333"/>
+        <text x="561" y="226" font-size="12" fill="#666">minimum</text>
+        <circle cx="465" cy="117" r="6" fill="#333"/>
+        <line x1="465" y1="117" x2="566" y2="202" stroke="#4f7f5b" stroke-width="4" marker-end="url(#arrow-geo-green)"/>
+        <text x="423" y="92" font-size="13" fill="#333">current point</text>
+        <text x="479" y="167" font-size="13" fill="#4f7f5b">off-diagonal coupling</text>
+        <text x="500" y="185" font-size="13" fill="#4f7f5b">can rotate the step</text>
+        <g transform="translate(475 325) rotate(-30)">
+          <line x1="0" y1="0" x2="76" y2="0" stroke="#999" marker-end="url(#arrow-geo-green)"/>
+          <line x1="0" y1="0" x2="0" y2="-55" stroke="#999" marker-end="url(#arrow-geo-green)"/>
+        </g>
+        <text x="494" y="350" font-size="12" fill="#666">learned curvature axes</text>
+      </svg>
+      <div class="viz-caption">The picture is schematic, but the algebraic distinction is exact: Adam uses a diagonal matrix \(P_t\); Newton uses \(H_t^{-1}\), and BFGS builds a dense approximation to it. Only the latter can encode rotated parameter interactions.</div>
+    </div>
+
+    <h2>The convergence problem was not “Adam never works”</h2>
+
+    <p>In 2018, Reddi, Kale, and Kumar showed a simple convex construction on which Adam can fail to converge.<a href="#ref-6">[6]</a> The problem is easiest to describe through Adam's coordinate-wise effective learning rate:</p>
+
+    \[
+      \eta_{t,i}
+      =\frac{\alpha_t}{\sqrt{\widehat v_{t,i}}+\varepsilon}.
+    \]
+
+    <p>Because \(v_t\) forgets, its value can decrease. That means an effective learning rate can increase later, even when the global schedule \(\alpha_t\) does not. In the counterexample, rare large gradients and frequent small gradients interact with that forgetting so that Adam keeps assigning the wrong relative importance to updates.</p>
+
+    <p>AMSGrad changes one line:</p>
+
+    \[
+      \widetilde v_t
+      =\max(\widetilde v_{t-1},v_t)
+      \quad\text{coordinate-wise},
+    \]
+
+    <p>and divides by \(\sqrt{\widetilde v_t}\). The denominator can no longer shrink, restoring the long-term memory that RMSProp removed from AdaGrad. Notice the irony: RMSProp solved AdaGrad's overlong memory by forgetting; AMSGrad repairs a theoretical Adam failure by remembering the largest scale forever.</p>
+
+    <p>This does not make every ordinary Adam run suspect. Later analyses proved convergence under smoothness and bounded-gradient assumptions with suitable schedules.<a href="#ref-7">[7]</a> Constant learning-rate Adam does not generally converge exactly to a stationary point, but neither does constant learning-rate SGD; both can settle into a noisy neighborhood. The useful conclusion is narrower: Adam's excellent empirical behavior is not a universal mathematical guarantee, and the moving denominator is part of the optimization dynamics, not harmless bookkeeping.</p>
+
+    <h2>AdamW fixes a different mistake</h2>
+
+    <p>For plain SGD, adding an \(L_2\) penalty to the loss is equivalent, after rescaling, to multiplying weights by a decay factor. With an adaptive preconditioner, that equivalence breaks.</p>
+
+    <p>If we add \(\frac{\lambda}{2}\|\theta\|^2\) to the loss, the gradient becomes \(g_t+\lambda\theta_{t-1}\). Adam then preconditions the penalty too:</p>
+
+    \[
+      \theta_t
+      =\theta_{t-1}
+      -\alpha P_t g_t
+      -\alpha\lambda P_t\theta_{t-1}.
+    \]
+
+    <p>Every coordinate now decays at a different rate because \(P_t\) is diagonal and history-dependent. A parameter with a large second-moment estimate receives less regularization. Calling this ordinary “weight decay” hides what the optimizer is doing.</p>
+
+    <p>AdamW decouples the operations:<a href="#ref-8">[8]</a></p>
+
+    \[
+      \theta_t
+      =(1-\alpha\lambda)\theta_{t-1}
+      -\alpha P_t\widehat m_t.
+    \]
+
+    <p>The loss gradient is adapted; the parameters are decayed directly. AdamW is therefore not “a newer Adam with better momentum.” It corrects the interaction between regularization and Adam's geometry. That distinction is why modern recipes so often mean AdamW when they casually say Adam.</p>
+
+    <h2>Newton sees curvature; Adam sees history</h2>
+
+    <p>Near a point \(\theta\), approximate a smooth objective by a quadratic:</p>
+
+    \[
+      L(\theta+s)
+      \approx L(\theta)+g^\top s+\frac12s^\top Hs,
+    \]
+
+    <p>where \(H=\nabla^2L(\theta)\) is the Hessian. Differentiating this local model with respect to \(s\) gives</p>
+
+    \[
+      g+Hs=0,
+      \qquad
+      s_{\text{Newton}}=-H^{-1}g.
+    \]
+
+    <p>If the model is exactly quadratic and \(H\) is positive definite, Newton's step lands at the minimum in one move. More generally it rescales and rotates the gradient using local curvature. This is the information Adam does not have.</p>
+
+    <p>But an explicit Hessian has \(d^2\) entries. At a billion parameters, the problem is not that the matrix is large. The problem is that the phrase “store the matrix” has stopped being physically serious.</p>
+
+    <h2>BFGS: reconstruct the Hessian from footprints</h2>
+
+    <p>In 1970, Charles Broyden, Roger Fletcher, Donald Goldfarb, and David Shanno independently arrived at closely related rank-two variable-metric updates.<a href="#ref-10">[10]</a><a href="#ref-11">[11]</a><a href="#ref-12">[12]</a><a href="#ref-13">[13]</a> Their initials became BFGS.</p>
+
+    <p>The method does not evaluate the Hessian directly. It observes a step and the resulting change in gradient:</p>
+
+    \[
+      s_k=\theta_{k+1}-\theta_k,
+      \qquad
+      y_k=g_{k+1}-g_k.
+    \]
+
+    <p>For a quadratic, \(y_k=Hs_k\). So a Hessian approximation \(B_{k+1}\) should at least satisfy the secant equation</p>
+
+    \[
+      B_{k+1}s_k=y_k.
+    \]
+
+    <p>BFGS chooses a symmetric rank-two update that satisfies this constraint while changing the previous metric as little as possible in a particular weighted sense. In inverse form, with \(H_k\) now denoting an approximation to the <em>inverse</em> Hessian and \(\rho_k=(y_k^\top s_k)^{-1}\),</p>
+
+    \[
+    \begin{aligned}
+      H_{k+1}
+      ={}& (I-\rho_k s_ky_k^\top)
+          H_k
+          (I-\rho_k y_ks_k^\top) \\
+        &+\rho_k s_ks_k^\top.
+    \end{aligned}
+    \]
+
+    <p>The search direction is \(p_k=-H_kg_k\), usually followed by a line search. If \(H_k\) is positive definite and \(y_k^\top s_k>0\), the update preserves positive definiteness. On smooth deterministic problems, good line searches make BFGS remarkably powerful; near a well-behaved solution it can converge superlinearly without ever forming the true Hessian.</p>
+
+    <p>Full BFGS still stores a dense \(d\times d\) matrix. L-BFGS, introduced by Jorge Nocedal, avoids that by storing only the most recent \(m\) pairs \((s_k,y_k)\) and applying the implied inverse Hessian through a two-loop recursion.<a href="#ref-14">[14]</a> Its memory is \(O(md)\), not \(O(d^2)\).</p>
+
+    <p>That sounds as though L-BFGS should replace Adam. It usually does not, for three connected reasons.</p>
+
+    <p>First, Adam stores two state vectors, about \(2d\) scalars. L-BFGS with a history of ten stores roughly \(20d\) scalars for ten step-gradient pairs, before temporary workspaces. Limited-memory is relative to a dense Hessian, not necessarily relative to Adam.</p>
+
+    <p>Second, mini-batch noise corrupts the curvature observation. If</p>
+
+    \[
+      y_k=
+      g(\theta_{k+1};\xi_{k+1})
+      -g(\theta_k;\xi_k),
+    \]
+
+    <p>then \(y_k\) mixes the effect of moving \(\theta\) with the effect of changing the sampled batch \(\xi\). The secant pair can describe data noise as if it were curvature. Using the same or very large batches helps, but costs more computation.</p>
+
+    <p>Third, line searches and curvature updates create synchronization and extra function evaluations. Adam's cheap streaming update fits accelerator-heavy training: one backward pass yields the gradient, and the optimizer performs element-wise operations. A quasi-Newton method asks more of both the mathematics and the system.</p>
+
+    <p>This is not a verdict against BFGS. For small or medium smooth deterministic objectives, full-batch fine-tuning, and settings where accurate local convergence matters more than cheap noisy steps, BFGS or L-BFGS can be decisively better. For networks with tens of millions of variables, even specialized quasi-Newton research uses block-diagonal, Kronecker-factored, and damped approximations because naive BFGS is impractical.<a href="#ref-15">[15]</a> “Better” changes when the budget changes.</p>
+
+    <h2>So are the optimizers after Adam actually better?</h2>
+
+    <p>There is no single scalar called optimizer quality. Better can mean fewer steps, lower wall-clock time, less optimizer memory, fewer total FLOPs, less hyperparameter search, lower training loss, or better downstream generalization. Those objectives disagree often enough that a leaderboard without a budget is mostly typography.</p>
+
+    <p>Still, the methods that followed Adam are intellectually revealing because each attacks a specific bill Adam leaves unpaid.</p>
+
+    <p><strong>Adafactor</strong> notices that Adam's second-moment tensor costs one scalar per parameter. For a matrix, it stores row and column statistics and reconstructs a factored approximation, reducing auxiliary memory to sublinear in the number of matrix entries. In the original Transformer experiment, this recovered performance comparable to the published Adam regime while using much less optimizer state.<a href="#ref-16">[16]</a> It is better when memory is the binding constraint; factorization is also an approximation, not free accuracy.</p>
+
+    <p><strong>Shampoo</strong> attacks Adam's inability to rotate. It maintains preconditioning matrices along each tensor dimension, retaining some cross-coordinate structure without storing a full \(d\times d\) matrix.<a href="#ref-17">[17]</a> This can improve conditioning and step efficiency. The bill arrives as matrix inverse roots, implementation complexity, and distributed systems work.</p>
+
+    <p><strong>Lion</strong> goes in the opposite direction. It discards the second-moment buffer and uses the sign of a momentum-like quantity, keeping only one state vector. Its authors reported gains on several vision and diffusion workloads, similar or better results on some language tasks, and also cases where improvements were small or not statistically significant.<a href="#ref-18">[18]</a> Lion can be leaner than Adam, but its sign update has a different norm and generally needs a smaller learning rate and a retuned recipe.</p>
+
+    <p><strong>Sophia</strong> finally puts actual curvature into a scalable language-model optimizer. It divides momentum by a periodically estimated diagonal Hessian and clips the result to control non-convex or rapidly changing curvature. The original experiments reported roughly a twofold speed-up over Adam on GPT models from 125 million to 1.5 billion parameters.<a href="#ref-19">[19]</a> That is substantial evidence for those settings, not a proof that diagonal Hessian estimation dominates every model, scale, and infrastructure stack.</p>
+
+    <p><strong>Muon</strong> treats a weight matrix as a matrix rather than a bag of unrelated scalars. It orthogonalizes a momentum update, approximately replacing its singular values by ones, commonly through a few Newton-Schulz iterations. Scaling work reported about twice the computational efficiency of AdamW under the paper's compute-optimal language-model experiments.<a href="#ref-20">[20]</a> Yet current Muon recipes still use AdamW for embeddings and other non-matrix parameters. Even the proposed successor does not entirely dismiss Adam; it specializes where matrix geometry is useful.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>What it remembers</th>
+            <th>What it can fix</th>
+            <th>The price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SGD + momentum</td>
+            <td>One direction vector</td>
+            <td>Noisy oscillation; low optimizer state</td>
+            <td>One global coordinate scale; recipe sensitivity</td>
+          </tr>
+          <tr>
+            <td>AdamW</td>
+            <td>First and diagonal second moments</td>
+            <td>Unequal, noisy, or sparse gradient scales</td>
+            <td>Two state vectors; diagonal geometry</td>
+          </tr>
+          <tr>
+            <td>L-BFGS</td>
+            <td>Recent steps and gradient differences</td>
+            <td>Local curvature and rotated valleys</td>
+            <td>Batch noise, line searches, roughly \(2md\) state</td>
+          </tr>
+          <tr>
+            <td>Adafactor / Lion</td>
+            <td>Factored scale / one momentum vector</td>
+            <td>Adam's optimizer-memory cost</td>
+            <td>Approximation or a different sign-based recipe</td>
+          </tr>
+          <tr>
+            <td>Shampoo / Sophia</td>
+            <td>Tensor preconditioners / diagonal Hessian estimates</td>
+            <td>More faithful curvature or coupling</td>
+            <td>Matrix operations or periodic curvature estimates</td>
+          </tr>
+          <tr>
+            <td>Muon</td>
+            <td>Orthogonalized matrix momentum</td>
+            <td>Matrix update conditioning</td>
+            <td>Specialized parameter shapes and systems complexity</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>A useful 2025 comparison makes the ambiguity concrete. Under its pre-training setup, Sophia achieved the lowest training and validation loss, Lion used the fewest GPU hours, and AdamW produced the best downstream evaluations.<a href="#ref-21">[21]</a> Three winners appeared because three meanings of “best” were measured.</p>
+
+    <h2>The generalization argument is real, but not universal</h2>
+
+    <p>Adaptive optimizers do more than reach a solution quickly; their preconditioners choose a path through parameter space. In overparameterized models, many parameter vectors can fit the training data, and different paths can end at different solutions. Wilson and colleagues constructed settings and reported experiments where adaptive methods reached worse test performance than SGD even when they optimized the training objective well.<a href="#ref-9">[9]</a></p>
+
+    <p>It is tempting to compress this into “SGD generalizes, Adam overfits.” That slogan is too strong. Architecture, normalization, weight decay, schedule, batch size, data regime, and training duration all matter. AdamW specifically repaired one regularization mismatch that had made older comparisons less clean. In large language models, AdamW became a default not because generalization stopped mattering, but because stable optimization across huge, heterogeneous parameter groups became extraordinarily valuable.</p>
+
+    <h2>What I would choose, and what I would measure</h2>
+
+    <p>If I had to begin a modern Transformer fine-tune tomorrow, I would start with AdamW. Not because it is theoretically supreme, but because its behavior, schedules, and failure modes are well mapped, and because it tolerates heterogeneous gradient scales with little ceremony.</p>
+
+    <p>If optimizer memory were the bottleneck, I would test Adafactor or another deliberately memory-efficient variant. If I were training a vision model with a mature SGD recipe and cared about the final fraction of a percent, I would not abandon momentum SGD merely because Adam reaches low training loss sooner. If the objective were smooth, deterministic, and modest in dimension, I would try L-BFGS early rather than forcing a stochastic deep-learning default onto a numerical optimization problem.</p>
+
+    <p>And if a training run were expensive enough that a ten-percent optimizer improvement mattered financially, I would benchmark Shampoo, Sophia, Muon, or Lion on a smaller but faithful proxy. I would hold the compute budget fixed, tune each method fairly, and report at least four things: final validation quality, wall time, total FLOPs, and peak memory. Step count alone rewards optimizers that do more work per step; wall time alone can reward one implementation; training loss alone may not survive evaluation.</p>
+
+    <p>The practical hierarchy is less dramatic than the paper titles. AdamW is the robust baseline. Specialized methods are hypotheses about a particular bottleneck. BFGS is brilliant when gradients are clean and curvature is worth learning. Muon is promising when parameters are large matrices and the system can exploit that structure. No method is better before the problem defines the bill.</p>
+
+    <h2>What this dissection does not say</h2>
+
+    <p>It does not say that \(v_t\) is a Hessian. It does not say that Adam is literally a sign optimizer after the first step. It does not say that AMSGrad always beats Adam, that AdamW cures every generalization gap, or that a twofold improvement reported on one family of language-model runs transfers unchanged to another architecture.</p>
+
+    <p>It also does not say optimizer choice can be separated from the rest of the training recipe. Learning-rate warmup, decay schedules, gradient clipping, parameter groups, normalization, batch size, mixed precision, distributed communication, and weight decay can alter the result as much as the named update rule. “Adam” in a codebase is often an ecosystem, not six equations.</p>
+
+    <h2>The gradient is only the beginning of the step</h2>
+
+    <p>Return to the first observation: Adam does not follow the gradient.</p>
+
+    <p>It listens to the gradient through two memories. One asks, “Which direction has been consistent lately?” The other asks, “How large has this coordinate usually been?” Bias correction stops both memories from confusing youth with evidence. The ratio turns magnitude into something closer to confidence, and the diagonal preconditioner quietly replaces the geometry of the parameter space.</p>
+
+    <p>That is why Adam works so often, why it can fail in ways SGD cannot, why AdamW matters, and why BFGS is not simply Adam with more mathematics. Every optimizer is an argument about which parts of the past deserve to shape the next step. Adam's argument is cheap, local, diagonal, and extraordinarily useful. Its successors are better only when they know something the problem is willing to pay for.</p>
+
+    <section class="references" aria-labelledby="references-heading">
+      <h2 id="references-heading">References</h2>
+      <ol>
+        <li id="ref-1">D. P. Kingma and J. Ba, <a href="https://arxiv.org/abs/1412.6980">“Adam: A Method for Stochastic Optimization”</a>, 2014 / ICLR 2015.</li>
+        <li id="ref-2">J. Duchi, E. Hazan, and Y. Singer, <a href="https://jmlr.org/papers/v12/duchi11a.html">“Adaptive Subgradient Methods for Online Learning and Stochastic Optimization”</a>, JMLR, 2011.</li>
+        <li id="ref-3">T. Tieleman and G. Hinton, <a href="https://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf">“RMSProp: Divide the Gradient by a Running Average of Its Recent Magnitude”</a>, Neural Networks for Machine Learning, Lecture 6e, 2012.</li>
+        <li id="ref-4">I. Sutskever, J. Martens, G. Dahl, and G. Hinton, <a href="https://proceedings.mlr.press/v28/sutskever13.html">“On the Importance of Initialization and Momentum in Deep Learning”</a>, ICML, 2013.</li>
+        <li id="ref-5">L. Balles and P. Hennig, <a href="https://proceedings.mlr.press/v80/balles18a.html">“Dissecting Adam: The Sign, Magnitude and Variance of Stochastic Gradients”</a>, ICML, 2018.</li>
+        <li id="ref-6">S. J. Reddi, S. Kale, and S. Kumar, <a href="https://openreview.net/forum?id=ryQu7f-RZ">“On the Convergence of Adam and Beyond”</a>, ICLR, 2018.</li>
+        <li id="ref-7">A. Défossez, L. Bottou, F. Bach, and N. Usunier, <a href="https://arxiv.org/abs/2003.02395">“A Simple Convergence Proof of Adam and Adagrad”</a>, 2020.</li>
+        <li id="ref-8">I. Loshchilov and F. Hutter, <a href="https://arxiv.org/abs/1711.05101">“Decoupled Weight Decay Regularization”</a>, ICLR, 2019.</li>
+        <li id="ref-9">A. C. Wilson et al., <a href="https://arxiv.org/abs/1705.08292">“The Marginal Value of Adaptive Gradient Methods in Machine Learning”</a>, NeurIPS, 2017.</li>
+        <li id="ref-10">C. G. Broyden, <a href="https://doi.org/10.1093/imamat/6.1.76">“The Convergence of a Class of Double-rank Minimization Algorithms”</a>, JIMA, 1970.</li>
+        <li id="ref-11">R. Fletcher, <a href="https://doi.org/10.1093/comjnl/13.3.317">“A New Approach to Variable Metric Algorithms”</a>, The Computer Journal, 1970.</li>
+        <li id="ref-12">D. Goldfarb, <a href="https://doi.org/10.1090/S0025-5718-1970-0258249-6">“A Family of Variable-Metric Methods Derived by Variational Means”</a>, Mathematics of Computation, 1970.</li>
+        <li id="ref-13">D. F. Shanno, <a href="https://doi.org/10.1090/S0025-5718-1970-0274029-X">“Conditioning of Quasi-Newton Methods for Function Minimization”</a>, Mathematics of Computation, 1970.</li>
+        <li id="ref-14">J. Nocedal, <a href="https://doi.org/10.1090/S0025-5718-1980-0572855-7">“Updating Quasi-Newton Matrices with Limited Storage”</a>, Mathematics of Computation, 1980.</li>
+        <li id="ref-15">D. Goldfarb, Y. Ren, and A. Bahamou, <a href="https://arxiv.org/abs/2006.08877">“Practical Quasi-Newton Methods for Training Deep Neural Networks”</a>, 2020.</li>
+        <li id="ref-16">N. Shazeer and M. Stern, <a href="https://arxiv.org/abs/1804.04235">“Adafactor: Adaptive Learning Rates with Sublinear Memory Cost”</a>, ICML, 2018.</li>
+        <li id="ref-17">V. Gupta, T. Koren, and Y. Singer, <a href="https://proceedings.mlr.press/v80/gupta18a.html">“Shampoo: Preconditioned Stochastic Tensor Optimization”</a>, ICML, 2018.</li>
+        <li id="ref-18">X. Chen et al., <a href="https://arxiv.org/abs/2302.06675">“Symbolic Discovery of Optimization Algorithms”</a>, 2023.</li>
+        <li id="ref-19">H. Liu et al., <a href="https://arxiv.org/abs/2305.14342">“Sophia: A Scalable Stochastic Second-order Optimizer for Language Model Pre-training”</a>, 2023 / ICLR 2024.</li>
+        <li id="ref-20">J. Liu et al., <a href="https://arxiv.org/abs/2502.16982">“Muon is Scalable for LLM Training”</a>, 2025.</li>
+        <li id="ref-21">J. Schlotthauer et al., <a href="https://arxiv.org/abs/2507.08472">“Pre-Training LLMs on a Budget: A Comparison of Three Optimizers”</a>, 2025.</li>
+      </ol>
+      <p class="footnote">All equations use element-wise multiplication, division, squaring, and square roots unless matrix notation explicitly says otherwise.</p>
+    </section>
+  </article>
+</body>
+</html>
