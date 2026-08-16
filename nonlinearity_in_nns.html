@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A mathematical and intuitive explanation of why nonlinear activations let deep neural networks build hierarchical features: affine collapse, gates, interactions, linear regions, compositionality, receptive fields, gradient learning, and the limits of the story.">
+  <title>A Stack of Straight Lines Is Still a Straight Line</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    /* Content-specific rules only. The site palette and typography come from site.css. */
+    html {
+      background-color: #d8ccb2;
+      color: #000;
+    }
+
+    body {
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      background: transparent;
+      color: #000;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .post-image {
+      margin: 1.5rem 0;
+    }
+
+    .post-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .equation-note {
+      margin: 1.5rem 0;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid #999;
+      border-left: 4px solid #000;
+    }
+
+    .viz {
+      margin: 2rem 0;
+      overflow-x: auto;
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 650px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .table-wrap table {
+      min-width: 720px;
+    }
+
+    details.technical-aside {
+      margin: 1.4rem 0;
+      padding: 0.85rem 1rem;
+      border: 1px solid #999;
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    details.technical-aside summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    details.technical-aside > :last-child {
+      margin-bottom: 0;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.7rem;
+    }
+
+    .footnote {
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1.2rem 1rem 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-links" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article>
+      <h1>A Stack of Straight Lines Is Still a Straight Line</h1>
+      <div class="meta">16 August, 2026 &middot; Why nonlinearity lets neural networks build features out of features</div>
+      <p>So I was just asking the twitter folks what should I write about next on. <a href="https://x.com/777BHAVYA">Bhavya</a></p>
+
+      <figure class="post-image">
+        <img src="bhavya.png" alt="Bhavya Goyal asking why nonlinearity in neural networks makes them learn hierarchical features" width="991" height="213">
+      </figure>
+
+      <p class="lede">Imagine training a hundred-layer neural network, waiting through the night, and then discovering that all one hundred layers could be replaced by a single matrix multiplication without changing a single prediction.</p>
+
+      <p>This is exactly what happens if every hidden activation is linear.</p>
+
+      <p>The network may look deep in the diagram. It may contain millions of parameters. Its training dynamics may still be complicated. But as a function from input to output, it has learned one affine transformation wearing a hundred different name tags.</p>
+
+      <p>Then we insert something almost embarrassingly small between the matrices:</p>
+
+      \[
+        \operatorname{ReLU}(z)=\max(0,z).
+      \]
+
+      <p>Negative numbers become zero. Positive numbers pass through unchanged. This tiny kink is enough to stop the collapse. A later layer no longer receives a fixed linear remix of the input. It receives a pattern of features that has already been selected, suppressed, folded, and rewritten by the earlier layers.</p>
+
+      <p>This is usually summarized as “nonlinearities let neural networks learn hierarchical features.” The sentence is true, but it hides three different claims:</p>
+
+      <ol>
+        <li>nonlinearity makes depth representationally meaningful;</li>
+        <li>depth allows the network to build functions by composing simpler functions;</li>
+        <li>the data, loss, architecture, and optimizer decide whether those intermediate functions become useful features.</li>
+      </ol>
+
+      <p>Nonlinearity is the mathematical permission. It is not the entire learning story.</p>
+
+      <h2>First: what is a feature, mathematically?</h2>
+
+      <p>In ordinary language, a feature might be an edge, a wheel, a face, a negation, a rhyme, or a suspicious pattern of transactions. Inside a neural network, the definition is less romantic. A feature is simply a coordinate of an intermediate representation.<a href="#ref-1">[1]</a></p>
+
+      <p>Let the input be \(h_0=x\). A feed-forward layer computes</p>
+
+      \[
+        z_\ell=W_\ell h_{\ell-1}+b_\ell,
+        \qquad
+        h_\ell=\phi(z_\ell).
+      \]
+
+      <p>The vector \(z_\ell\) contains weighted combinations of the previous layer. The activation \(\phi\) transforms each combination. The resulting vector \(h_\ell\) is the representation passed forward.</p>
+
+      <p>The \(j\)-th coordinate is</p>
+
+      \[
+        h_{\ell,j}
+        =\phi\!\left(w_{\ell,j}^{\top}h_{\ell-1}+b_{\ell,j}\right).
+      \]
+
+      <p>So a neuron is not literally an edge detector or a wheel detector. It is a learned test on the previous representation. If the test repeatedly activates on vertical contrast, we call it an edge feature. If a later test activates on several curves arranged like a wheel, we call it a wheel feature. The semantic name is our description of what the learned coordinate responds to.</p>
+
+      <p>“Hierarchical” means that the tests in layer \(\ell\) operate on features produced by layer \(\ell-1\), not directly on the raw input. The network constructs features of features.</p>
+
+      <h2>Without nonlinearity, depth is algebraically fake</h2>
+
+      <p>Remove \(\phi\) and consider two layers without biases:</p>
+
+      \[
+        h_1=W_1x,
+        \qquad
+        y=W_2h_1.
+      \]
+
+      <p>Substitute the first equation into the second:</p>
+
+      \[
+        y=W_2W_1x=W_{\mathrm{effective}}x.
+      \]
+
+      <p>Nothing genuinely new happened between the layers. Their matrices multiply into another matrix. Ten linear layers collapse in the same way:</p>
+
+      \[
+        W_{10}W_9\cdots W_2W_1x=Wx.
+      \]
+
+      <p>Biases do not rescue the hierarchy. Two affine layers give</p>
+
+      \[
+      \begin{aligned}
+        y
+        &=W_2(W_1x+b_1)+b_2\\
+        &=(W_2W_1)x+(W_2b_1+b_2),
+      \end{aligned}
+      \]
+
+      <p>which is still one affine map.</p>
+
+      <p>Take a numerical example. Let</p>
+
+      \[
+        W_1=
+        \begin{bmatrix}
+          1&1\\
+          1&-1
+        \end{bmatrix},
+        \qquad
+        W_2=
+        \begin{bmatrix}
+          2&-1
+        \end{bmatrix},
+        \qquad
+        x=
+        \begin{bmatrix}
+          2\\-1
+        \end{bmatrix}.
+      \]
+
+      <p>The first layer produces</p>
+
+      \[
+        W_1x=
+        \begin{bmatrix}
+          1\\3
+        \end{bmatrix},
+      \]
+
+      <p>and the second produces \(2(1)-1(3)=-1\). But</p>
+
+      \[
+        W_2W_1=
+        \begin{bmatrix}
+          1&3
+        \end{bmatrix},
+      \]
+
+      <p>so the supposedly deep network is exactly the one-layer calculation \(1(2)+3(-1)=-1\).</p>
+
+      <p>A deep linear network can still have interesting optimization dynamics and internally factor a matrix in many ways.<a href="#ref-2">[2]</a> Its hidden vectors may even be useful for analysis. But its input-output function cannot bend, gate, or treat two regions of the input space according to different rules. Representationally, its depth has not purchased nonlinearity.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="collapse-title collapse-desc">
+          <title id="collapse-title">Linear layers collapse while nonlinear layers create input-dependent paths</title>
+          <desc id="collapse-desc">The upper path shows three linear transformations collapsing into one effective matrix. The lower path inserts ReLU gates, preventing the matrices from combining into a single fixed transformation.</desc>
+          <defs>
+            <marker id="arrow-collapse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="28" y="35" font-size="18" fill="#000">Linear stack</text>
+          <rect x="30" y="58" width="92" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="76" y="92" text-anchor="middle" font-size="16" fill="#000">input x</text>
+          <line x1="122" y1="87" x2="164" y2="87" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="174" y="58" width="92" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="220" y="92" text-anchor="middle" font-size="16" fill="#000">W₁</text>
+          <line x1="266" y1="87" x2="308" y2="87" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="318" y="58" width="92" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="364" y="92" text-anchor="middle" font-size="16" fill="#000">W₂</text>
+          <line x1="410" y1="87" x2="452" y2="87" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="462" y="58" width="92" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="508" y="92" text-anchor="middle" font-size="16" fill="#000">W₃</text>
+          <line x1="554" y1="87" x2="596" y2="87" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="606" y="58" width="124" height="58" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="668" y="82" text-anchor="middle" font-size="15" fill="#000">one matrix</text>
+          <text x="668" y="103" text-anchor="middle" font-size="13" fill="#000">W₃W₂W₁x</text>
+
+          <line x1="30" y1="160" x2="730" y2="160" stroke="#aaa"/>
+
+          <text x="28" y="205" font-size="18" fill="#000">Nonlinear stack</text>
+          <rect x="30" y="228" width="82" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="71" y="262" text-anchor="middle" font-size="16" fill="#000">input x</text>
+          <line x1="112" y1="257" x2="144" y2="257" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="154" y="228" width="76" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="192" y="262" text-anchor="middle" font-size="16" fill="#000">W₁</text>
+          <line x1="230" y1="257" x2="262" y2="257" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="272" y="221" width="88" height="72" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="316" y="250" text-anchor="middle" font-size="16" fill="#000">ReLU</text>
+          <text x="316" y="273" text-anchor="middle" font-size="12" fill="#000">input gate</text>
+          <line x1="360" y1="257" x2="392" y2="257" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="402" y="228" width="76" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="440" y="262" text-anchor="middle" font-size="16" fill="#000">W₂</text>
+          <line x1="478" y1="257" x2="510" y2="257" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="520" y="221" width="88" height="72" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="564" y="250" text-anchor="middle" font-size="16" fill="#000">ReLU</text>
+          <text x="564" y="273" text-anchor="middle" font-size="12" fill="#000">new gate</text>
+          <line x1="608" y1="257" x2="640" y2="257" stroke="#000" stroke-width="2" marker-end="url(#arrow-collapse)"/>
+          <rect x="650" y="228" width="80" height="58" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="690" y="262" text-anchor="middle" font-size="16" fill="#000">W₃</text>
+
+          <rect x="105" y="333" width="550" height="60" fill="none" stroke="#777" stroke-dasharray="5 5"/>
+          <text x="380" y="358" text-anchor="middle" font-size="14" fill="#000">The active computation now depends on the input.</text>
+          <text x="380" y="380" text-anchor="middle" font-size="14" fill="#000">The matrices cannot be multiplied into one fixed map.</text>
+        </svg>
+        <div class="viz-caption">Depth becomes functionally meaningful at the points where a fixed linear transformation is interrupted by an input-dependent nonlinear decision.</div>
+      </div>
+
+      <h2>The kink turns one matrix into many conditional matrices</h2>
+
+      <p>ReLU is often described as a nonlinear function, which is correct but not yet explanatory. Its more useful interpretation is as a gate.</p>
+
+      <p>For a vector \(z\), write</p>
+
+      \[
+        \operatorname{ReLU}(z)=D(z)z,
+      \]
+
+      <p>where \(D(z)\) is a diagonal matrix containing a one when the corresponding coordinate of \(z\) is positive and a zero otherwise.</p>
+
+      <p>For example, if</p>
+
+      \[
+        z=
+        \begin{bmatrix}
+          3\\-1\\2
+        \end{bmatrix},
+        \qquad
+        D(z)=
+        \begin{bmatrix}
+          1&0&0\\
+          0&0&0\\
+          0&0&1
+        \end{bmatrix},
+      \]
+
+      <p>then \(D(z)z=[3,0,2]^{\top}\).</p>
+
+      <p>A two-layer ReLU network can therefore be written as</p>
+
+      \[
+        f(x)=W_2D(W_1x+b_1)(W_1x+b_1)+b_2.
+      \]
+
+      <p>The crucial point is that \(D\) depends on \(x\). For one input, neurons 1, 4, and 9 may be active. For another, neurons 2, 4, and 7 may be active. The network uses a different effective affine map in each activation region.</p>
+
+      <p>Return to the earlier matrices and ignore biases:</p>
+
+      \[
+        W_1=
+        \begin{bmatrix}
+          1&1\\
+          1&-1
+        \end{bmatrix},
+        \qquad
+        W_2=
+        \begin{bmatrix}
+          2&-1
+        \end{bmatrix}.
+      \]
+
+      <p>For \(x_A=[1,2]^{\top}\), the hidden pre-activation is</p>
+
+      \[
+        W_1x_A=
+        \begin{bmatrix}
+          3\\-1
+        \end{bmatrix}.
+      \]
+
+      <p>ReLU closes the second gate, so \(h_A=[3,0]^{\top}\) and \(f(x_A)=6\). The effective linear map in this region is \([2,2]\).</p>
+
+      <p>For \(x_B=[2,1]^{\top}\),</p>
+
+      \[
+        W_1x_B=
+        \begin{bmatrix}
+          3\\1
+        \end{bmatrix}.
+      \]
+
+      <p>Both gates open, so \(h_B=[3,1]^{\top}\) and \(f(x_B)=5\). The effective map is now \([1,3]\).</p>
+
+      <p>The weights never changed between the two examples. The active subnetwork did. This is conditional computation in its smallest form.</p>
+
+      <p>For an \(L\)-layer ReLU network, inside any fixed activation pattern, the Jacobian contains a chain of weight matrices and gates:</p>
+
+      \[
+        J_f(x)
+        =W_LD_{L-1}(x)W_{L-1}\cdots D_1(x)W_1.
+      \]
+
+      <p>If every \(D_\ell\) were a constant identity matrix, we would return to one collapsed linear map. Because the gates depend on the representation produced so far, every layer can refine the conditions under which later computations are used.</p>
+
+      <div class="equation-note"><strong>The shortest answer:</strong> nonlinearity makes a layer's transformation depend on where the input currently lives. Hierarchical features emerge because later layers can test configurations of earlier input-dependent features rather than merely remixing the raw input through one fixed matrix.</div>
+
+      <h2>Nonlinearity creates interactions that addition cannot</h2>
+
+      <p>Linear maps can add and subtract coordinates. They cannot create a product such as \(x_1x_2\). This matters because many useful features are interactions: two edges meeting, two words appearing together, a price increase combined with falling demand, or a pass occurring while a defender is out of position.</p>
+
+      <p>A deliberately unusual activation, \(\phi(z)=z^2\), makes the algebra transparent. Create two hidden units:</p>
+
+      \[
+        h_1=(x_1+x_2)^2,
+        \qquad
+        h_2=(x_1-x_2)^2.
+      \]
+
+      <p>The output</p>
+
+      \[
+        \frac{h_1-h_2}{4}
+        =\frac{(x_1+x_2)^2-(x_1-x_2)^2}{4}
+        =x_1x_2
+      \]
+
+      <p>is a multiplicative interaction. With \(x_1=3\) and \(x_2=2\), the hidden units are \(25\) and \(1\), and the output is \((25-1)/4=6\).</p>
+
+      <p>Square activations are not the standard choice, but the example exposes what a nonlinear stage buys: the next layer receives new coordinates that did not exist in the affine span of the inputs. A further nonlinear layer can build interactions among those interactions.</p>
+
+      <p>ReLU creates interactions differently. It does not multiply coordinates directly; it makes a linear computation conditional on inequalities. That is enough to represent XOR, the classic pattern that no single linear boundary can separate.</p>
+
+      <p>For binary inputs \(x_1,x_2\in\{0,1\}\), define</p>
+
+      \[
+        h_1=\operatorname{ReLU}(x_1+x_2),
+        \qquad
+        h_2=\operatorname{ReLU}(x_1+x_2-1),
+      \]
+
+      \[
+        y=h_1-2h_2.
+      \]
+
+      <p>The four cases are:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>\(x_1\)</th>
+              <th>\(x_2\)</th>
+              <th>\(h_1\)</th>
+              <th>\(h_2\)</th>
+              <th>\(y=h_1-2h_2\)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+            <tr><td>1</td><td>1</td><td>2</td><td>1</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The first hidden feature measures how many inputs are active. The second detects whether both are active. The output combines those features into “exactly one is active.” The hidden layer has changed the geometry so that the final linear combination can solve what one affine map could not.</p>
+
+      <h2>A tiny hierarchy built from four pixels</h2>
+
+      <p>Now we can build a literal feature hierarchy with real numbers.</p>
+
+      <p>Take a \(2\times2\) binary image, flattened as \(x=[x_1,x_2,x_3,x_4]\). Let the first two pixels be the top row and the last two the bottom row. Define two first-layer features:</p>
+
+      \[
+        h_{\mathrm{top}}
+        =\operatorname{ReLU}(x_1+x_2-1.5),
+      \]
+
+      \[
+        h_{\mathrm{bottom}}
+        =\operatorname{ReLU}(x_3+x_4-1.5).
+      \]
+
+      <p>Because the pixels are binary, each detector outputs \(0.5\) only when both pixels in its row are on. It otherwise outputs zero.</p>
+
+      <p>A second layer can test whether both row features exist:</p>
+
+      \[
+        h_{=}
+        =\operatorname{ReLU}
+        \left(h_{\mathrm{top}}+h_{\mathrm{bottom}}-0.75\right).
+      \]
+
+      <p>For the image \([1,1,1,1]\), both row detectors produce \(0.5\), so</p>
+
+      \[
+        h_{=} = \operatorname{ReLU}(0.5+0.5-0.75)=0.25.
+      \]
+
+      <p>For \([1,1,0,0]\), only the top detector fires:</p>
+
+      \[
+        h_{=} = \operatorname{ReLU}(0.5+0-0.75)=0.
+      \]
+
+      <p>For the diagonal pattern \([1,0,0,1]\), neither row detector fires, so the second-layer feature is also zero.</p>
+
+      <p>The second layer never examines individual pixels. It asks whether two already-learned horizontal features co-occur. That is the hierarchy: pixels become short lines; short lines become a larger configuration.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 490" role="img" aria-labelledby="pixels-title pixels-desc">
+          <title id="pixels-title">Four pixels become row features and then a higher-level pattern</title>
+          <desc id="pixels-desc">A two-by-two image with all pixels active is processed by top-row and bottom-row ReLU detectors. Both detectors activate, and a second-layer ReLU combines them into an equals-like pattern feature. Two counterexamples fail at different stages.</desc>
+          <defs>
+            <marker id="arrow-pixels" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="80" y="35" text-anchor="middle" font-size="17" fill="#000">Pixels</text>
+          <text x="350" y="35" text-anchor="middle" font-size="17" fill="#000">Layer 1: local features</text>
+          <text x="650" y="35" text-anchor="middle" font-size="17" fill="#000">Layer 2: composition</text>
+
+          <g transform="translate(35 72)">
+            <rect x="0" y="0" width="58" height="58" fill="#000" stroke="#777"/>
+            <rect x="62" y="0" width="58" height="58" fill="#000" stroke="#777"/>
+            <rect x="0" y="62" width="58" height="58" fill="#000" stroke="#777"/>
+            <rect x="62" y="62" width="58" height="58" fill="#000" stroke="#777"/>
+            <text x="60" y="148" text-anchor="middle" font-size="13" fill="#000">[1, 1, 1, 1]</text>
+          </g>
+
+          <line x1="165" y1="132" x2="245" y2="132" stroke="#000" stroke-width="2" marker-end="url(#arrow-pixels)"/>
+
+          <rect x="258" y="74" width="190" height="66" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="353" y="101" text-anchor="middle" font-size="16" fill="#000">top row = 0.5</text>
+          <text x="353" y="124" text-anchor="middle" font-size="12" fill="#000">both top pixels are on</text>
+          <rect x="258" y="154" width="190" height="66" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="353" y="181" text-anchor="middle" font-size="16" fill="#000">bottom row = 0.5</text>
+          <text x="353" y="204" text-anchor="middle" font-size="12" fill="#000">both bottom pixels are on</text>
+
+          <line x1="448" y1="107" x2="530" y2="154" stroke="#000" stroke-width="2" marker-end="url(#arrow-pixels)"/>
+          <line x1="448" y1="187" x2="530" y2="166" stroke="#000" stroke-width="2" marker-end="url(#arrow-pixels)"/>
+
+          <rect x="542" y="112" width="180" height="96" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2"/>
+          <text x="632" y="145" text-anchor="middle" font-size="17" fill="#000">larger pattern</text>
+          <text x="632" y="171" text-anchor="middle" font-size="15" fill="#000">h = 0.25</text>
+          <text x="632" y="193" text-anchor="middle" font-size="12" fill="#000">both row features exist</text>
+
+          <line x1="35" y1="270" x2="725" y2="270" stroke="#aaa"/>
+
+          <text x="35" y="305" font-size="15" fill="#000">Only one row:</text>
+          <g transform="translate(155 292)">
+            <rect x="0" y="0" width="38" height="38" fill="#000" stroke="#777"/>
+            <rect x="42" y="0" width="38" height="38" fill="#000" stroke="#777"/>
+            <rect x="0" y="42" width="38" height="38" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+            <rect x="42" y="42" width="38" height="38" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          </g>
+          <text x="310" y="337" font-size="14" fill="#000">top = 0.5, bottom = 0</text>
+          <line x1="493" y1="332" x2="548" y2="332" stroke="#000" marker-end="url(#arrow-pixels)"/>
+          <text x="574" y="337" font-size="14" fill="#000">higher feature = 0</text>
+
+          <text x="35" y="421" font-size="15" fill="#000">Diagonal pixels:</text>
+          <g transform="translate(155 380)">
+            <rect x="0" y="0" width="38" height="38" fill="#000" stroke="#777"/>
+            <rect x="42" y="0" width="38" height="38" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+            <rect x="0" y="42" width="38" height="38" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+            <rect x="42" y="42" width="38" height="38" fill="#000" stroke="#777"/>
+          </g>
+          <text x="310" y="425" font-size="14" fill="#000">top = 0, bottom = 0</text>
+          <line x1="493" y1="420" x2="548" y2="420" stroke="#000" marker-end="url(#arrow-pixels)"/>
+          <text x="574" y="425" font-size="14" fill="#000">higher feature = 0</text>
+        </svg>
+        <div class="viz-caption">The higher-level unit is not another weighted pixel counter. It is a detector defined over two lower-level detections. Nonlinearity lets “both local features exist” become a reusable coordinate.</div>
+      </div>
+
+      <p>This toy example does not prove that a deep network is required to recognize four bright pixels. A shallow classifier can solve many tiny tasks. What the example shows is reuse. Once the network has learned a “top row” feature, many later features can reuse it: an equals sign, a box, a flag, or a larger texture. The value of hierarchy appears when the world contains recurring components.</p>
+
+      <h2>ReLU networks are linear locally and nonlinear globally</h2>
+
+      <p>There is a useful apparent contradiction: ReLU networks are called nonlinear, but every ReLU is made from two straight pieces.</p>
+
+      <p>The resolution is that a ReLU network is <em>piecewise affine</em>. Inside a region where every gate keeps the same on/off state, the network is one affine map. Cross a boundary where a neuron changes sign, and the effective map changes.</p>
+
+      <p>A single ReLU neuron creates one hyperplane:</p>
+
+      \[
+        w^{\top}x+b=0.
+      \]
+
+      <p>On one side, the neuron outputs zero. On the other, it outputs \(w^{\top}x+b\). Several neurons partition space into several regions. Later layers do not merely add new cuts to the original input. They cut a representation that earlier layers have already folded and rearranged.</p>
+
+      <p>This reuse of partitions is one mathematical reason depth can be efficient. Montúfar, Pascanu, Cho, and Bengio formalized how the number of linear regions available to piecewise-linear networks can grow rapidly with depth.<a href="#ref-5">[5]</a> Raghu and colleagues later studied expressivity through activation patterns and trajectories passing through these regions.<a href="#ref-11">[11]</a></p>
+
+      <p>A one-dimensional construction makes the multiplication of complexity visible. Define a triangular map on \([0,1]\):</p>
+
+      \[
+        T(x)
+        =2\operatorname{ReLU}(x)
+        -4\operatorname{ReLU}\!\left(x-\frac12\right)
+        +2\operatorname{ReLU}(x-1).
+      \]
+
+      <p>On the interval \([0,1]\), this rises from \(0\) to \(1\), then falls back to \(0\):</p>
+
+      \[
+        T(x)=
+        \begin{cases}
+          2x,&0\le x\le \frac12,\\
+          2-2x,&\frac12<x\le1.
+        \end{cases}
+      \]
+
+      <p>Now compose it with itself:</p>
+
+      \[
+        T^{(2)}(x)=T(T(x)).
+      \]
+
+      <p>The second application does not merely make the first triangle taller. It folds each half again, producing two triangles. Compose it \(L\) times and the number of oscillations grows exponentially with \(L\). Telgarsky used this family of ideas to prove depth-separation results: certain functions represented compactly by deep networks require far larger shallow networks to approximate.<a href="#ref-6">[6]</a></p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 500" role="img" aria-labelledby="fold-title fold-desc">
+          <title id="fold-title">Composing a ReLU triangle map doubles its folds</title>
+          <desc id="fold-desc">The upper graph shows a triangle function with one peak on zero to one. The lower graph shows the function composed with itself, producing two peaks and four linear pieces.</desc>
+
+          <text x="70" y="35" font-size="17" fill="#000">One nonlinear block: T(x)</text>
+          <line x1="80" y1="205" x2="700" y2="205" stroke="#000" stroke-width="2"/>
+          <line x1="80" y1="205" x2="80" y2="65" stroke="#000" stroke-width="2"/>
+          <polyline points="80,205 390,65 700,205" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <text x="80" y="228" text-anchor="middle" font-size="12" fill="#000">0</text>
+          <text x="390" y="228" text-anchor="middle" font-size="12" fill="#000">0.5</text>
+          <text x="700" y="228" text-anchor="middle" font-size="12" fill="#000">1</text>
+          <text x="60" y="73" text-anchor="end" font-size="12" fill="#000">1</text>
+          <text x="390" y="55" text-anchor="middle" font-size="13" fill="#000">one peak, two linear pieces</text>
+
+          <line x1="55" y1="260" x2="715" y2="260" stroke="#aaa"/>
+
+          <text x="70" y="300" font-size="17" fill="#000">Two blocks: T(T(x))</text>
+          <line x1="80" y1="465" x2="700" y2="465" stroke="#000" stroke-width="2"/>
+          <line x1="80" y1="465" x2="80" y2="325" stroke="#000" stroke-width="2"/>
+          <polyline points="80,465 235,325 390,465 545,325 700,465" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <text x="80" y="488" text-anchor="middle" font-size="12" fill="#000">0</text>
+          <text x="235" y="488" text-anchor="middle" font-size="12" fill="#000">0.25</text>
+          <text x="390" y="488" text-anchor="middle" font-size="12" fill="#000">0.5</text>
+          <text x="545" y="488" text-anchor="middle" font-size="12" fill="#000">0.75</text>
+          <text x="700" y="488" text-anchor="middle" font-size="12" fill="#000">1</text>
+          <text x="60" y="333" text-anchor="end" font-size="12" fill="#000">1</text>
+          <text x="390" y="316" text-anchor="middle" font-size="13" fill="#000">two peaks, four linear pieces</text>
+        </svg>
+        <div class="viz-caption">Each nonlinear block acts on the representation created by the previous block. Composition refines the partition multiplicatively; stacking linear maps would only redraw one straight line.</div>
+      </div>
+
+      <details class="technical-aside">
+        <summary>A linear-region lower bound</summary>
+        <p>For a ReLU network with input dimension \(n_0\), \(L\) hidden layers, and widths \(n_1,\ldots,n_L\ge n_0\), a construction in Montúfar et al. gives the lower bound</p>
+        \[
+          \left(
+          \prod_{\ell=1}^{L-1}
+          \left\lfloor\frac{n_\ell}{n_0}\right\rfloor^{n_0}
+          \right)
+          \sum_{j=0}^{n_0}\binom{n_L}{j}
+        \]
+        <p>on the maximal number of linear regions representable by the architecture. With two-dimensional input and three hidden layers of width four, this construction gives</p>
+        \[
+          (2^2)(2^2)\left[\binom40+\binom41+\binom42\right]
+          =16(1+4+6)=176.
+        \]
+        <p>This is an expressivity result, not a promise that training will discover 176 useful regions. Counting regions measures available geometric complexity, not semantic quality.</p>
+      </details>
+
+      <h2>Why the hierarchy often matches the world</h2>
+
+      <p>So far we have shown that nonlinearity makes hierarchy possible. We have not explained why the learned hierarchy often looks sensible.</p>
+
+      <p>The deeper reason is compositional structure.</p>
+
+      <p>An image is not usually an arbitrary table of unrelated pixels. Nearby intensity changes form edges. Edges form corners and textures. Repeated arrangements form parts. Parts form objects. Speech turns local frequency patterns into phonemes, phonemes into syllables, and syllables into words. Language turns tokens into phrases, phrases into relations, and relations into task-specific evidence.</p>
+
+      <p>If the target function itself is compositional, we can write it schematically as</p>
+
+      \[
+        f(x)
+        =f_L\circ f_{L-1}\circ\cdots\circ f_1(x).
+      \]
+
+      <p>A deep network has the same computational shape. Each layer can approximate one stage of the composition and pass its reusable result forward.</p>
+
+      <p>Consider eight inputs combined through a binary tree:</p>
+
+      \[
+      \begin{aligned}
+        u_1&=g_1(x_1,x_2),&u_2&=g_2(x_3,x_4),\\
+        u_3&=g_3(x_5,x_6),&u_4&=g_4(x_7,x_8),\\
+        v_1&=h_1(u_1,u_2),&v_2&=h_2(u_3,u_4),\\
+        y&=q(v_1,v_2).
+      \end{aligned}
+      \]
+
+      <p>A depth-matched network can learn the four local functions, reuse them in two intermediate functions, and combine those at the top. A shallow network can still approximate the complete mapping, but it may have to represent many combinations directly instead of reusing intermediate computations.</p>
+
+      <p>Mhaskar, Liao, and Poggio proved approximation advantages for classes of compositional functions: deep hierarchical networks can approximate them with far fewer parameters than shallow networks under the paper's assumptions.<a href="#ref-7">[7]</a> This is an efficiency claim, not a mystical claim that depth can represent functions a sufficiently wide shallow nonlinear network never could.</p>
+
+      <h2>Universal approximation does not make depth irrelevant</h2>
+
+      <p>The universal approximation theorem is often used as a conversation stopper: one hidden layer can approximate any continuous function on a compact domain, so why should deeper layers matter?</p>
+
+      <p>Because “can approximate” says almost nothing about how efficiently, how learnably, or how robustly.</p>
+
+      <p>Cybenko established a foundational universal approximation result for sigmoidal networks.<a href="#ref-12">[12]</a> Leshno, Lin, Pinkus, and Schocken later gave a broad condition: under their setting, a standard feed-forward network has the universal approximation property precisely when its activation is not polynomial almost everywhere.<a href="#ref-3">[3]</a></p>
+
+      <p>These theorems are existence results. They do not promise that gradient descent will find the approximating parameters, that the required hidden layer will be small, or that the representation will reuse meaningful subproblems.</p>
+
+      <p>A telephone directory can contain the answer to a multiplication problem if we print every possible pair of numbers and its product. That does not make lookup the same algorithm as multiplication.</p>
+
+      <p>A sufficiently wide shallow network can act like the directory: directly enumerate a complicated set of local cases. A deep network can sometimes act like the algorithm: compute reusable intermediate quantities and compose them. Depth matters most when the target contains structure that the architecture can mirror.</p>
+
+      <details class="technical-aside">
+        <summary>Possibility versus efficiency</summary>
+        <p>Universal approximation asks whether, for every target \(f\) in a function class and every tolerance \(\varepsilon>0\), there exists a network \(N\) such that</p>
+        \[
+          \sup_{x\in K}|f(x)-N(x)|<\varepsilon.
+        \]
+        <p>A depth-separation result asks a different question: how large must a network of depth \(d\) be to reach that tolerance compared with a deeper network? Telgarsky and related work construct functions for which the shallow approximation requires dramatically more units. The first question is about possibility; the second is about representational cost.</p>
+      </details>
+
+      <h2>Architecture decides what kind of hierarchy is cheap</h2>
+
+      <p>Nonlinearity makes conditional composition available, but architecture decides which compositions are convenient.</p>
+
+      <p>In a convolutional network, early filters are local and shared across positions. A \(3\times3\) filter can only see a small neighbourhood. With stride one and no dilation, stacking three such layers expands the receptive field from \(3\times3\) to \(5\times5\) to \(7\times7\). A late unit literally has access to a larger piece of the image than an early unit.</p>
+
+      <p>That geometry encourages a spatial hierarchy:</p>
+
+      \[
+        \text{local contrast}
+        \rightarrow
+        \text{edge or texture}
+        \rightarrow
+        \text{part configuration}
+        \rightarrow
+        \text{task-specific object evidence}.
+      \]
+
+      <p>The nonlinearity is essential because each stage must be able to say “this local pattern is present” before the next stage tests arrangements of those presences. Convolution supplies locality and weight sharing. Pooling or stride supplies increasing scale and partial invariance. The loss decides which compositions are rewarded.</p>
+
+      <p>This is why the phrase “ReLU learns edges” is misleading. ReLU knows nothing about images. The first convolutional layer is forced to inspect local pixel patches, the data repeatedly contains edge-like statistics, and the classification loss rewards filters that preserve useful variation. ReLU lets those filters become selective gates.</p>
+
+      <p>Transformers require an additional caveat. Even if the MLP activation were removed, self-attention still contains nonlinear operations through the softmax, and layer normalization is also nonlinear. The transformer would not become a deep linear network. Its MLP nonlinearity nevertheless gives each token an input-dependent feature transformation after information has been mixed across tokens.</p>
+
+      <p>Residual connections do not remove the need for nonlinearity either. If every residual branch were affine, repeatedly applying</p>
+
+      \[
+        h_{\ell+1}=h_\ell+W_\ell h_\ell+b_\ell
+      \]
+
+      <p>would still produce an affine map overall. Residual paths improve optimization and allow incremental refinement, but some nonlinear operation must break the affine closure.</p>
+
+      <h2>The loss turns available features into useful ones</h2>
+
+      <p>A randomly initialized nonlinear network already partitions input space. Its partitions are not yet useful. Hierarchical features appear through learning.</p>
+
+      <p>For a loss \(\mathcal L\), backpropagation sends an error signal into layer \(\ell\):</p>
+
+      \[
+        \delta_\ell
+        =\left(W_{\ell+1}^{\top}\delta_{\ell+1}\right)
+        \odot\phi'(z_\ell),
+      \]
+
+      <p>and the weight gradient is</p>
+
+      \[
+        \frac{\partial\mathcal L}{\partial W_\ell}
+        =\delta_\ell h_{\ell-1}^{\top}.
+      \]
+
+      <p>The rightmost factor says that a weight update depends on which earlier feature was present. The derivative \(\phi'(z_\ell)\) says that the activation also gates which units receive the error signal.</p>
+
+      <p>For ReLU,</p>
+
+      \[
+        \phi'(z)=
+        \begin{cases}
+          1,&z>0,\\
+          0,&z<0.
+        \end{cases}
+      \]
+
+      <p>Ignoring the undefined derivative at zero, an inactive ReLU passes no local gradient. An active unit receives a task-dependent update. Across many examples, units that repeatedly participate in reducing the loss become tuned to recurring useful patterns.</p>
+
+      <p>Suppose several images containing dogs generate gradients that reward a later “dog” logit. A higher layer may learn combinations involving curved boundaries, fur textures, and face-like arrangements. The lower layers do not receive the instruction “learn fur.” They receive many gradients that make certain reusable local computations helpful across the examples.</p>
+
+      <p>Hierarchy emerges through credit assignment: later errors reshape earlier detectors so that their outputs become useful building blocks for later decisions.</p>
+
+      <h2>What different nonlinearities change</h2>
+
+      <p>ReLU is the cleanest activation for geometric explanation, but it is not the only way to stop affine collapse.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Activation</th>
+              <th>Formula</th>
+              <th>Geometric role</th>
+              <th>Gradient behaviour</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ReLU</td>
+              <td>\(\max(0,z)\)</td>
+              <td>Hard half-space gate; piecewise affine regions</td>
+              <td>Zero on the negative side, one on the positive side</td>
+            </tr>
+            <tr>
+              <td>Leaky ReLU</td>
+              <td>\(\max(\alpha z,z)\)</td>
+              <td>Two linear regimes without fully closing the gate</td>
+              <td>Small negative-side gradient</td>
+            </tr>
+            <tr>
+              <td>Sigmoid</td>
+              <td>\((1+e^{-z})^{-1}\)</td>
+              <td>Smooth soft gate between zero and one</td>
+              <td>Saturates for large \(|z|\)</td>
+            </tr>
+            <tr>
+              <td>tanh</td>
+              <td>\(\tanh z\)</td>
+              <td>Smooth signed compression</td>
+              <td>Also saturates at large magnitude</td>
+            </tr>
+            <tr>
+              <td>GELU</td>
+              <td>\(z\Phi(z)\)</td>
+              <td>Smooth input-dependent scaling</td>
+              <td>No hard zero boundary</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>All of these make the output depend nonlinearly on the pre-activation, so consecutive layers generally cannot be merged into one fixed matrix. They differ in smoothness, saturation, sparsity, gradient flow, and the geometry of the resulting representation.</p>
+
+      <p>Nair and Hinton helped popularize rectified linear units in modern neural modeling.<a href="#ref-4">[4]</a> ReLU later became especially convenient because it is cheap, often optimizes well, and turns a deep network into a mathematically analyzable collection of affine regions.</p>
+
+      <h2>Do real networks actually show a hierarchy?</h2>
+
+      <p>In computer vision, the empirical answer is often yes, though reality is messier than the familiar “edges to textures to objects” cartoon.</p>
+
+      <p>Zeiler and Fergus visualized intermediate convolutional features and used ablations to study how different layers contributed to an ImageNet classifier.<a href="#ref-8">[8]</a> Yosinski and colleagues found that early ImageNet features such as Gabor-like filters and colour blobs were comparatively general, while later features became more task-specific and less transferable across distant tasks.<a href="#ref-9">[9]</a></p>
+
+      <p>Linear probes provide another view. Freeze the network at layer \(\ell\), train a simple linear classifier on \(h_\ell\), and ask how easily the class can be separated. Alain and Bengio reported that linear separability increased along depth in the models they studied.<a href="#ref-10">[10]</a> The network was gradually rewriting the input so that a simple final classifier could solve the task.</p>
+
+      <p>This gives a useful definition of representation learning: the early task may be nonlinear in pixel space, but the network transforms the data until the desired classes become closer to linearly separable.</p>
+
+      <p>Still, a neuron is not guaranteed to correspond to one human concept. Features can be distributed across many units, one unit can respond to several unrelated patterns, and a linear probe can detect information the main model does not actually use. Visualizations and probes are evidence about the representation, not perfect translations of its internal language.</p>
+
+      <h2>The statement needs three corrections</h2>
+
+      <p><strong>First, nonlinearities do not guarantee semantic hierarchy.</strong> A network trained on random labels can use its nonlinear capacity to memorize. A classifier trained on a biased dataset may learn a watermark instead of the object. The hierarchy follows whatever regularities make the loss easier to reduce, including shortcuts.</p>
+
+      <p><strong>Second, architecture and data matter as much as activation.</strong> A fully connected ReLU network has no built-in reason to prefer nearby pixels. A convolutional network does. A graph network encodes neighbourhoods. An attention model makes content-dependent interactions cheap. The activation makes composition nonlinear; the architecture decides which components are conveniently composed.</p>
+
+      <p><strong>Third, deep linear networks complicate the slogan.</strong> They can learn structured hidden representations and exhibit stage-like learning dynamics even though their overall map remains linear.<a href="#ref-2">[2]</a> So nonlinearity is not required for every informal notion of an internal hierarchy. It is required if depth is to expand the input-output function beyond the affine family through ordinary feed-forward composition.</p>
+
+      <p>The accurate statement is therefore:</p>
+
+      <div class="equation-note"><strong>Nonlinear operations prevent successive layers from collapsing into one affine map. They let each layer conditionally select and recombine features produced by earlier layers. When the data and architecture contain compositional structure, gradient-based learning can turn those intermediate computations into a hierarchy of increasingly task-useful representations.</strong></div>
+
+      <h2>Why the hierarchy can fail</h2>
+
+      <p><strong>Dead gates.</strong> A ReLU that remains negative on all training examples receives no ordinary local gradient and may never become useful.</p>
+
+      <p><strong>Saturation.</strong> Sigmoid and tanh units at extreme pre-activations have very small derivatives, weakening credit assignment through many layers.</p>
+
+      <p><strong>Wrong scale.</strong> If the receptive field grows too slowly, later units may never see the complete pattern. If it grows too quickly, useful local structure may be mixed before it is isolated.</p>
+
+      <p><strong>Shortcut learning.</strong> The easiest predictive pattern may not be the hierarchy humans hoped for. A model can classify cows using green backgrounds rather than animal structure.</p>
+
+      <p><strong>Bottlenecks.</strong> An intermediate layer that is too narrow can discard distinctions needed later. Nonlinearity cannot recover information already destroyed.</p>
+
+      <p><strong>Optimization.</strong> Expressivity says useful parameters exist. It does not say the optimizer will find them. Very deep networks can suffer poor conditioning, unstable gradients, or co-adaptation.</p>
+
+      <p><strong>Task mismatch.</strong> If the target is genuinely close to linear, a hierarchy may be unnecessary. Nonlinearity is capacity, not an obligation to use it.</p>
+
+      <h2>The bend between layers</h2>
+
+      <p>Return to the hundred-layer network from the beginning.</p>
+
+      <p>Without nonlinear operations, every hidden vector is an affine function of the input. The network can rename its coordinates a hundred times, but it cannot make the computation depend on which side of a learned boundary the example occupies. Multiply the matrices and the apparent depth disappears.</p>
+
+      <p>Insert ReLU, sigmoid, tanh, GELU, or another suitable nonlinear operation, and the story changes. One layer can detect a condition. The next can detect a configuration of those detections. A later layer can reuse the configuration inside a still larger one. The input space is repeatedly partitioned and rewritten until a problem that was tangled in the original coordinates becomes simple enough for the final layer.</p>
+
+      <p>The hierarchy is not hiding inside ReLU. ReLU only creates the bend between one learned coordinate system and the next.</p>
+
+      <p>The data supplies recurring parts. The architecture decides which parts are cheap to notice. The loss decides which parts matter. Backpropagation assigns credit. Depth gives the system enough stages to reuse the answers.</p>
+
+      <p>Nonlinearity is the reason those stages do not collapse into one.</p>
+
+      <section class="references" aria-labelledby="references-heading">
+        <h2 id="references-heading">References</h2>
+        <ol>
+          <li id="ref-1">Y. Bengio, A. Courville, and P. Vincent, <a href="https://arxiv.org/abs/1206.5538">“Representation Learning: A Review and New Perspectives”</a>, IEEE Transactions on Pattern Analysis and Machine Intelligence, 2013.</li>
+          <li id="ref-2">A. M. Saxe, J. L. McClelland, and S. Ganguli, <a href="https://arxiv.org/abs/1312.6120">“Exact Solutions to the Nonlinear Dynamics of Learning in Deep Linear Neural Networks”</a>, ICLR, 2014.</li>
+          <li id="ref-3">M. Leshno, V. Y. Lin, A. Pinkus, and S. Schocken, <a href="https://archive.nyu.edu/bitstream/2451/14329/1/IS-92-13.pdf">“Multilayer Feedforward Networks with a Non-Polynomial Activation Function Can Approximate Any Function”</a>, Neural Networks, 1993.</li>
+          <li id="ref-4">V. Nair and G. E. Hinton, <a href="https://www.cs.toronto.edu/~fritz/absps/reluICML.pdf">“Rectified Linear Units Improve Restricted Boltzmann Machines”</a>, ICML, 2010.</li>
+          <li id="ref-5">G. Montúfar, R. Pascanu, K. Cho, and Y. Bengio, <a href="https://papers.nips.cc/paper_files/paper/2014/hash/fa6f2a469cc4d61a92d96e74617c3d2a-Abstract.html">“On the Number of Linear Regions of Deep Neural Networks”</a>, NeurIPS, 2014.</li>
+          <li id="ref-6">M. Telgarsky, <a href="https://proceedings.mlr.press/v49/telgarsky16.html">“Benefits of Depth in Neural Networks”</a>, COLT, 2016.</li>
+          <li id="ref-7">H. Mhaskar, Q. Liao, and T. Poggio, <a href="https://arxiv.org/abs/1603.00988">“Learning Functions: When Is Deep Better Than Shallow”</a>, 2016.</li>
+          <li id="ref-8">M. D. Zeiler and R. Fergus, <a href="https://arxiv.org/abs/1311.2901">“Visualizing and Understanding Convolutional Networks”</a>, ECCV, 2014.</li>
+          <li id="ref-9">J. Yosinski, J. Clune, Y. Bengio, and H. Lipson, <a href="https://papers.nips.cc/paper_files/paper/2014/hash/532a2f85b6977104bc93f8580abbb330-Abstract.html">“How Transferable Are Features in Deep Neural Networks?”</a>, NeurIPS, 2014.</li>
+          <li id="ref-10">G. Alain and Y. Bengio, <a href="https://arxiv.org/abs/1610.01644">“Understanding Intermediate Layers Using Linear Classifier Probes”</a>, 2016.</li>
+          <li id="ref-11">M. Raghu, B. Poole, J. Kleinberg, S. Ganguli, and J. Sohl-Dickstein, <a href="https://proceedings.mlr.press/v70/raghu17a.html">“On the Expressive Power of Deep Neural Networks”</a>, ICML, 2017.</li>
+          <li id="ref-12">G. Cybenko, <a href="https://link.springer.com/article/10.1007/BF02551274">“Approximation by Superpositions of a Sigmoidal Function”</a>, Mathematics of Control, Signals and Systems, 1989.</li>
+        </ol>
+        <p class="footnote">The numerical networks and diagrams are illustrative constructions. They are designed to make the algebra visible, not to claim that real representations are localized to single neurons or always align with human concepts.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
