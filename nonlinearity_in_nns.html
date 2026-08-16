@@ -89,19 +89,19 @@
       min-width: 720px;
     }
 
-    details.technical-aside {
+    .technical-aside {
       margin: 1.4rem 0;
       padding: 0.85rem 1rem;
       border: 1px solid #999;
       background: rgba(255, 255, 255, 0.22);
     }
 
-    details.technical-aside summary {
-      cursor: pointer;
-      font-weight: bold;
+    .technical-aside-title {
+      display: block;
+      margin-bottom: 0.7rem;
     }
 
-    details.technical-aside > :last-child {
+    .technical-aside > :last-child {
       margin-bottom: 0;
     }
 
@@ -661,8 +661,8 @@
         <div class="viz-caption">Each nonlinear block acts on the representation created by the previous block. Composition refines the partition multiplicatively; stacking linear maps would only redraw one straight line.</div>
       </div>
 
-      <details class="technical-aside">
-        <summary>A linear-region lower bound</summary>
+      <div class="technical-aside">
+        <strong class="technical-aside-title">A linear-region lower bound</strong>
         <p>For a ReLU network with input dimension \(n_0\), \(L\) hidden layers, and widths \(n_1,\ldots,n_L\ge n_0\), a construction in Montúfar et al. gives the lower bound</p>
         \[
           \left(
@@ -677,7 +677,7 @@
           =16(1+4+6)=176.
         \]
         <p>This is an expressivity result, not a promise that training will discover 176 useful regions. Counting regions measures available geometric complexity, not semantic quality.</p>
-      </details>
+      </div>
 
       <h2>Why the hierarchy often matches the world</h2>
 
@@ -725,14 +725,14 @@
 
       <p>A sufficiently wide shallow network can act like the directory: directly enumerate a complicated set of local cases. A deep network can sometimes act like the algorithm: compute reusable intermediate quantities and compose them. Depth matters most when the target contains structure that the architecture can mirror.</p>
 
-      <details class="technical-aside">
-        <summary>Possibility versus efficiency</summary>
+      <div class="technical-aside">
+        <strong class="technical-aside-title">Possibility versus efficiency</strong>
         <p>Universal approximation asks whether, for every target \(f\) in a function class and every tolerance \(\varepsilon>0\), there exists a network \(N\) such that</p>
         \[
           \sup_{x\in K}|f(x)-N(x)|<\varepsilon.
         \]
         <p>A depth-separation result asks a different question: how large must a network of depth \(d\) be to reach that tolerance compared with a deeper network? Telgarsky and related work construct functions for which the shallow approximation requires dramatically more units. The first question is about possibility; the second is about representational cost.</p>
-      </details>
+      </div>
 
       <h2>Architecture decides what kind of hierarchy is cheap</h2>
 
