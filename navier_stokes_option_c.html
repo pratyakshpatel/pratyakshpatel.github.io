@@ -157,34 +157,34 @@
 
       <p>The first claim is, as far as anyone can currently tell, correct. I cloned the Lean repository and I will show you what is in it. The second claim I can verify myself, because the problem statement is five pages long and the relevant clause is two sentences. The third claim is false, and it is false in a way that Fefferman anticipated twenty-six years ago when he wrote four alternatives instead of one.</p>
 
-      <p>So this is not a post about whether a million dollars changes hands. OpenAI has already said it will not ask for it.[2] This is a post about what a contracting vortex, a smooth push, an energy budget, four hundred thousand lines of Lean, and one very bad month for a mathematician in New York actually add up to.</p>
+      <p>So this is not a post about whether a million dollars changes hands. OpenAI has already said it will not ask for it.[2] This is a post about what a shrinking vortex, a gentle push, an energy budget, four hundred thousand lines of Lean, and one very bad month for a mathematician in New York actually add up to. I have kept the mathematics to the few lines that carry the story; everything else is in words.</p>
 
-      <h2>The equations, in one paragraph and one identity</h2>
-
-      <p>An incompressible fluid filling all of \(\mathbb{R}^3\) has a velocity \(u(x,t)\in\mathbb{R}^3\) and a pressure \(p(x,t)\in\mathbb{R}\). Newton's law for a fluid parcel, plus the constraint that the fluid cannot be squeezed, gives</p>
-
-      \[
-        \partial_t u+(u\cdot\nabla)u
-        =\nu\Delta u-\nabla p+f,
-        \qquad
-        \nabla\cdot u=0,
-        \qquad
-        u(\cdot,0)=u^{\circ}.
-      \]
-
-      <p>Every term has a job. The term \((u\cdot\nabla)u\) is the parcel's acceleration due to its own motion carrying it into a region of different velocity. It is quadratic in \(u\), and it is the entire reason the problem is hard. The term \(\nu\Delta u\) is viscosity: friction between neighbouring parcels, which smooths gradients. The pressure gradient enforces incompressibility. The term \(f\) is an external force, gravity or a propeller or whatever you like. Set \(\nu=0\) and you have the Euler equations, which are older and, in a sense I will make precise, easier to break.</p>
-
-      <p>The single most useful identity in this whole story comes from taking the dot product of the equation with \(u\) and integrating over space. The nonlinear term and the pressure term both vanish under incompressibility, because \(\int u\cdot(u\cdot\nabla)u=\int u\cdot\nabla\bigl(\tfrac12|u|^2\bigr)=0\) and \(\int u\cdot\nabla p=-\int p\,\nabla\cdot u=0\). What survives is</p>
+      <h2>The equations, in one paragraph and one balance sheet</h2>
+      <p>You do not need to have seen a partial differential equation before to follow this. The Navier–Stokes equations are Newton's law, force equals mass times acceleration, written for every tiny parcel of water at once. In symbols:</p>
 
       \[
-        \frac{d}{dt}\,\frac12\int_{\mathbb{R}^3}|u|^2\,dx
-        =-\nu\int_{\mathbb{R}^3}|\nabla u|^2\,dx
-        +\int_{\mathbb{R}^3}f\cdot u\,dx.
+        \underbrace{\partial_t u+(u\cdot\nabla)u}_{\text{acceleration of a parcel}}
+        \;=\;
+        \underbrace{\nu\Delta u}_{\text{friction}}
+        \;-\;
+        \underbrace{\nabla p}_{\text{pressure}}
+        \;+\;
+        \underbrace{f}_{\text{outside push}}.
       \]
 
-      <p>Read it slowly. Kinetic energy can only decrease through viscosity, and can only increase through the work done by the force. If \(f\equiv0\), energy is monotone non-increasing forever. That is the reason the unforced problem feels like it should have a regular answer: the fluid has a fixed budget and viscosity keeps taxing it.</p>
+      <p>Here \(u\) is the velocity of the water at each point, \(p\) is the pressure, \(\nu\) is the viscosity (how syrupy the fluid is), and \(f\) is any force applied from outside, like gravity or a stirring spoon. There is also a rule that the water cannot be compressed. The awkward piece is the term \((u\cdot\nabla)u\): the water carries itself around, so the velocity appears twice, multiplied by itself. That one self-referential term is the whole reason nobody has solved the problem in ninety years. Set the friction \(\nu\) to zero and you get the older Euler equations, which are easier to break.</p>
 
-      <p>But the identity says nothing about where the energy sits. A tiny region can hold enormous velocities while contributing almost nothing to \(\int|u|^2\). That loophole is the shape of every singularity in this post.</p>
+      <p>One consequence of the equation matters more than any other for this story. Multiply through by the velocity and add up over all of space, and you get an energy balance:</p>
+
+      \[
+        \frac{d}{dt}\bigl(\text{kinetic energy}\bigr)
+        =-\,(\text{energy eaten by friction})
+        +(\text{work done by the outside push}).
+      \]
+
+      <p>Read it slowly. Energy can only go down through friction, and can only go up if something outside pushes. With no outside push, the total energy of the fluid can never increase. That is why the unforced problem feels like it should have a tame answer: the fluid has a fixed budget and friction taxes it constantly.</p>
+
+      <p>But the balance says nothing about <em>where</em> the energy sits. A tiny region can hold enormous speeds while holding almost no energy, the way a pinprick can carry huge pressure with little total force. That loophole is the shape of every singularity in this post.</p>
 
       <h2>Fefferman wrote four sentences</h2>
 
@@ -205,19 +205,19 @@
               <td><strong>(A)</strong> Existence and smoothness</td>
               <td>\(\mathbb{R}^3\)</td>
               <td>\(f\equiv0\)</td>
-              <td>For <em>every</em> smooth, divergence-free, rapidly decaying \(u^{\circ}\), a smooth solution with bounded energy exists for all time.</td>
+              <td>For <em>every</em> smooth, fading starting state, a smooth solution with bounded energy exists for all time.</td>
             </tr>
             <tr>
               <td><strong>(B)</strong> Existence and smoothness</td>
               <td>\(\mathbb{R}^3/\mathbb{Z}^3\)</td>
               <td>\(f\equiv0\)</td>
-              <td>Same, for every smooth periodic \(u^{\circ}\).</td>
+              <td>Same, for every smooth periodic starting state.</td>
             </tr>
             <tr>
               <td><strong>(C)</strong> Breakdown</td>
               <td>\(\mathbb{R}^3\)</td>
-              <td>\(f\) smooth, all derivatives decaying faster than any power of \((1+|x|+t)\)</td>
-              <td>There <em>exist</em> a smooth \(u^{\circ}\) and such an \(f\) for which no smooth, bounded-energy solution exists on \(\mathbb{R}^3\times[0,\infty)\).</td>
+              <td>\(f\) smooth, fading away far out and late</td>
+              <td>There <em>exist</em> one smooth starting state and one such \(f\) for which no smooth, bounded-energy solution lasts forever.</td>
             </tr>
             <tr>
               <td><strong>(D)</strong> Breakdown</td>
@@ -229,15 +229,7 @@
         </table>
       </div>
 
-      <p>Look at the third column. The two existence alternatives explicitly set the force to zero: “Take \(f(x,t)\) to be identically zero.” The two breakdown alternatives explicitly allow a force, as long as it is smooth and decays. Fefferman's condition (5) is</p>
-
-      \[
-        |\partial_x^{\alpha}\partial_t^{m}f(x,t)|
-        \le C_{\alpha m K}\,(1+|x|+t)^{-K}
-        \quad\text{for all }\alpha,m,K.
-      \]
-
-      <p>A force that is smooth and compactly supported in space and time satisfies this trivially, because it is zero outside a bounded set.</p>
+      <p>Look at the third column. The two existence alternatives explicitly set the force to zero: “Take \(f(x,t)\) to be identically zero.” The two breakdown alternatives explicitly allow a force, as long as it is smooth and fades away far from the origin and late in time. A push that is smooth and simply switched off outside a bounded region of space and time satisfies that condition automatically.</p>
 
       <div class="viz">
         <svg viewBox="0 0 760 400" role="img" aria-labelledby="grid-title grid-desc">
@@ -286,77 +278,50 @@
       <p>OpenAI did not delete the clause. Neither, for years before them, did two mathematicians in Madrid.</p>
 
       <h2>What the 166 pages claim</h2>
-
-      <p>The manuscript is titled “Finite Time Blowup for Navier–Stokes,” author line “OpenAI,” 166 pages, three appendices.[6] Its abstract is one sentence, and its main theorem is short enough to reproduce.</p>
+      <p>The manuscript is titled “Finite Time Blowup for Navier–Stokes,” author line “OpenAI,” 166 pages.[6] Its main theorem, stripped of notation, says this.</p>
 
       <div class="equation-note">
-        <strong>Theorem 1.1 (OpenAI).</strong> For every \(\nu\gt 0\) there exist a force \(f\in C_c^{\infty}(\mathbb{R}^3\times(0,\infty);\mathbb{R}^3)\), a compact set \(K\subset\mathbb{R}^3\), and smooth velocity and pressure fields \(u,p\) on \(\mathbb{R}^3\times[0,1)\) satisfying
-        \[
-          \partial_t u+(u\cdot\nabla)u-\nu\Delta u+\nabla p=f,
-          \qquad \nabla\cdot u=0,
-          \qquad u(\cdot,0)=0,
-        \]
-        such that \(\operatorname{supp}u(\cdot,t)\cup\operatorname{supp}p(\cdot,t)\subset K\) for every \(0\le t\lt 1\),
-        \[
-          \sup_{0\le t\lt 1}\|u(t)\|_{L^2(\mathbb{R}^3)}\lt \infty,
-          \qquad
-          \limsup_{t\uparrow1}\|u(t)\|_{L^\infty(\mathbb{R}^3)}=\infty.
-        \]
-        Consequently, there is no smooth solution on \(\mathbb{R}^3\times[0,\infty)\) with the same force and initial datum whose kinetic energy is uniformly bounded.
+        <strong>Theorem 1.1 (OpenAI), in words.</strong> Pick any viscosity you like. Start with fluid that is completely still. Apply a force that is smooth, bounded, and switched on only inside a bounded region of space and for a bounded stretch of time. Then the fluid reaches infinite speed at some point before time \(t=1\), even though its total kinetic energy stays finite the whole way. Because of that, there is no well-behaved solution that lasts forever with this force and this starting state.
       </div>
+
+      <p>In symbols, the two conditions that do the work are</p>
+
+      \[
+        \sup_{0\le t\lt 1}\ (\text{energy of }u(t))\lt\infty,
+        \qquad
+        \text{but}
+        \qquad
+        \max_x |u(x,t)|\to\infty\ \text{as } t\to1.
+      \]
 
       <p>Four things in that statement deserve a pause.</p>
 
-      <p>First, the fluid starts <em>at rest</em>. The initial datum is zero. Everything that happens is caused by a force that is smooth, bounded, and switched on only inside a bounded region of space-time. A smooth, finite push produces an infinite speed in finite time. That is a stronger and stranger statement than “some wild initial data blows up.”</p>
+      <p>First, the fluid starts <em>at rest</em>. Everything that happens is caused by a finite, gentle push. A smooth push producing an infinite speed is a stranger claim than “some wild starting state blows up.”</p>
 
-      <p>Second, the theorem holds for every viscosity. This is not a small-viscosity limit sneaking towards Euler. It holds at \(\nu=1\), at \(\nu=1000\), at any positive value. The reason is a scaling symmetry that I want to check with you, because it is the kind of thing a reader should verify rather than trust. Suppose \((u,p,f)\) solves the equation at viscosity one. Define</p>
+      <p>Second, the theorem holds for every viscosity, thick or thin. The reason is a neat symmetry: if you have a blowup at viscosity one, you can shrink or stretch space and rescale the speeds, and the same recipe becomes a blowup at any other viscosity, at the same moment in time. One construction is therefore every construction.[6]</p>
 
-      \[
-        u_\nu(x,t)=\sqrt{\nu}\,u\!\left(\tfrac{x}{\sqrt{\nu}},t\right),
-        \qquad
-        p_\nu(x,t)=\nu\,p\!\left(\tfrac{x}{\sqrt{\nu}},t\right),
-        \qquad
-        f_\nu(x,t)=\sqrt{\nu}\,f\!\left(\tfrac{x}{\sqrt{\nu}},t\right).
-      \]
+      <p>Third, alternative (C) says “no global solution exists,” not “here is a solution that blows up.” To get from the second to the first you need one more fact: any well-behaved solution with the same push and the same start would have to be the same solution, and so would blow up too. That is a standard uniqueness fact for these equations, but it is a step, and the Lean proof has to include it.</p>
 
-      <p>Each spatial derivative costs a factor \(\nu^{-1/2}\). Then \(\partial_t u_\nu\) scales like \(\nu^{1/2}\), \((u_\nu\cdot\nabla)u_\nu\) scales like \(\nu^{1/2}\cdot\nu^{1/2}\cdot\nu^{-1/2}=\nu^{1/2}\), \(\nabla p_\nu\) like \(\nu\cdot\nu^{-1/2}=\nu^{1/2}\), and \(\nu\Delta u_\nu\) like \(\nu\cdot\nu^{1/2}\cdot\nu^{-1}=\nu^{1/2}\). Every term picks up the same factor, so the rescaled triple solves the equation at viscosity \(\nu\), with the same blowup time. Energy scales by \(\nu\cdot\nu^{3/2}=\nu^{5/2}\), still finite. Time is untouched, so “blows up at \(t=1\)” survives. One construction at \(\nu=1\) is therefore every construction.[6]</p>
-
-      <p>Third, the phrase “consequently, there is no smooth solution.” Alternative (C) is a non-existence statement. The theorem constructs a solution on \([0,1)\); to conclude that no global smooth bounded-energy solution exists, one needs that any such solution would have to agree with the constructed one on \([0,1)\), and would therefore also be unbounded near \(t=1\). This is a uniqueness step, standard for smooth finite-energy Navier–Stokes solutions, but it is a step, and it is part of what the Lean file has to discharge.</p>
-
-      <p>Fourth, compact support in space is what turns (C) into (D). A solution living in a bounded box can be tiled periodically, so the same construction gives the torus alternative. That is Corollary 10.6.[6]</p>
+      <p>Fourth, because the whole flow lives inside a bounded box, you can copy the box side by side forever and get a periodic version. That is how (C) becomes (D).[6]</p>
 
       <h2>A vortex that eats its own width</h2>
+      <p>Now the physics, which is the part I found genuinely beautiful, and which you can picture without any equations.</p>
 
-      <p>Now the physics, which is the part I found genuinely beautiful. Write \(\tau=1-t\) for the time remaining before the singularity. The leading-order flow is an axisymmetric vortex, and it is self-similar in a lopsided way: its radial extent and its axial extent shrink at <em>different</em> rates.[6]</p>
+      <p>The flow is a vortex, a spinning column like the one above a bathtub drain. Water spirals inward toward the axis, spins faster as it gets closer, and squirts out along the axis in both directions so that it does not pile up. As the blowup moment approaches, the column gets thinner and thinner and spins faster and faster. And it gets thin in a lopsided way: its <em>width</em> shrinks faster than its <em>height</em>, so it becomes a needle.[6]</p>
 
-      \[
-        \ell_r\asymp\tau^{1/2},
-        \qquad
-        \ell_z\asymp\tau^{1/2-h},
-        \qquad
-        0\lt h\lt \tfrac{1}{100}.
-      \]
+      <p>Why does the spin speed up? The same reason a figure skater speeds up when she pulls her arms in. A parcel of water moving inward keeps its angular momentum, so its speed around the axis must rise. Friction fights this by leaking spin outward, and the actual speed is the balance between the two.</p>
 
-      <p>Both lengths go to zero, but their ratio \(\ell_r/\ell_z\asymp\tau^{h}\to0\). The core becomes a needle: an increasingly slender column of spinning fluid concentrated at the origin. The exponent \(h\) is fixed, tiny, and positive. Keep it in mind, because it is the thin margin the entire proof lives in.</p>
-
-      <p>The velocities in that column scale like</p>
+      <p>Here is the one calculation I did on paper, and it is short. Write \(\tau\) for the time left before the blowup. The paper says the width of the needle shrinks like \(\sqrt{\tau}\), the height shrinks like \(\sqrt{\tau}\) too but a hair more slowly, and the speed grows like \(1/\sqrt{\tau}\), again with a hair extra. The energy inside the needle is roughly</p>
 
       \[
-        |u_\theta|,\ |u_z|\asymp\tau^{-1/2-h},
-        \qquad
-        |u_r|=O(\tau^{-1/2}).
+        \text{energy}\approx(\text{volume})\times(\text{speed})^2
+        \approx\bigl(\sqrt{\tau}\cdot\sqrt{\tau}\cdot\sqrt{\tau}\bigr)\times\frac{1}{\tau}
+        =\sqrt{\tau},
       \]
 
-      <p>Fluid spirals inward, spins faster as it goes, and escapes axially in opposite directions on either side of a dividing plane near \(z=0\). The spin-up is just angular momentum conservation: a torque-free parcel keeps \(r u_\theta\) constant, so moving inward makes \(u_\theta\) grow. Viscosity fights this by leaking angular momentum outward, and the growing speed is the balance between the two.</p>
+      <p>ignoring the hairs. As \(\tau\) goes to zero, so does the energy. The fastest water in the universe lives in a needle so thin that its energy contribution vanishes. The energy balance from the first section is satisfied without complaint. That is the loophole, executed.</p>
 
-      <p>Here is the calculation I did on paper to convince myself the energy really stays bounded. The core's volume is \(\ell_r^2\ell_z\asymp\tau^{1+1/2-h}=\tau^{3/2-h}\). Its speed squared is \(\tau^{-1-2h}\). So the core's kinetic energy is</p>
-
-      \[
-        E_{\text{core}}\asymp\tau^{3/2-h}\cdot\tau^{-1-2h}=\tau^{1/2-3h}\longrightarrow0
-        \quad\text{as }\tau\downarrow0,
-      \]
-
-      <p>because \(h\lt 1/100\) makes \(1/2-3h\) comfortably positive. The fastest fluid in the universe lives in a region so small that its energy contribution vanishes. The energy identity from the first section is satisfied without complaint. That is the loophole, executed.</p>
+      <p>The “hair extra” is a fixed number the paper calls \(h\), and it is smaller than one percent. It is the margin by which spin beats friction in the core. Keep that in mind: the whole viscous proof lives inside a margin of under one percent, which is a fair one-line explanation of why Navier–Stokes took 166 pages and Euler took 57.</p>
 
       <div class="viz">
         <svg viewBox="0 0 760 440" role="img" aria-labelledby="scaling-title scaling-desc">
@@ -420,46 +385,27 @@
           <text x="255" y="70" text-anchor="middle" font-size="13" fill="#000">Speed diverges, but the region holding it</text>
           <text x="255" y="90" text-anchor="middle" font-size="13" fill="#000">shrinks fast enough that its energy vanishes.</text>
         </svg>
-        <div class="viz-caption">The similarity exponents of the leading vortex, drawn with \(h=0.1\) so that the two length scales are visibly different. In the proof \(h\) is smaller than \(1/100\); the paper itself says its schematic “exaggerates” the difference. The qualitative picture is exact: \(\ell_r\) shrinks faster than \(\ell_z\), velocity grows, energy decays.</div>
+        <div class="viz-caption">How the core of the vortex changes as the blowup time approaches. Its width and height both shrink, the width faster, the speed inside grows without bound, and yet the energy inside goes to zero. The gap between the two length scales is exaggerated here so it can be seen; in the proof it is tiny.</div>
       </div>
 
-      <p>Two Reynolds numbers make the viscous story precise. Using the core radius as the length,</p>
+      <h2>The force is a leftover</h2>
+      <p>Now for the trick that makes the forced problem attackable at all. I think it is the single most important idea to take away from this week if you are not a fluids person.</p>
+
+      <p>Take <em>any</em> smooth velocity field you like, one you invented, one that never solved anything. Plug it into the left side of the Navier–Stokes equation and compute what is left over. Call that leftover \(f\):</p>
 
       \[
-        \mathrm{Re}_\theta=\frac{|u_\theta|\,\ell_r}{\nu}\asymp\tau^{-h}\to\infty,
-        \qquad
-        \mathrm{Re}_r=\frac{|u_r|\,\ell_r}{\nu}=O(1).
+        f\;:=\;\text{(acceleration)}-\text{(friction)}+\text{(pressure)}.
       \]
 
-      <p>The angular Reynolds number diverges: fluid completes ever more turns per radial diffusion time. The radial Reynolds number stays bounded: viscosity never stops competing with the inflow. This is exactly the regime a viscous blowup needs. Spin wins by a margin of \(\tau^{-h}\), and \(h\) is under one percent. If you want a one-line summary of why this took 166 pages and Euler took 57, it is that number.</p>
+      <p>Then your invented field solves the forced Navier–Stokes equations with force \(f\), automatically, by definition. You have not solved a differential equation. You have computed a leftover and given it a name.</p>
 
-      <h2>The force is a residual</h2>
+      <p>So the forced blowup problem is not “start the fluid and watch what happens.” It is a design problem: invent a velocity field that blows up, then arrange that its leftover \(f\) is smooth and gentle, <em>even at the moment of blowup</em>. Each individual piece of the leftover explodes as the blowup approaches. The entire difficulty is making the explosions cancel. The paper says it plainly: the individual terms “can diverge, but we must arrange sufficient cancellation that their sum and all its derivatives extend smoothly through the singular time.”[6]</p>
 
-      <p>Now for the trick that makes the forced problem attackable at all, and which I think is the single most important idea to take away from this week if you are not a fluids person.</p>
+      <p>Contrast that with the unforced problem. There, \(f=0\) is a rule you cannot design around. You pick a starting state and you must follow the genuine, uncontrolled evolution all the way to the singularity. The forced problem lets you choose the path and pay for it with a push; the difficulty is keeping the bill smooth. The unforced problem gives you no credit card.</p>
 
-      <p>Take <em>any</em> smooth divergence-free \(u\) and any smooth \(p\). Define</p>
+      <p>This framing is not OpenAI's. It is the program of Diego Córdoba and Luis Martínez-Zoroa, developed over several years in Madrid, and every party to this week's dispute agrees on that. Their idea, in Tao's description, is to build the flow in layers.[3] Start with a big, slow swirl. Add a smaller, faster ripple on top that is <em>unstable</em> in the big swirl, meaning a vanishingly small seed grows large on its own. Because it grows on its own, it costs almost no outside push. Add a still smaller ripple on top of that, and so on. The big scales shear the small scales into existence, each layer is the parent of the next, and the sum blows up while the total push stays gentle.</p>
 
-      \[
-        f:=\partial_t u+(u\cdot\nabla)u-\nu\Delta u+\nabla p.
-      \]
-
-      <p>Then \((u,p)\) solves the forced Navier–Stokes equations with force \(f\), by construction. You have not solved a PDE. You have computed a residual and named it.</p>
-
-      <p>So the forced blowup problem is not “start the fluid and watch what happens.” It is an inverse problem: design a velocity field that blows up, and then arrange that its residual \(f\) is smooth, bounded with all derivatives, and compactly supported, <em>even at the singular time</em>. The individual terms in the residual all diverge as \(\tau\to0\). The whole difficulty is cancellation. The paper says it plainly: “the individual terms in the momentum residual can diverge, but we must arrange sufficient cancellation that their sum and all its derivatives extend smoothly through the singular time.”[6]</p>
-
-      <p>Contrast that with the unforced problem. There, \(f\equiv0\) is a constraint you cannot design around. You pick \(u^{\circ}\) and you must control the genuine nonlinear evolution all the way to the singularity. The forced problem lets you choose the trajectory and pay for it with a force; the difficulty is keeping the bill smooth. The unforced problem gives you no credit card.</p>
-
-      <p>This framing is not OpenAI's. It is the program of Diego Córdoba and Luis Martínez-Zoroa, developed over several years in Madrid, and every party to this week's dispute agrees on that. Tao describes it as an iteration: given a low-frequency solution \(N(u_{\text{lo}})=f_{\text{lo}}\), add a high-frequency correction and ask that</p>
-
-      \[
-        N(u_{\text{lo}}+u_{\text{hi}})=f_{\text{lo}}+f_{\text{hi}},
-        \qquad
-        f_{\text{hi}}\ \text{small}.
-      \]
-
-      <p>Linearising, \(N'(u_{\text{lo}})u_{\text{hi}}\approx0\). If the linearised evolution around \(u_{\text{lo}}\) is <em>unstable</em>, an exponentially small seed can become large near the blowup time while costing almost nothing in force. Repeat across escalating frequencies, sum the layers, and the limit blows up with \(f=\sum f_{\text{hi}}\) still smooth.[3] The larger scales shear the smaller ones into existence. Each layer is the parent of the next.</p>
-
-      <p>The hard part, and the reason this took from 2023 to 2026, was not the blowup. It was the adjective. Córdoba and Martínez-Zoroa's original forced Euler singularity had a force only in \(C^{1,1/2-\varepsilon}\), too rough for Fefferman's condition (5).[7] The ladder since then is a ladder of regularity of the force.</p>
+      <p>The hard part, and the reason this took from 2023 to 2026, was not the blowup. It was the adjective. Córdoba and Martínez-Zoroa's original 2023 singularity needed a push that was slightly rough, not smooth enough for Fefferman's fine print.[7] Every step since then has been about making the push smoother.</p>
 
       <div class="viz">
         <svg viewBox="0 0 760 460" role="img" aria-labelledby="ladder-title ladder-desc">
@@ -530,40 +476,14 @@
         <div class="viz-caption">Every result on this chart is a finite-time singularity. What moves is the smoothness of the force. The Millennium statement lives on the top rung, which was reached for Euler in August and, by OpenAI's claim, for Navier–Stokes in September. Sources: the OpenAI and Alpöge–Buckmaster introductions, which cite the same lineage.[6][8]</div>
       </div>
 
-      <p>Alpöge and Buckmaster's August result is the rung directly beneath OpenAI's. Their Euler theorem constructs an axisymmetric flow with swirl, supported in a fixed solid torus, driven by a force smooth in space and time up to and including the blowup time, with \(\|\nabla\Gamma\|_\infty\) and \(\|\omega\|_\infty\) both diverging and \(\int_0^{T_*}\|\omega\|_\infty\,dt=\infty\), the Beale–Kato–Majda signature of genuine breakdown.[8] It is 112 pages. It is Lean-verified. It is the same program, one rung down, and it was public on the evening of September 7.</p>
+      <p>Alpöge and Buckmaster's August result is the rung directly beneath OpenAI's. They built a blowup for the Euler equations, no friction, driven by a push that is perfectly smooth in space and time right up to the moment of blowup, with the fluid's spin becoming infinite in exactly the way the classical theory says a real breakdown must.[8] It is 112 pages. It is Lean-verified. It is the same program, one rung down, and it was public on the evening of September 7.</p>
 
       <h2>Pulses that pay the momentum bill</h2>
+      <p>Back to OpenAI's construction. The spinning needle balances itself in its own core. The trouble is the join: in a ring around the core, where the needle meets the calm outer fluid, the leftover force is not smooth. It is not even bounded. If you stopped here and called that leftover your push, you would have broken the rules.</p>
 
-      <p>Back to OpenAI's construction. The self-similar core satisfies its leading momentum balance on its own. The trouble is the join: between the core and a smooth exterior, in an annulus of radii \(\sqrt{2qX_a}\lt r\lt \sqrt{2qX_b}\), the background's residual is unbounded as \(\tau\to0\). If you stopped here and called that residual the force, it would not be smooth. It would not even be bounded.</p>
+      <p>The fix is to make the fluid supply the missing push itself. The construction adds a sequence of ripples in that ring, each wrapping all the way around, each living only briefly. A ripple that goes back and forth averages to zero motion, but it does not average to zero <em>transport</em>. Think of a crowd swaying: nobody ends up anywhere new, but if the people swaying outward are carrying more than the people swaying inward, stuff still moves outward on average. The paper's ripples are tuned so that their average transport of spin and of axial motion exactly supplies what the join was missing.[6] Two families of ripples are needed, because you need two independent directions of transport to hit an arbitrary target, and their strengths must both be positive, which constrains the shape of the needle itself.</p>
 
-      <p>The fix is to make the fluid supply the missing momentum transport itself. Add a perturbation \(w\) with pressure \(\pi\). The exact identity for the residual is</p>
-
-      \[
-        R(u_B+w,\,p_B+\pi)=R(u_B,p_B)+\mathcal{L}_{u_B}(w,\pi)+\nabla\cdot(w\otimes w),
-      \]
-
-      <p>where \(\mathcal{L}_{u_B}\) is the linearisation around the background. The last term is the point. A perturbation whose components have <em>zero</em> angular average can still carry a <em>nonzero</em> average momentum flux, because a product of two zero-mean oscillations need not have zero mean. The paper's example: outward motion carrying an azimuthal surplus, and inward motion carrying a deficit, both push angular momentum outward.[6] Reverse both signs and the product is unchanged.</p>
-
-      <p>So the construction adds a sequence of spatially oscillatory pulses, localised in radius, height and time, each wrapping a complete ring. Their averaged quadratic flux is engineered to equal the missing stress:</p>
-
-      \[
-        \bigl(\langle\tilde w_r\tilde w_\theta\rangle,\ \langle\tilde w_r\tilde w_z\rangle\bigr)
-        =T+\text{higher order},
-        \qquad
-        T=c_1v_1+c_2v_2,\quad c_1,c_2\gt 0.
-      \]
-
-      <p>Two families of pulses, with linearly independent flux directions \(v_1,v_2\), are needed so that the required stress \(T\) lies strictly inside their positive cone. If \(T\) fell outside, no choice of real amplitudes could produce it, since squared amplitudes are non-negative. The profile of the background vortex is chosen partly to make this cone condition hold everywhere in the annulus. Then further corrections cancel the remaining singular terms to every order in a small parameter, the ratio of axial to radial diffusion, which is \(\ell_r^2/\ell_z^2\asymp\tau^{2h}\).[6]</p>
-
-      <p>Where do the pulses get their energy? From the background shear, through the linearised energy identity:</p>
-
-      \[
-        \frac{d}{dt}\frac12\int|w|^2
-        =-\sum_{i,j}\int w_iw_j\,\partial_j(u_B)_i
-        -\int|\nabla w|^2.
-      \]
-
-      <p>The first term transfers energy from the background to the pulse when the pulse's orientation is aligned with the shear. The second term is viscous damping, and it grows with the square of the wavenumber. The shear does two things to a pulse at once: it feeds it, and it tilts its wavevector so the radial wavelength shortens. Shortening the wavelength raises \(|\nabla w|^2\), so damping strengthens over the pulse's life while amplification weakens. Each pulse therefore grows, peaks, and dies, and its cutoff tails are exponentially small.[6]</p>
+      <p>Where do the ripples get their energy? From the spinning background. A ripple lying at the right angle to the shear gets fed by it and grows. But the same shear that feeds the ripple also tilts it, and a tilted ripple has shorter waves, and friction kills short waves faster than long ones. So each ripple grows, peaks, and dies, and it needs an outside push only for its vanishingly small birth and its vanishingly small death.[6]</p>
 
       <div class="viz">
         <svg viewBox="0 0 760 430" role="img" aria-labelledby="pulse-title pulse-desc">
@@ -605,26 +525,17 @@
           <text x="382" y="268" text-anchor="middle" font-size="12" fill="#000">peak</text>
           <text x="400" y="420" text-anchor="middle" font-size="13" fill="#000">slot time within one pulse</text>
         </svg>
-        <div class="viz-caption">Schematic of the pulse budget described in Section 2.2 of the OpenAI manuscript. An exponentially small external force seeds the pulse; shear amplifies it; the same shear tilts it towards shorter wavelengths until viscous damping wins. Only the seed and the tails cost external force, and both vanish with all derivatives at the singular time.</div>
+        <div class="viz-caption">The life of one ripple, following Section 2.2 of the OpenAI paper. A tiny push starts it, the spinning fluid feeds it, then friction catches up and kills it. Only the start and the end need any outside force, and both are vanishingly small.</div>
       </div>
 
-      <p>Scale check, because I did not believe this until I wrote it down. At fixed position in the annulus the paper gives pulse amplitude and wavelength</p>
-
-      \[
-        A_{\text{wave}}\asymp q^{-1/2-h/2},
-        \qquad
-        \ell_{\text{wave}}\asymp q^{1/2+h/2},
-      \]
-
-      <p>with \(q\asymp\tau\) in the core. The viscous damping rate is \(\nu/\ell_{\text{wave}}^2\asymp q^{-1-h}\). The shear rate of the background is \(|u_\theta|/\ell_r\asymp q^{-1/2-h}/q^{1/2}=q^{-1-h}\). They are the <em>same order</em>. That is not a coincidence; it is the design. The pulses live exactly at the scale where amplification and damping compete evenly, so that the ordering of the two can be flipped by a tilt. And the squared amplitude, \(A_{\text{wave}}^2\asymp q^{-1-h}\), divided by the radial scale \(q^{1/2}\), gives \(q^{-3/2-h}\), which is precisely the size of the missing stress divergence. Everything closes.</p>
+      <p>The paper checks the arithmetic of this budget: the rate at which the shear feeds a ripple and the rate at which friction eats it are exactly the same size. That is not luck; it is the design. The ripples live precisely at the scale where feeding and eating compete evenly, so a small tilt is enough to flip the winner. Everything closes.</p>
 
       <h2>Why viscosity was the boss fight</h2>
+      <p>If you only remember one technical thing from this post, remember this: without friction there is nothing eating the ripples. In the Euler version every seed grows forever, and the only question is keeping the push smooth as you stack layers. Alpöge and Buckmaster did that in August, and OpenAI's own 57-page Euler paper does something stronger still, which I will get to.</p>
 
-      <p>If you only remember one technical thing from this post, remember this: the Euler version of this argument has no damping term. Every seed grows forever, and the only question is whether you can keep the force smooth as you stack layers. Alpöge and Buckmaster did that in August, and OpenAI's own 57-page Euler paper does something stronger still, which I will get to.</p>
+      <p>With friction, short waves die fast. A construction that stacks widely separated scales, which is the natural way to build a singularity out of layers, is exactly the construction friction punishes hardest. On September 8, Stan Palasek pointed out on Tao's blog that for the <em>unforced</em> Navier–Stokes problem, a route built through instabilities at widely separated scales runs into precisely this wall: friction eats the energy faster than the layers can grow.[9] Tao welcomed the observation and suggested a toy model to study it.</p>
 
-      <p>With viscosity, the linearised energy identity has that second term, \(-\int|\nabla w|^2\), and it scales like the square of the frequency. A construction that stacks widely separated frequencies, which is how you normally build a singularity out of layers, is exactly the construction viscosity punishes hardest. On September 8, Stan Palasek pointed out on Tao's blog that for the <em>unforced</em> Navier–Stokes problem, a route built through instabilities at widely separated frequencies runs into precisely this wall: the viscous energy loss overwhelms the growth mechanism.[9] Tao welcomed the observation and suggested a toy model to study the interaction.</p>
-
-      <p>This is the honest version of “forcing makes it easier.” Forcing does not merely let you cheat by pushing. It lets you place every pulse at the knife-edge scale, seed it with an exponentially small nudge that viscosity has not yet had time to kill, and top up the momentum ledger with a smooth correction whenever the ledger drifts. Without the force, the ledger has to balance itself, and viscosity is taxing it every step. Nobody has shown how to do that. OpenAI has not claimed to. Their own blog post is explicit that the unforced question remains open.[2]</p>
+      <p>This is the honest version of “forcing makes it easier.” Forcing does not merely let you cheat by pushing. It lets you place every ripple at the knife-edge scale, seed it with a nudge so small friction has not had time to kill it, and top up the ledger with a smooth correction whenever it drifts. Without the force, the ledger has to balance itself while friction taxes it every step. Nobody has shown how to do that. OpenAI has not claimed to. Their own blog post says the unforced question remains open.[2]</p>
 
       <h2>What Lean did and did not check</h2>
 
@@ -678,7 +589,7 @@ theorem navier_stokes_breakdown_R3 (nu : ℝ) (hnu : nu &gt; 0) :
 
       <p>The Comparator tool then checks that OpenAI's proof module closes this exact statement, with these exact definitions, using only the permitted axioms. So the question “does the Lean theorem match Fefferman?” reduces to “does the Formal Conjectures encoding match Fefferman?”, which is a question about 472 lines that anyone can read in an afternoon, written by a third party before the proof existed.</p>
 
-      <p>I read them. The force condition encodes condition (5) literally: for every derivative order \(m\) and every \(K\), a constant \(C\) with \(\|\partial^m f(x,t)\|\le C/(1+\|x\|+t)^K\). The solution structure requires the PDE pointwise for all \(t\ge0\) with the time derivative taken within \([0,\infty)\), divergence-free velocity, the initial condition, smoothness of velocity and pressure on \(\mathbb{R}^3\times[0,\infty)\), square-integrability at every time, and a single bound \(E\) with \(\int\|v\|^2\lt E\) for all \(t\). That is Fefferman's (1), (2), (3), (6), (7). The periodic version also requires periodic pressure, following the errata Fefferman appended to the original statement. I could not find a way in which the encoding is weaker than the prose.</p>
+      <p>I read them. The file spells out, in Lean's language, exactly what Fefferman wrote in English: the push must be smooth and fade away at large distances and late times; a “solution” must satisfy the equation at every point and every time, be incompressible, start from the given state, be smooth, and keep its total energy under one fixed bound forever. The periodic version also insists the pressure be periodic, which Fefferman added in a later correction. I could not find a way in which the Lean version asks for less than the prose does.</p>
 
       <p>What the Lean certificate cannot tell you is whether the <em>informal</em> 166-page paper is a faithful narration of the formal proof, or whether the informal paper is readable, or whether it contains insight. Those are different questions and I will come back to them.</p>
 
@@ -687,17 +598,12 @@ theorem navier_stokes_breakdown_R3 (nu : ℝ) (hnu : nu &gt; 0) :
       <p>Sitting in the same repository, and in a second PDF that got a fraction of the attention, is a result that I think is mathematically at least as surprising as the headline.[13]</p>
 
       <div class="equation-note">
-        <strong>Theorem 1.1 (OpenAI, Euler).</strong> There exists \(u_0\in C^{\infty}_{c,\sigma}(\mathbb{R}^3)\), smooth, compactly supported, divergence-free, whose smooth solution of the <em>unforced</em> incompressible Euler equations has maximal lifespan \(0\lt T_*(u_0)\lt \infty\), with
-        \[
-          \limsup_{t\uparrow T_*}\|\nabla u(t)\|_{L^\infty}=\infty,
-          \qquad
-          \int_0^{T_*}\|\operatorname{curl}u(t)\|_{L^\infty}\,dt=\infty.
-        \]
+        <strong>Theorem 1.1 (OpenAI, Euler), in words.</strong> There is a perfectly smooth starting state for a frictionless fluid, confined to a bounded region, with <em>no outside push at all</em>, whose evolution breaks down at a finite time: the velocity gradients become infinite and the accumulated spin diverges in the precise way the classical theory says a genuine breakdown must.
       </div>
 
-      <p>No force. Whole space. Smooth data. Compact support. Finite energy. This is the question people actually mean when they say “does Euler blow up,” and it has been open since Euler. The previous landmarks all carried an asterisk: Elgindi's 2021 singularity lives in \(C^{1,\alpha}\), not \(C^\infty\);[14] Chen and Hou's 2022 smooth-data blowup lives in a cylinder with a wall, and Fefferman himself explained to Quanta why a wall changes the meaning, since “without a boundary it's the fluid doing the crazy stuff.”[4][15] The unforced Euler paper is 57 pages, 1,839 Lean files, and the mechanism is different from the Navier–Stokes one: odd flows, a rank-one shear at the origin, packets whose gradients are amplified along particle trajectories, and a limiting initial datum assembled from a summable sequence of corrections.[13]</p>
+      <p>No force. Whole space. Smooth data. Compact support. Finite energy. This is the question people actually mean when they say “does Euler blow up,” and it has been open since Euler. The previous landmarks all carried an asterisk: Elgindi's 2021 singularity starts from data that is only slightly rough rather than perfectly smooth;[14] Chen and Hou's 2022 smooth-data blowup lives in a cylinder with a wall, and Fefferman himself explained to Quanta why a wall changes the meaning, since “without a boundary it's the fluid doing the crazy stuff.”[4][15] The unforced Euler paper is 57 pages, 1,839 Lean files, and the mechanism is different from the Navier–Stokes one: a shear at the origin stretches a small ripple, the stretched ripple becomes the shear for the next one, and the starting state is assembled from the sum of all those ripples.[13]</p>
 
-      <p>Two more things sit next to it. Buckmaster's statement mentions, almost in passing, that he and Alpöge believe they have blowup for hypo-dissipative Navier–Stokes, not yet Lean-verified, and that it is “suggestive of a path to unforced Euler.”[5] And on September 7, Anandkumar's group at Caltech posted evidence, from physics-informed neural networks refined to high precision, for a <em>stable</em> self-similar Euler singularity on \(\mathbb{R}^3\) without forcing, though their own manuscript says the stability constants are not yet certified.[16] Three groups, three methods, one target. If I had to bet on where the next month's real mathematics happens, it is here, not in the Clay fine print.</p>
+      <p>Two more things sit next to it. Buckmaster's statement mentions, almost in passing, that he and Alpöge believe they have blowup for hypo-dissipative Navier–Stokes, not yet Lean-verified, and that it is “suggestive of a path to unforced Euler.”[5] And on September 7, Anandkumar's group at Caltech posted evidence, from physics-informed neural networks refined to high precision, for a <em>stable</em> Euler singularity in free space without forcing, though their own manuscript says the stability constants are not yet certified.[16] Three groups, three methods, one target. If I had to bet on where the next month's real mathematics happens, it is here, not in the Clay fine print.</p>
 
       <h2>The month before the weekend</h2>
 
@@ -837,13 +743,13 @@ theorem navier_stokes_breakdown_R3 (nu : ℝ) (hnu : nu &gt; 0) :
 
       <p>It does not say the Millennium Prize problem, in the sense most people mean it, is solved. Alternatives (A) and (B) are open. Unforced breakdown, which is not one of the four alternatives, is open. Palasek's obstruction suggests the layered route does not extend to it without a new idea.[9]</p>
 
-      <p>It does not say the proof is wrong. I found no gap between the Formal Conjectures encoding and Fefferman's prose, the Lean proof is <code>sorry</code>-free under the three standard axioms, and the physical mechanism, once you write out the scalings, closes. If someone finds a discrepancy, it will be in the 472 lines of encoding or in the toolchain, not in the 400,000 lines of proof.</p>
+      <p>It does not say the proof is wrong. I found no gap between the Formal Conjectures encoding and Fefferman's prose, the Lean proof is <code>sorry</code>-free under the three standard axioms, and the physical mechanism, once you write out the energy budget, closes. If someone finds a discrepancy, it will be in the 472 lines of encoding or in the toolchain, not in the 400,000 lines of proof.</p>
 
       <p>It does not say the model did it alone. It does not say the model did it dishonestly. It says that a rumour started a race, that the race was run along a road two Spaniards had spent years paving and two other people had spent a year walking, and that the winner announced twelve hours after the runners-up, with a statement about training data that, by its own wording, cannot be checked from outside.</p>
 
       <p>It does not say the 166 pages are readable. Buckmaster calls his own Euler write-up “AI slop” and apologises for it. I have read the OpenAI introduction and the proof outline closely, and they are clear and physically motivated. I have not read Section 9, and I do not know anyone who has yet.</p>
 
-      <p>And it does not say whose contribution the theorem “is.” The mechanism is Córdoba and Martínez-Zoroa's. The smooth-forcing rung is Alpöge and Buckmaster's for Euler. The viscous rung, the pulses, the cone condition, and the certificate are, on the available evidence, the machine's. Tao's word “decoupling” is the right one. We have a certified answer to a question that Fefferman wrote down in 2000, and the people who understand why it is true are still catching up to the fact that it is.</p>
+      <p>And it does not say whose contribution the theorem “is.” The mechanism is Córdoba and Martínez-Zoroa's. The smooth-forcing rung is Alpöge and Buckmaster's for Euler. The viscous rung, the ripples, and the certificate are, on the available evidence, the machine's. Tao's word “decoupling” is the right one. We have a certified answer to a question that Fefferman wrote down in 2000, and the people who understand why it is true are still catching up to the fact that it is.</p>
 
       <h2>Reading order</h2>
 
