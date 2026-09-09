@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A first-person dissection of OpenAI's September 2026 Navier–Stokes claim: what Theorem 1.1 says, why the word forced decides everything, the contracting vortex and its pulses, what the Lean certificate does and does not check, the Córdoba–Martínez-Zoroa program, the Alpöge–Buckmaster preprints, and the priority dispute.">
+  <title>Option C</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    /* Content-specific rules only. The site palette and typography come from site.css. */
+    html {
+      background-color: #d8ccb2;
+      color: #000;
+    }
+
+    body {
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      background: transparent;
+      color: #000;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .equation-note {
+      margin: 1.5rem 0;
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid #999;
+      border-left: 4px solid #000;
+    }
+
+    .viz {
+      margin: 2rem 0;
+      overflow-x: auto;
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 650px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .table-wrap table {
+      min-width: 720px;
+    }
+
+    .technical-aside {
+      margin: 1.4rem 0;
+      padding: 0.85rem 1rem;
+      border: 1px solid #999;
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .technical-aside-title {
+      display: block;
+      margin-bottom: 0.7rem;
+    }
+
+    .technical-aside > :last-child {
+      margin-bottom: 0;
+    }
+
+    .quote-block {
+      margin: 1.5rem 0;
+      padding: 0 0 0 1rem;
+      border-left: 3px solid #000;
+      font-style: italic;
+    }
+
+    .quote-block .who {
+      display: block;
+      margin-top: 0.4rem;
+      font-style: normal;
+      font-size: 0.9rem;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.7rem;
+    }
+
+    .footnote {
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1.2rem 1rem 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-links" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article>
+      <h1>Option C</h1>
+      <div class="meta">09 September, 2026 &middot; What OpenAI actually proved about Navier–Stokes, what the word “forced” is doing, and why the fine print was written in 2000</div>
+
+      <p>I spend my working hours trying to get a handful of agents to stop stepping on each other's toes. So when my timeline told me on Monday morning that ten thousand of them had spent a long weekend solving a Millennium Prize problem, my first reaction was not awe. It was a very specific and slightly petty question: what exactly was the prompt?</p>
+
+      <p>My second reaction was better. Before I read a single news article, I opened the five-page PDF that Charles Fefferman wrote for the Clay Mathematics Institute in the year 2000, the one that defines what “solving Navier–Stokes” legally means.[1] That turned out to be the correct order to read things in, and this whole post is essentially an argument for that order.</p>
+
+      <p class="lede">Here is the sentence everybody was arguing about on Monday: “OpenAI solved Navier–Stokes.” The sentence is doing three jobs at once, and only one of them is true in the way people assume.</p>
+
+      <ol>
+        <li>A theorem was proved about the three-dimensional Navier–Stokes equations <em>with a smooth external force</em>, and a proof assistant checked it.</li>
+        <li>That theorem matches, clause for clause, one of the four alternatives in the official problem statement. Specifically alternative (C), and by a small extension alternative (D).</li>
+        <li>That alternative is the thing people mean when they say “the Navier–Stokes problem.”</li>
+      </ol>
+
+      <p>The first claim is, as far as anyone can currently tell, correct. I cloned the Lean repository and I will show you what is in it. The second claim I can verify myself, because the problem statement is five pages long and the relevant clause is two sentences. The third claim is false, and it is false in a way that Fefferman anticipated twenty-six years ago when he wrote four alternatives instead of one.</p>
+
+      <p>So this is not a post about whether a million dollars changes hands. OpenAI has already said it will not ask for it.[2] This is a post about what a contracting vortex, a smooth push, an energy budget, four hundred thousand lines of Lean, and one very bad month for a mathematician in New York actually add up to.</p>
+
+      <h2>The equations, in one paragraph and one identity</h2>
+
+      <p>An incompressible fluid filling all of \(\mathbb{R}^3\) has a velocity \(u(x,t)\in\mathbb{R}^3\) and a pressure \(p(x,t)\in\mathbb{R}\). Newton's law for a fluid parcel, plus the constraint that the fluid cannot be squeezed, gives</p>
+
+      \[
+        \partial_t u+(u\cdot\nabla)u
+        =\nu\Delta u-\nabla p+f,
+        \qquad
+        \nabla\cdot u=0,
+        \qquad
+        u(\cdot,0)=u^{\circ}.
+      \]
+
+      <p>Every term has a job. The term \((u\cdot\nabla)u\) is the parcel's acceleration due to its own motion carrying it into a region of different velocity. It is quadratic in \(u\), and it is the entire reason the problem is hard. The term \(\nu\Delta u\) is viscosity: friction between neighbouring parcels, which smooths gradients. The pressure gradient enforces incompressibility. The term \(f\) is an external force, gravity or a propeller or whatever you like. Set \(\nu=0\) and you have the Euler equations, which are older and, in a sense I will make precise, easier to break.</p>
+
+      <p>The single most useful identity in this whole story comes from taking the dot product of the equation with \(u\) and integrating over space. The nonlinear term and the pressure term both vanish under incompressibility, because \(\int u\cdot(u\cdot\nabla)u=\int u\cdot\nabla\bigl(\tfrac12|u|^2\bigr)=0\) and \(\int u\cdot\nabla p=-\int p\,\nabla\cdot u=0\). What survives is</p>
+
+      \[
+        \frac{d}{dt}\,\frac12\int_{\mathbb{R}^3}|u|^2\,dx
+        =-\nu\int_{\mathbb{R}^3}|\nabla u|^2\,dx
+        +\int_{\mathbb{R}^3}f\cdot u\,dx.
+      \]
+
+      <p>Read it slowly. Kinetic energy can only decrease through viscosity, and can only increase through the work done by the force. If \(f\equiv0\), energy is monotone non-increasing forever. That is the reason the unforced problem feels like it should have a regular answer: the fluid has a fixed budget and viscosity keeps taxing it.</p>
+
+      <p>But the identity says nothing about where the energy sits. A tiny region can hold enormous velocities while contributing almost nothing to \(\int|u|^2\). That loophole is the shape of every singularity in this post.</p>
+
+      <h2>Fefferman wrote four sentences</h2>
+
+      <p>The Clay problem statement does not say “prove or disprove global regularity.” It asks for a proof of <em>one of four</em> statements. I am going to paraphrase them closely, and I want you to watch the force.[1]</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Alternative</th>
+              <th>Domain</th>
+              <th>Force</th>
+              <th>What you must prove</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>(A)</strong> Existence and smoothness</td>
+              <td>\(\mathbb{R}^3\)</td>
+              <td>\(f\equiv0\)</td>
+              <td>For <em>every</em> smooth, divergence-free, rapidly decaying \(u^{\circ}\), a smooth solution with bounded energy exists for all time.</td>
+            </tr>
+            <tr>
+              <td><strong>(B)</strong> Existence and smoothness</td>
+              <td>\(\mathbb{R}^3/\mathbb{Z}^3\)</td>
+              <td>\(f\equiv0\)</td>
+              <td>Same, for every smooth periodic \(u^{\circ}\).</td>
+            </tr>
+            <tr>
+              <td><strong>(C)</strong> Breakdown</td>
+              <td>\(\mathbb{R}^3\)</td>
+              <td>\(f\) smooth, all derivatives decaying faster than any power of \((1+|x|+t)\)</td>
+              <td>There <em>exist</em> a smooth \(u^{\circ}\) and such an \(f\) for which no smooth, bounded-energy solution exists on \(\mathbb{R}^3\times[0,\infty)\).</td>
+            </tr>
+            <tr>
+              <td><strong>(D)</strong> Breakdown</td>
+              <td>\(\mathbb{R}^3/\mathbb{Z}^3\)</td>
+              <td>\(f\) smooth, periodic in space, all derivatives decaying in time</td>
+              <td>Same, with periodic velocity and pressure.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Look at the third column. The two existence alternatives explicitly set the force to zero: “Take \(f(x,t)\) to be identically zero.” The two breakdown alternatives explicitly allow a force, as long as it is smooth and decays. Fefferman's condition (5) is</p>
+
+      \[
+        |\partial_x^{\alpha}\partial_t^{m}f(x,t)|
+        \le C_{\alpha m K}\,(1+|x|+t)^{-K}
+        \quad\text{for all }\alpha,m,K.
+      \]
+
+      <p>A force that is smooth and compactly supported in space and time satisfies this trivially, because it is zero outside a bounded set.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 400" role="img" aria-labelledby="grid-title grid-desc">
+          <title id="grid-title">The four alternatives in Fefferman's problem statement</title>
+          <desc id="grid-desc">A two by two grid. Columns are the whole space and the torus. The top row contains the existence alternatives A and B with force identically zero. The bottom row contains the breakdown alternatives C and D which permit a smooth decaying force. C and D are highlighted as the alternatives OpenAI claims.</desc>
+
+          <text x="200" y="34" text-anchor="middle" font-size="16" fill="#000">ℝ³ (whole space)</text>
+          <text x="560" y="34" text-anchor="middle" font-size="16" fill="#000">ℝ³/ℤ³ (periodic box)</text>
+
+          <!-- top row: existence -->
+          <rect x="40" y="56" width="320" height="130" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="60" y="84" font-size="17" fill="#000" font-weight="bold">(A) Existence and smoothness</text>
+          <text x="60" y="110" font-size="14" fill="#000">Force: f ≡ 0. Every smooth decaying datum</text>
+          <text x="60" y="130" font-size="14" fill="#000">must stay smooth forever with bounded energy.</text>
+          <text x="60" y="162" font-size="13" fill="#000">Status: open.</text>
+
+          <rect x="400" y="56" width="320" height="130" fill="rgba(255,255,255,0.28)" stroke="#777"/>
+          <text x="420" y="84" font-size="17" fill="#000" font-weight="bold">(B) Existence and smoothness</text>
+          <text x="420" y="110" font-size="14" fill="#000">Force: f ≡ 0. Every smooth periodic datum</text>
+          <text x="420" y="130" font-size="14" fill="#000">must stay smooth forever.</text>
+          <text x="420" y="162" font-size="13" fill="#000">Status: open.</text>
+
+          <!-- bottom row: breakdown -->
+          <rect x="40" y="216" width="320" height="130" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="60" y="244" font-size="17" fill="#000" font-weight="bold">(C) Breakdown</text>
+          <text x="60" y="270" font-size="14" fill="#000">Force: smooth, all derivatives decaying.</text>
+          <text x="60" y="290" font-size="14" fill="#000">Exhibit one datum and one force with no</text>
+          <text x="60" y="310" font-size="14" fill="#000">global smooth bounded-energy solution.</text>
+          <text x="60" y="336" font-size="13" fill="#0000ee">Claimed: OpenAI, Theorem 1.1 (8 Sept 2026)</text>
+
+          <rect x="400" y="216" width="320" height="130" fill="rgba(255,255,255,0.28)" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="420" y="244" font-size="17" fill="#000" font-weight="bold">(D) Breakdown</text>
+          <text x="420" y="270" font-size="14" fill="#000">Force: smooth, periodic in space.</text>
+          <text x="420" y="290" font-size="14" fill="#000">Exhibit one periodic datum and force with</text>
+          <text x="420" y="310" font-size="14" fill="#000">no global smooth solution.</text>
+          <text x="420" y="336" font-size="13" fill="#0000ee">Claimed: OpenAI, Corollary 10.6</text>
+
+          <line x1="40" y1="201" x2="720" y2="201" stroke="#aaa" stroke-dasharray="5 5"/>
+          <text x="380" y="380" text-anchor="middle" font-size="14" fill="#000">The version most people picture, “smooth data, no force, does it blow up?”, is neither row. It is the bottom row with f ≡ 0, which nobody has claimed.</text>
+        </svg>
+        <div class="viz-caption">Fefferman's problem statement is a disjunction. Proving any one of the four earns the prize by the letter of the document. The existence rows are unforced; the breakdown rows are not.</div>
+      </div>
+
+      <p>This is the fact the whole week hinges on. The version of the problem that lives in most people's heads, “take smooth initial data, no external push, does the fluid ever blow up?”, is the breakdown question with \(f\equiv0\). It is not one of the four alternatives. Fefferman gave the solver, in his own words, “reasonable leeway” by allowing a smooth force in the breakdown direction. Almost every working analyst I have read this week says the same thing: they had mentally deleted that clause.[3][4] Buckmaster called the forced route “not the direction one arrives at in a few days by giving a model the problem statement.”[5]</p>
+
+      <p>OpenAI did not delete the clause. Neither, for years before them, did two mathematicians in Madrid.</p>
+
+      <h2>What the 166 pages claim</h2>
+
+      <p>The manuscript is titled “Finite Time Blowup for Navier–Stokes,” author line “OpenAI,” 166 pages, three appendices.[6] Its abstract is one sentence, and its main theorem is short enough to reproduce.</p>
+
+      <div class="equation-note">
+        <strong>Theorem 1.1 (OpenAI).</strong> For every \(\nu\gt 0\) there exist a force \(f\in C_c^{\infty}(\mathbb{R}^3\times(0,\infty);\mathbb{R}^3)\), a compact set \(K\subset\mathbb{R}^3\), and smooth velocity and pressure fields \(u,p\) on \(\mathbb{R}^3\times[0,1)\) satisfying
+        \[
+          \partial_t u+(u\cdot\nabla)u-\nu\Delta u+\nabla p=f,
+          \qquad \nabla\cdot u=0,
+          \qquad u(\cdot,0)=0,
+        \]
+        such that \(\operatorname{supp}u(\cdot,t)\cup\operatorname{supp}p(\cdot,t)\subset K\) for every \(0\le t\lt 1\),
+        \[
+          \sup_{0\le t\lt 1}\|u(t)\|_{L^2(\mathbb{R}^3)}\lt \infty,
+          \qquad
+          \limsup_{t\uparrow1}\|u(t)\|_{L^\infty(\mathbb{R}^3)}=\infty.
+        \]
+        Consequently, there is no smooth solution on \(\mathbb{R}^3\times[0,\infty)\) with the same force and initial datum whose kinetic energy is uniformly bounded.
+      </div>
+
+      <p>Four things in that statement deserve a pause.</p>
+
+      <p>First, the fluid starts <em>at rest</em>. The initial datum is zero. Everything that happens is caused by a force that is smooth, bounded, and switched on only inside a bounded region of space-time. A smooth, finite push produces an infinite speed in finite time. That is a stronger and stranger statement than “some wild initial data blows up.”</p>
+
+      <p>Second, the theorem holds for every viscosity. This is not a small-viscosity limit sneaking towards Euler. It holds at \(\nu=1\), at \(\nu=1000\), at any positive value. The reason is a scaling symmetry that I want to check with you, because it is the kind of thing a reader should verify rather than trust. Suppose \((u,p,f)\) solves the equation at viscosity one. Define</p>
+
+      \[
+        u_\nu(x,t)=\sqrt{\nu}\,u\!\left(\tfrac{x}{\sqrt{\nu}},t\right),
+        \qquad
+        p_\nu(x,t)=\nu\,p\!\left(\tfrac{x}{\sqrt{\nu}},t\right),
+        \qquad
+        f_\nu(x,t)=\sqrt{\nu}\,f\!\left(\tfrac{x}{\sqrt{\nu}},t\right).
+      \]
+
+      <p>Each spatial derivative costs a factor \(\nu^{-1/2}\). Then \(\partial_t u_\nu\) scales like \(\nu^{1/2}\), \((u_\nu\cdot\nabla)u_\nu\) scales like \(\nu^{1/2}\cdot\nu^{1/2}\cdot\nu^{-1/2}=\nu^{1/2}\), \(\nabla p_\nu\) like \(\nu\cdot\nu^{-1/2}=\nu^{1/2}\), and \(\nu\Delta u_\nu\) like \(\nu\cdot\nu^{1/2}\cdot\nu^{-1}=\nu^{1/2}\). Every term picks up the same factor, so the rescaled triple solves the equation at viscosity \(\nu\), with the same blowup time. Energy scales by \(\nu\cdot\nu^{3/2}=\nu^{5/2}\), still finite. Time is untouched, so “blows up at \(t=1\)” survives. One construction at \(\nu=1\) is therefore every construction.[6]</p>
+
+      <p>Third, the phrase “consequently, there is no smooth solution.” Alternative (C) is a non-existence statement. The theorem constructs a solution on \([0,1)\); to conclude that no global smooth bounded-energy solution exists, one needs that any such solution would have to agree with the constructed one on \([0,1)\), and would therefore also be unbounded near \(t=1\). This is a uniqueness step, standard for smooth finite-energy Navier–Stokes solutions, but it is a step, and it is part of what the Lean file has to discharge.</p>
+
+      <p>Fourth, compact support in space is what turns (C) into (D). A solution living in a bounded box can be tiled periodically, so the same construction gives the torus alternative. That is Corollary 10.6.[6]</p>
+
+      <h2>A vortex that eats its own width</h2>
+
+      <p>Now the physics, which is the part I found genuinely beautiful. Write \(\tau=1-t\) for the time remaining before the singularity. The leading-order flow is an axisymmetric vortex, and it is self-similar in a lopsided way: its radial extent and its axial extent shrink at <em>different</em> rates.[6]</p>
+
+      \[
+        \ell_r\asymp\tau^{1/2},
+        \qquad
+        \ell_z\asymp\tau^{1/2-h},
+        \qquad
+        0\lt h\lt \tfrac{1}{100}.
+      \]
+
+      <p>Both lengths go to zero, but their ratio \(\ell_r/\ell_z\asymp\tau^{h}\to0\). The core becomes a needle: an increasingly slender column of spinning fluid concentrated at the origin. The exponent \(h\) is fixed, tiny, and positive. Keep it in mind, because it is the thin margin the entire proof lives in.</p>
+
+      <p>The velocities in that column scale like</p>
+
+      \[
+        |u_\theta|,\ |u_z|\asymp\tau^{-1/2-h},
+        \qquad
+        |u_r|=O(\tau^{-1/2}).
+      \]
+
+      <p>Fluid spirals inward, spins faster as it goes, and escapes axially in opposite directions on either side of a dividing plane near \(z=0\). The spin-up is just angular momentum conservation: a torque-free parcel keeps \(r u_\theta\) constant, so moving inward makes \(u_\theta\) grow. Viscosity fights this by leaking angular momentum outward, and the growing speed is the balance between the two.</p>
+
+      <p>Here is the calculation I did on paper to convince myself the energy really stays bounded. The core's volume is \(\ell_r^2\ell_z\asymp\tau^{1+1/2-h}=\tau^{3/2-h}\). Its speed squared is \(\tau^{-1-2h}\). So the core's kinetic energy is</p>
+
+      \[
+        E_{\text{core}}\asymp\tau^{3/2-h}\cdot\tau^{-1-2h}=\tau^{1/2-3h}\longrightarrow0
+        \quad\text{as }\tau\downarrow0,
+      \]
+
+      <p>because \(h\lt 1/100\) makes \(1/2-3h\) comfortably positive. The fastest fluid in the universe lives in a region so small that its energy contribution vanishes. The energy identity from the first section is satisfied without complaint. That is the loophole, executed.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 440" role="img" aria-labelledby="scaling-title scaling-desc">
+          <title id="scaling-title">Similarity scalings of the contracting core as the singular time approaches</title>
+          <desc id="scaling-desc">A log-log chart with time remaining tau decreasing to the right. The radial length shrinks like tau to the one half, the axial length shrinks slightly more slowly, the velocity grows like tau to the minus one half minus h, and the core energy decays like tau to the one half minus three h. The exponent h is exaggerated for legibility.</desc>
+          <defs>
+            <marker id="arrow-scaling" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <!-- axes -->
+          <line x1="90" y1="380" x2="700" y2="380" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-scaling)"/>
+          <line x1="90" y1="380" x2="90" y2="30" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-scaling)"/>
+          <text x="400" y="420" text-anchor="middle" font-size="14" fill="#000">time remaining τ = 1 − t, decreasing to the right (log scale)</text>
+          <text x="30" y="210" text-anchor="middle" font-size="14" fill="#000" transform="rotate(-90 30 210)">log₁₀ of quantity</text>
+
+          <!-- x ticks -->
+          <g font-size="12" fill="#000" text-anchor="middle">
+            <text x="90" y="398">1</text>
+            <text x="190" y="398">10⁻¹</text>
+            <text x="290" y="398">10⁻²</text>
+            <text x="390" y="398">10⁻³</text>
+            <text x="490" y="398">10⁻⁴</text>
+            <text x="590" y="398">10⁻⁵</text>
+            <text x="690" y="398">10⁻⁶</text>
+          </g>
+          <!-- y ticks -->
+          <g font-size="12" fill="#000" text-anchor="end">
+            <text x="82" y="44">+4</text>
+            <text x="82" y="129">+2</text>
+            <text x="82" y="214">0</text>
+            <text x="82" y="299">−2</text>
+            <text x="82" y="384">−4</text>
+          </g>
+          <g stroke="#bbb" stroke-dasharray="3 4">
+            <line x1="90" y1="40" x2="690" y2="40"/>
+            <line x1="90" y1="125" x2="690" y2="125"/>
+            <line x1="90" y1="210" x2="690" y2="210"/>
+            <line x1="90" y1="295" x2="690" y2="295"/>
+          </g>
+
+          <!-- lines from (90,210): slopes in pixel space: 100 px per decade in x, 42.5 px per decade in y -->
+          <!-- velocity: exponent -(1/2+h) with h=0.1 drawn -> +0.6 per decade -> end y = 210 - 3.6*42.5 = 57 -->
+          <line x1="90" y1="210" x2="690" y2="57" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="560" y="78" font-size="13" fill="#0000ee">|u_θ|, |u_z| ∼ τ^(−1/2−h)</text>
+
+          <!-- energy: exponent 1/2-3h = 0.2 -> end y = 210 + 1.2*42.5 = 261 -->
+          <line x1="90" y1="210" x2="690" y2="261" stroke="#000" stroke-width="2"/>
+          <text x="560" y="250" font-size="13" fill="#000">E_core ∼ τ^(1/2−3h) → 0</text>
+
+          <!-- l_z: exponent 1/2-h = 0.4 -> end y = 210 + 2.4*42.5 = 312 -->
+          <line x1="90" y1="210" x2="690" y2="312" stroke="#000" stroke-width="2" stroke-dasharray="7 4"/>
+          <text x="560" y="308" font-size="13" fill="#000">ℓ_z ∼ τ^(1/2−h)</text>
+
+          <!-- l_r: exponent 1/2 -> end y = 210 + 3*42.5 = 337.5 -->
+          <line x1="90" y1="210" x2="690" y2="337" stroke="#000" stroke-width="2" stroke-dasharray="2 4"/>
+          <text x="560" y="352" font-size="13" fill="#000">ℓ_r ∼ τ^(1/2)</text>
+
+          <rect x="105" y="48" width="300" height="52" fill="none" stroke="#777" stroke-dasharray="5 5"/>
+          <text x="255" y="70" text-anchor="middle" font-size="13" fill="#000">Speed diverges, but the region holding it</text>
+          <text x="255" y="90" text-anchor="middle" font-size="13" fill="#000">shrinks fast enough that its energy vanishes.</text>
+        </svg>
+        <div class="viz-caption">The similarity exponents of the leading vortex, drawn with \(h=0.1\) so that the two length scales are visibly different. In the proof \(h\) is smaller than \(1/100\); the paper itself says its schematic “exaggerates” the difference. The qualitative picture is exact: \(\ell_r\) shrinks faster than \(\ell_z\), velocity grows, energy decays.</div>
+      </div>
+
+      <p>Two Reynolds numbers make the viscous story precise. Using the core radius as the length,</p>
+
+      \[
+        \mathrm{Re}_\theta=\frac{|u_\theta|\,\ell_r}{\nu}\asymp\tau^{-h}\to\infty,
+        \qquad
+        \mathrm{Re}_r=\frac{|u_r|\,\ell_r}{\nu}=O(1).
+      \]
+
+      <p>The angular Reynolds number diverges: fluid completes ever more turns per radial diffusion time. The radial Reynolds number stays bounded: viscosity never stops competing with the inflow. This is exactly the regime a viscous blowup needs. Spin wins by a margin of \(\tau^{-h}\), and \(h\) is under one percent. If you want a one-line summary of why this took 166 pages and Euler took 57, it is that number.</p>
+
+      <h2>The force is a residual</h2>
+
+      <p>Now for the trick that makes the forced problem attackable at all, and which I think is the single most important idea to take away from this week if you are not a fluids person.</p>
+
+      <p>Take <em>any</em> smooth divergence-free \(u\) and any smooth \(p\). Define</p>
+
+      \[
+        f:=\partial_t u+(u\cdot\nabla)u-\nu\Delta u+\nabla p.
+      \]
+
+      <p>Then \((u,p)\) solves the forced Navier–Stokes equations with force \(f\), by construction. You have not solved a PDE. You have computed a residual and named it.</p>
+
+      <p>So the forced blowup problem is not “start the fluid and watch what happens.” It is an inverse problem: design a velocity field that blows up, and then arrange that its residual \(f\) is smooth, bounded with all derivatives, and compactly supported, <em>even at the singular time</em>. The individual terms in the residual all diverge as \(\tau\to0\). The whole difficulty is cancellation. The paper says it plainly: “the individual terms in the momentum residual can diverge, but we must arrange sufficient cancellation that their sum and all its derivatives extend smoothly through the singular time.”[6]</p>
+
+      <p>Contrast that with the unforced problem. There, \(f\equiv0\) is a constraint you cannot design around. You pick \(u^{\circ}\) and you must control the genuine nonlinear evolution all the way to the singularity. The forced problem lets you choose the trajectory and pay for it with a force; the difficulty is keeping the bill smooth. The unforced problem gives you no credit card.</p>
+
+      <p>This framing is not OpenAI's. It is the program of Diego Córdoba and Luis Martínez-Zoroa, developed over several years in Madrid, and every party to this week's dispute agrees on that. Tao describes it as an iteration: given a low-frequency solution \(N(u_{\text{lo}})=f_{\text{lo}}\), add a high-frequency correction and ask that</p>
+
+      \[
+        N(u_{\text{lo}}+u_{\text{hi}})=f_{\text{lo}}+f_{\text{hi}},
+        \qquad
+        f_{\text{hi}}\ \text{small}.
+      \]
+
+      <p>Linearising, \(N'(u_{\text{lo}})u_{\text{hi}}\approx0\). If the linearised evolution around \(u_{\text{lo}}\) is <em>unstable</em>, an exponentially small seed can become large near the blowup time while costing almost nothing in force. Repeat across escalating frequencies, sum the layers, and the limit blows up with \(f=\sum f_{\text{hi}}\) still smooth.[3] The larger scales shear the smaller ones into existence. Each layer is the parent of the next.</p>
+
+      <p>The hard part, and the reason this took from 2023 to 2026, was not the blowup. It was the adjective. Córdoba and Martínez-Zoroa's original forced Euler singularity had a force only in \(C^{1,1/2-\varepsilon}\), too rough for Fefferman's condition (5).[7] The ladder since then is a ladder of regularity of the force.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 460" role="img" aria-labelledby="ladder-title ladder-desc">
+          <title id="ladder-title">The forcing-regularity ladder from 2023 to September 2026</title>
+          <desc id="ladder-desc">A scatter of results against time on the horizontal axis and regularity of the external force on the vertical axis, rising from Hölder forces through spatially smooth forces to forces smooth in space and time. The 2023 and 2024 Córdoba Martínez-Zoroa results sit low, the August 2026 Alpöge Buckmaster results reach smooth space-time forcing for Euler, and the September 2026 OpenAI result reaches smooth space-time forcing for Navier Stokes at every viscosity.</desc>
+          <defs>
+            <marker id="arrow-ladder" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <line x1="80" y1="380" x2="720" y2="380" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-ladder)"/>
+          <line x1="80" y1="380" x2="80" y2="40" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-ladder)"/>
+
+          <g font-size="12" fill="#000" text-anchor="middle">
+            <text x="140" y="400">2023</text>
+            <text x="290" y="400">2024</text>
+            <text x="440" y="400">2025</text>
+            <text x="590" y="400">2026</text>
+          </g>
+
+          <!-- rungs -->
+          <g stroke="#bbb" stroke-dasharray="3 4">
+            <line x1="80" y1="320" x2="700" y2="320"/>
+            <line x1="80" y1="220" x2="700" y2="220"/>
+            <line x1="80" y1="110" x2="700" y2="110"/>
+          </g>
+          <g font-size="12" fill="#000">
+            <text x="86" y="314">force in C^{1,α}, α small (rough)</text>
+            <text x="86" y="214">force smooth in space only</text>
+            <text x="86" y="104">force C^∞ in space and time (Fefferman's condition 5)</text>
+          </g>
+
+          <!-- points: x by date, y by rung -->
+          <!-- 2023 Sept: CMZ forced Euler, C^{1,1/2-e} -->
+          <circle cx="245" cy="320" r="6" fill="#000"/>
+          <text x="245" y="345" text-anchor="middle" font-size="12" fill="#000">Córdoba–Martínez-Zoroa</text>
+          <text x="245" y="360" text-anchor="middle" font-size="12" fill="#000">3D Euler, C^{1,1/2−ε}</text>
+
+          <!-- 2024 July: CMZ-Zheng hypodissipative NS -->
+          <circle cx="370" cy="320" r="6" fill="#000"/>
+          <text x="370" y="296" text-anchor="middle" font-size="12" fill="#000">+ Zheng: hypodissipative NS</text>
+          <text x="370" y="281" text-anchor="middle" font-size="12" fill="#000">force L¹ₜC^{1,ε}</text>
+
+          <!-- 2024 Oct: CMZ IPM smooth source in space -->
+          <circle cx="410" cy="220" r="6" fill="#000"/>
+          <text x="410" y="245" text-anchor="middle" font-size="12" fill="#000">IPM, source smooth in x</text>
+
+          <!-- 2025: Boussinesq C^{1,sqrt(4/3)-1-e} -->
+          <circle cx="470" cy="320" r="6" fill="#000"/>
+          <text x="500" y="345" text-anchor="middle" font-size="12" fill="#000">+ Laín-Sanclemente: Boussinesq</text>
+          <text x="500" y="360" text-anchor="middle" font-size="12" fill="#000">C^{1,α}, α &lt; √(4/3) − 1</text>
+
+          <!-- Aug 2026: Alpöge-Buckmaster, smooth space-time, IPM/Boussinesq/Euler -->
+          <circle cx="648" cy="110" r="7" fill="#000"/>
+          <text x="600" y="78" text-anchor="middle" font-size="12" fill="#000">Alpöge–Buckmaster (15 Aug 2026)</text>
+          <text x="600" y="93" text-anchor="middle" font-size="12" fill="#000">IPM, Boussinesq, 3D Euler</text>
+
+          <!-- Sept 2026: OpenAI NS -->
+          <circle cx="680" cy="110" r="8" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <text x="660" y="140" text-anchor="middle" font-size="12" fill="#0000ee">OpenAI (8 Sept 2026)</text>
+          <text x="660" y="155" text-anchor="middle" font-size="12" fill="#0000ee">3D Navier–Stokes, every ν</text>
+
+          <!-- arrow of the program -->
+          <path d="M255 312 Q 330 200 400 228" fill="none" stroke="#777" stroke-dasharray="4 4"/>
+          <path d="M420 212 Q 560 120 640 112" fill="none" stroke="#777" stroke-dasharray="4 4"/>
+        </svg>
+        <div class="viz-caption">Every result on this chart is a finite-time singularity. What moves is the smoothness of the force. The Millennium statement lives on the top rung, which was reached for Euler in August and, by OpenAI's claim, for Navier–Stokes in September. Sources: the OpenAI and Alpöge–Buckmaster introductions, which cite the same lineage.[6][8]</div>
+      </div>
+
+      <p>Alpöge and Buckmaster's August result is the rung directly beneath OpenAI's. Their Euler theorem constructs an axisymmetric flow with swirl, supported in a fixed solid torus, driven by a force smooth in space and time up to and including the blowup time, with \(\|\nabla\Gamma\|_\infty\) and \(\|\omega\|_\infty\) both diverging and \(\int_0^{T_*}\|\omega\|_\infty\,dt=\infty\), the Beale–Kato–Majda signature of genuine breakdown.[8] It is 112 pages. It is Lean-verified. It is the same program, one rung down, and it was public on the evening of September 7.</p>
+
+      <h2>Pulses that pay the momentum bill</h2>
+
+      <p>Back to OpenAI's construction. The self-similar core satisfies its leading momentum balance on its own. The trouble is the join: between the core and a smooth exterior, in an annulus of radii \(\sqrt{2qX_a}\lt r\lt \sqrt{2qX_b}\), the background's residual is unbounded as \(\tau\to0\). If you stopped here and called that residual the force, it would not be smooth. It would not even be bounded.</p>
+
+      <p>The fix is to make the fluid supply the missing momentum transport itself. Add a perturbation \(w\) with pressure \(\pi\). The exact identity for the residual is</p>
+
+      \[
+        R(u_B+w,\,p_B+\pi)=R(u_B,p_B)+\mathcal{L}_{u_B}(w,\pi)+\nabla\cdot(w\otimes w),
+      \]
+
+      <p>where \(\mathcal{L}_{u_B}\) is the linearisation around the background. The last term is the point. A perturbation whose components have <em>zero</em> angular average can still carry a <em>nonzero</em> average momentum flux, because a product of two zero-mean oscillations need not have zero mean. The paper's example: outward motion carrying an azimuthal surplus, and inward motion carrying a deficit, both push angular momentum outward.[6] Reverse both signs and the product is unchanged.</p>
+
+      <p>So the construction adds a sequence of spatially oscillatory pulses, localised in radius, height and time, each wrapping a complete ring. Their averaged quadratic flux is engineered to equal the missing stress:</p>
+
+      \[
+        \bigl(\langle\tilde w_r\tilde w_\theta\rangle,\ \langle\tilde w_r\tilde w_z\rangle\bigr)
+        =T+\text{higher order},
+        \qquad
+        T=c_1v_1+c_2v_2,\quad c_1,c_2\gt 0.
+      \]
+
+      <p>Two families of pulses, with linearly independent flux directions \(v_1,v_2\), are needed so that the required stress \(T\) lies strictly inside their positive cone. If \(T\) fell outside, no choice of real amplitudes could produce it, since squared amplitudes are non-negative. The profile of the background vortex is chosen partly to make this cone condition hold everywhere in the annulus. Then further corrections cancel the remaining singular terms to every order in a small parameter, the ratio of axial to radial diffusion, which is \(\ell_r^2/\ell_z^2\asymp\tau^{2h}\).[6]</p>
+
+      <p>Where do the pulses get their energy? From the background shear, through the linearised energy identity:</p>
+
+      \[
+        \frac{d}{dt}\frac12\int|w|^2
+        =-\sum_{i,j}\int w_iw_j\,\partial_j(u_B)_i
+        -\int|\nabla w|^2.
+      \]
+
+      <p>The first term transfers energy from the background to the pulse when the pulse's orientation is aligned with the shear. The second term is viscous damping, and it grows with the square of the wavenumber. The shear does two things to a pulse at once: it feeds it, and it tilts its wavevector so the radial wavelength shortens. Shortening the wavelength raises \(|\nabla w|^2\), so damping strengthens over the pulse's life while amplification weakens. Each pulse therefore grows, peaks, and dies, and its cutoff tails are exponentially small.[6]</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="pulse-title pulse-desc">
+          <title id="pulse-title">Amplification versus viscous damping over the life of one pulse</title>
+          <desc id="pulse-desc">Upper panel shows an amplification rate decreasing over slot time and a viscous damping rate increasing over slot time, crossing near the middle. Lower panel shows the resulting pulse envelope growing until the crossing and then decaying, with exponentially small tails at both ends.</desc>
+          <defs>
+            <marker id="arrow-pulse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <!-- upper panel -->
+          <text x="60" y="30" font-size="15" fill="#000">Rates acting on one pulse</text>
+          <line x1="60" y1="190" x2="700" y2="190" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-pulse)"/>
+          <line x1="60" y1="190" x2="60" y2="40" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-pulse)"/>
+          <!-- amplification: decreasing -->
+          <path d="M60 70 C 200 78, 340 110, 700 165" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="440" y="96" font-size="13" fill="#0000ee">amplification from shear (orientation tilts, weakens)</text>
+          <!-- damping: increasing -->
+          <path d="M60 172 C 200 170, 340 140, 700 55" fill="none" stroke="#000" stroke-width="2.5" stroke-dasharray="7 4"/>
+          <text x="110" y="160" font-size="13" fill="#000">viscous damping ν|ξ|² (wavelength shortens, grows)</text>
+          <!-- crossing marker roughly x=380 -->
+          <line x1="382" y1="60" x2="382" y2="190" stroke="#777" stroke-dasharray="3 4"/>
+          <text x="382" y="205" text-anchor="middle" font-size="12" fill="#000">crossing</text>
+
+          <!-- lower panel -->
+          <text x="60" y="245" font-size="15" fill="#000">Resulting envelope |w|</text>
+          <line x1="60" y1="400" x2="700" y2="400" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-pulse)"/>
+          <line x1="60" y1="400" x2="60" y2="255" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-pulse)"/>
+          <path d="M60 398 C 200 397, 300 340, 382 275 C 460 340, 580 392, 700 398" fill="none" stroke="#000" stroke-width="2.5"/>
+          <rect x="60" y="255" width="70" height="145" fill="rgba(0,0,0,0.06)" stroke="none"/>
+          <rect x="630" y="255" width="70" height="145" fill="rgba(0,0,0,0.06)" stroke="none"/>
+          <text x="95" y="275" text-anchor="middle" font-size="11" fill="#000">seed:</text>
+          <text x="95" y="289" text-anchor="middle" font-size="11" fill="#000">exp. small</text>
+          <text x="95" y="303" text-anchor="middle" font-size="11" fill="#000">force</text>
+          <text x="665" y="275" text-anchor="middle" font-size="11" fill="#000">cutoff:</text>
+          <text x="665" y="289" text-anchor="middle" font-size="11" fill="#000">exp. small</text>
+          <text x="665" y="303" text-anchor="middle" font-size="11" fill="#000">tail</text>
+          <text x="382" y="268" text-anchor="middle" font-size="12" fill="#000">peak</text>
+          <text x="400" y="420" text-anchor="middle" font-size="13" fill="#000">slot time within one pulse</text>
+        </svg>
+        <div class="viz-caption">Schematic of the pulse budget described in Section 2.2 of the OpenAI manuscript. An exponentially small external force seeds the pulse; shear amplifies it; the same shear tilts it towards shorter wavelengths until viscous damping wins. Only the seed and the tails cost external force, and both vanish with all derivatives at the singular time.</div>
+      </div>
+
+      <p>Scale check, because I did not believe this until I wrote it down. At fixed position in the annulus the paper gives pulse amplitude and wavelength</p>
+
+      \[
+        A_{\text{wave}}\asymp q^{-1/2-h/2},
+        \qquad
+        \ell_{\text{wave}}\asymp q^{1/2+h/2},
+      \]
+
+      <p>with \(q\asymp\tau\) in the core. The viscous damping rate is \(\nu/\ell_{\text{wave}}^2\asymp q^{-1-h}\). The shear rate of the background is \(|u_\theta|/\ell_r\asymp q^{-1/2-h}/q^{1/2}=q^{-1-h}\). They are the <em>same order</em>. That is not a coincidence; it is the design. The pulses live exactly at the scale where amplification and damping compete evenly, so that the ordering of the two can be flipped by a tilt. And the squared amplitude, \(A_{\text{wave}}^2\asymp q^{-1-h}\), divided by the radial scale \(q^{1/2}\), gives \(q^{-3/2-h}\), which is precisely the size of the missing stress divergence. Everything closes.</p>
+
+      <h2>Why viscosity was the boss fight</h2>
+
+      <p>If you only remember one technical thing from this post, remember this: the Euler version of this argument has no damping term. Every seed grows forever, and the only question is whether you can keep the force smooth as you stack layers. Alpöge and Buckmaster did that in August, and OpenAI's own 57-page Euler paper does something stronger still, which I will get to.</p>
+
+      <p>With viscosity, the linearised energy identity has that second term, \(-\int|\nabla w|^2\), and it scales like the square of the frequency. A construction that stacks widely separated frequencies, which is how you normally build a singularity out of layers, is exactly the construction viscosity punishes hardest. On September 8, Stan Palasek pointed out on Tao's blog that for the <em>unforced</em> Navier–Stokes problem, a route built through instabilities at widely separated frequencies runs into precisely this wall: the viscous energy loss overwhelms the growth mechanism.[9] Tao welcomed the observation and suggested a toy model to study the interaction.</p>
+
+      <p>This is the honest version of “forcing makes it easier.” Forcing does not merely let you cheat by pushing. It lets you place every pulse at the knife-edge scale, seed it with an exponentially small nudge that viscosity has not yet had time to kill, and top up the momentum ledger with a smooth correction whenever the ledger drifts. Without the force, the ledger has to balance itself, and viscosity is taxing it every step. Nobody has shown how to do that. OpenAI has not claimed to. Their own blog post is explicit that the unforced question remains open.[2]</p>
+
+      <h2>What Lean did and did not check</h2>
+
+      <p>I cloned the repository OpenAI released alongside the paper.[10] Here is what is in it.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Files</th>
+              <th>Lines of Lean</th>
+              <th>What it certifies</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>NavierStokes/</td>
+              <td>643</td>
+              <td>404,224</td>
+              <td>Theorem 1.1 and Corollary 10.6: alternatives (C) and (D).</td>
+            </tr>
+            <tr>
+              <td>Euler/</td>
+              <td>1,839</td>
+              <td>211,578</td>
+              <td>Unforced Euler blowup from smooth compactly supported data on \(\mathbb{R}^3\).</td>
+            </tr>
+            <tr>
+              <td>ComparatorChallenges/</td>
+              <td>2</td>
+              <td>472</td>
+              <td>The formal statement of the Clay alternatives, with intentional <code>sorry</code> placeholders.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The toolchain is Lean 4.34.0-rc2 with Mathlib. A recursive search of the two proof directories for <code>sorry</code>, <code>axiom</code>, and <code>native_decide</code> returns nothing; the only <code>sorry</code>s are the two placeholders in the challenge files, which is where they are supposed to be. The permitted axioms listed in the challenge configuration are the three standard ones, <code>propext</code>, <code>Quot.sound</code>, and <code>Classical.choice</code>.</p>
+
+      <p>Now the part that matters more than the line count. A proof assistant certifies that a formal statement follows from the axioms. It does not certify that the formal statement is the theorem you think it is. This is the gap that every careful commentator flagged this week, and it is a real gap.[11] OpenAI's answer to it is the Comparator setup, and it is a clever answer.</p>
+
+      <p>The challenge file is not written by OpenAI. It is copied, with a license header saying so, from Google DeepMind's Formal Conjectures project, which had already formalised Fefferman's four alternatives independently of any proof.[12] The relevant theorem, verbatim from the file I cloned, is:</p>
+
+      <pre><code>/-- (C) Breakdown of Navier–Stokes solutions on ℝ³. -/
+theorem navier_stokes_breakdown_R3 (nu : ℝ) (hnu : nu &gt; 0) :
+    ∃ (u₀ : ℝ³ → ℝ³) (f : ℝ³ → ℝ → ℝ³),
+    InitialVelocityConditionDecay u₀ ∧ ForceConditionDecay f ∧
+    ¬ (∃ v p, NavierStokesExistenceAndSmoothnessRn nu u₀ f v p) := by
+  sorry</code></pre>
+
+      <p>The Comparator tool then checks that OpenAI's proof module closes this exact statement, with these exact definitions, using only the permitted axioms. So the question “does the Lean theorem match Fefferman?” reduces to “does the Formal Conjectures encoding match Fefferman?”, which is a question about 472 lines that anyone can read in an afternoon, written by a third party before the proof existed.</p>
+
+      <p>I read them. The force condition encodes condition (5) literally: for every derivative order \(m\) and every \(K\), a constant \(C\) with \(\|\partial^m f(x,t)\|\le C/(1+\|x\|+t)^K\). The solution structure requires the PDE pointwise for all \(t\ge0\) with the time derivative taken within \([0,\infty)\), divergence-free velocity, the initial condition, smoothness of velocity and pressure on \(\mathbb{R}^3\times[0,\infty)\), square-integrability at every time, and a single bound \(E\) with \(\int\|v\|^2\lt E\) for all \(t\). That is Fefferman's (1), (2), (3), (6), (7). The periodic version also requires periodic pressure, following the errata Fefferman appended to the original statement. I could not find a way in which the encoding is weaker than the prose.</p>
+
+      <p>What the Lean certificate cannot tell you is whether the <em>informal</em> 166-page paper is a faithful narration of the formal proof, or whether the informal paper is readable, or whether it contains insight. Those are different questions and I will come back to them.</p>
+
+      <h2>The other paper nobody is talking about</h2>
+
+      <p>Sitting in the same repository, and in a second PDF that got a fraction of the attention, is a result that I think is mathematically at least as surprising as the headline.[13]</p>
+
+      <div class="equation-note">
+        <strong>Theorem 1.1 (OpenAI, Euler).</strong> There exists \(u_0\in C^{\infty}_{c,\sigma}(\mathbb{R}^3)\), smooth, compactly supported, divergence-free, whose smooth solution of the <em>unforced</em> incompressible Euler equations has maximal lifespan \(0\lt T_*(u_0)\lt \infty\), with
+        \[
+          \limsup_{t\uparrow T_*}\|\nabla u(t)\|_{L^\infty}=\infty,
+          \qquad
+          \int_0^{T_*}\|\operatorname{curl}u(t)\|_{L^\infty}\,dt=\infty.
+        \]
+      </div>
+
+      <p>No force. Whole space. Smooth data. Compact support. Finite energy. This is the question people actually mean when they say “does Euler blow up,” and it has been open since Euler. The previous landmarks all carried an asterisk: Elgindi's 2021 singularity lives in \(C^{1,\alpha}\), not \(C^\infty\);[14] Chen and Hou's 2022 smooth-data blowup lives in a cylinder with a wall, and Fefferman himself explained to Quanta why a wall changes the meaning, since “without a boundary it's the fluid doing the crazy stuff.”[4][15] The unforced Euler paper is 57 pages, 1,839 Lean files, and the mechanism is different from the Navier–Stokes one: odd flows, a rank-one shear at the origin, packets whose gradients are amplified along particle trajectories, and a limiting initial datum assembled from a summable sequence of corrections.[13]</p>
+
+      <p>Two more things sit next to it. Buckmaster's statement mentions, almost in passing, that he and Alpöge believe they have blowup for hypo-dissipative Navier–Stokes, not yet Lean-verified, and that it is “suggestive of a path to unforced Euler.”[5] And on September 7, Anandkumar's group at Caltech posted evidence, from physics-informed neural networks refined to high precision, for a <em>stable</em> self-similar Euler singularity on \(\mathbb{R}^3\) without forcing, though their own manuscript says the stability constants are not yet certified.[16] Three groups, three methods, one target. If I had to bet on where the next month's real mathematics happens, it is here, not in the Clay fine print.</p>
+
+      <h2>The month before the weekend</h2>
+
+      <p>I have tried to keep the people out of the mathematics until now. That is no longer possible, because the timeline is itself part of what needs dissecting.</p>
+
+      <div class="viz">
+        <svg viewBox="0 0 760 340" role="img" aria-labelledby="timeline-title timeline-desc">
+          <title id="timeline-title">Timeline of the Alpöge–Buckmaster work and the OpenAI run, August to September 2026</title>
+          <desc id="timeline-desc">Two horizontal lanes. The upper lane shows Alpöge and Buckmaster obtaining Boussinesq and Euler blowup on 15 August, Lean verification on 22 August, an email to OpenAI on 3 September, two calls on 6 September, and public preprints on 7 September. The lower lane shows OpenAI launching agents on 1 September, reaching a Navier–Stokes proof after 88 hours, formalising for 17 more hours, and announcing on 8 September.</desc>
+          <defs>
+            <marker id="arrow-tl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <!-- lane labels -->
+          <text x="20" y="90" font-size="13" fill="#000">Alpöge &amp;</text>
+          <text x="20" y="106" font-size="13" fill="#000">Buckmaster</text>
+          <text x="20" y="230" font-size="13" fill="#000">OpenAI</text>
+
+          <!-- axes -->
+          <line x1="120" y1="120" x2="730" y2="120" stroke="#000" stroke-width="1.5"/>
+          <line x1="120" y1="250" x2="730" y2="250" stroke="#000" stroke-width="1.5"/>
+
+          <!-- date scale: Aug15=day0 at x=130, 24px per day -> Sept9=day25 at 730 -->
+          <g font-size="11" fill="#000" text-anchor="middle">
+            <text x="130" y="300">15 Aug</text>
+            <text x="298" y="300">22 Aug</text>
+            <text x="538" y="300">1 Sep</text>
+            <text x="586" y="300">3 Sep</text>
+            <text x="658" y="300">6 Sep</text>
+            <text x="682" y="300">7 Sep</text>
+            <text x="706" y="300">8 Sep</text>
+          </g>
+          <g stroke="#bbb" stroke-dasharray="3 4">
+            <line x1="130" y1="60" x2="130" y2="285"/>
+            <line x1="298" y1="60" x2="298" y2="285"/>
+            <line x1="538" y1="60" x2="538" y2="285"/>
+            <line x1="586" y1="60" x2="586" y2="285"/>
+            <line x1="658" y1="60" x2="658" y2="285"/>
+            <line x1="682" y1="60" x2="682" y2="285"/>
+            <line x1="706" y1="60" x2="706" y2="285"/>
+          </g>
+
+          <!-- upper lane events -->
+          <circle cx="130" cy="120" r="6" fill="#000"/>
+          <text x="130" y="48" text-anchor="middle" font-size="11" fill="#000">Boussinesq + Euler</text>
+          <text x="130" y="62" text-anchor="middle" font-size="11" fill="#000">blowup, smooth force</text>
+
+          <circle cx="298" cy="120" r="6" fill="#000"/>
+          <text x="298" y="48" text-anchor="middle" font-size="11" fill="#000">Lean verification</text>
+          <text x="298" y="62" text-anchor="middle" font-size="11" fill="#000">complete</text>
+
+          <circle cx="586" cy="120" r="6" fill="#000"/>
+          <text x="560" y="148" text-anchor="middle" font-size="11" fill="#000">email to OpenAI</text>
+
+          <circle cx="658" cy="120" r="6" fill="#000"/>
+          <text x="640" y="48" text-anchor="middle" font-size="11" fill="#000">two calls</text>
+          <text x="640" y="62" text-anchor="middle" font-size="11" fill="#000">with Bubeck</text>
+
+          <circle cx="682" cy="120" r="7" fill="none" stroke="#000" stroke-width="2.5"/>
+          <text x="700" y="80" text-anchor="middle" font-size="11" fill="#000">3 preprints, Lean,</text>
+          <text x="700" y="94" text-anchor="middle" font-size="11" fill="#000">statement (7 Sep)</text>
+
+          <!-- lower lane events -->
+          <circle cx="538" cy="250" r="6" fill="#000"/>
+          <text x="520" y="200" text-anchor="middle" font-size="11" fill="#000">≈10,000 agents</text>
+          <text x="520" y="214" text-anchor="middle" font-size="11" fill="#000">launched</text>
+
+          <rect x="538" y="243" width="88" height="14" fill="rgba(0,0,238,0.15)" stroke="none"/>
+          <text x="582" y="275" text-anchor="middle" font-size="11" fill="#0000ee">88 h</text>
+
+          <circle cx="626" cy="250" r="6" fill="#0000ee"/>
+          <text x="626" y="200" text-anchor="middle" font-size="11" fill="#0000ee">Navier–Stokes</text>
+          <text x="626" y="214" text-anchor="middle" font-size="11" fill="#0000ee">proof reached</text>
+
+          <rect x="626" y="243" width="18" height="14" fill="rgba(0,0,238,0.35)" stroke="none"/>
+          <text x="650" y="275" text-anchor="middle" font-size="11" fill="#0000ee">+17 h Lean</text>
+
+          <circle cx="706" cy="250" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="706" y="200" text-anchor="middle" font-size="11" fill="#0000ee">announcement,</text>
+          <text x="706" y="214" text-anchor="middle" font-size="11" fill="#0000ee">166 pp + repo</text>
+
+          <text x="380" y="330" text-anchor="middle" font-size="12" fill="#000">Dates from Buckmaster's statement and OpenAI's announcement. The 88-hour window is approximate.</text>
+        </svg>
+        <div class="viz-caption">The two lanes never touch on the chart, and whether they touched off it is the dispute. Buckmaster says the first OpenAI prompt was sent “after information about our work had reached OpenAI.” OpenAI says its researchers and agents saw none of the pair's work before it was public, and that it began because of “viral twitter rumors.”[5][17]</div>
+      </div>
+
+      <p>Here is what is not in dispute. Alpöge, a mathematician employed by Anthropic, and Buckmaster, at NYU, spent about a year on the Córdoba–Martínez-Zoroa program as what Buckmaster describes as “a purely personal collaboration,” paying for tools out of his own research funds. They used Claude, Codex with GPT-5.6 Sol, and later Astra for writeups and auditing. On August 15 they had Boussinesq and Euler blowup with smooth forcing. On August 22 the Lean verification finished. Buckmaster's description of the first machine-generated proof is “the most horrendous I have ever read,” and the weeks after were spent “around the clock” turning it into something a person could follow.[5]</p>
+
+      <p>Here is what OpenAI says. Bubeck, in the press call, said the company “began working on the Millennium problems due to viral twitter rumors that Anthropic had resolved 2 Millenium problems.”[17] Agents were launched on September 1. Roughly ten thousand of them ran concurrently for about 88 hours, exchanging about 2.7 million messages on Navier–Stokes and 4.9 million across all the problems attempted, producing about 130 billion output tokens. Formalisation took a further 17 hours using GPT-6 Astra; the proving model itself is described only as “significantly more capable” than that.[2][18] Cost, per Bubeck, “millions of dollars.” OpenAI's stated position on the pair's work is that “neither its researchers nor its agents saw any of the pair's work before it was released publicly,” that no one “searched through user data,” and, in the same breath, that it “cannot rule out that de-identified data derived from their usage of our products helped improve our models.”[17][19]</p>
+
+      <p>Here is what Buckmaster says happened in between, and I am going to quote rather than paraphrase, because paraphrase is how these things get distorted. On September 6, on calls that Alpöge did not join, Buckmaster was told an internal model had produced “about 100 pages” proving forced blowup, “option c and d in Fefferman.” He writes: “The route to the Clay problem through a smooth force ... is the route Luis and Diego opened and the one Levent and I had quietly chosen to attack. Almost nobody else I know of was working on it. ... When I heard ‘forced,’ it was a bright red flag.” He says he was shown a prompt and told the model “had simply been given the problem statement,” and that “very little human input” had been used, and that over the call “it emerged that an entire team had been working on the problem, that this was one of a number of things that was tried, that work had started on the unforced problem, that the team first set the model on easier problems, including Euler, that even the prompt that had been shown to me had been written by prompting Codex.” He describes two proposals: post Euler and let OpenAI post Navier–Stokes the next day, crediting the pair as the “closest humans to the problem”; or write up OpenAI's result himself, without Alpöge. He says he declined both, said he would go public, and was asked “Why would you ruin your career?” and later told “If you don't want me to be nice, then I don't have to be nice.” He closes: “I am not accusing anyone of anything. I am stating what I was told, when, and what was proposed to me.”[5]</p>
+
+      <p>Bubeck's response, on X and in the briefing, is that the allegations are “false and inflammatory,” that he “never ever asked for Levent to be removed from authorship of his own work,” that the discussion concerned whether Buckmaster might lead a rewrite of OpenAI's separate proof and whether an Anthropic employee authoring work produced by an OpenAI system would be appropriate, and that the career remark was “an ill-chosen remark made in frustration” which he retracted immediately.[20][21] Alpöge, per one account, declined repeated invitations to join the calls.[21]</p>
+
+      <p>I was not on the calls. Neither were you. What I can say is that both sides agree on the sequence: OpenAI started after rumours of the pair's progress reached it, chose the forced route the pair had been quietly working, and announced twelve hours after the pair's preprints. What they disagree about is why, and what was said in a room I cannot see. OpenAI has since said it “recognize[s] the priority of Levent Alpöge and Tristan Buckmaster's work,” and cedes the forced Euler result to them while claiming Navier–Stokes.[4][17]</p>
+
+      <p>Then there are the people whose names should have been the headline. Fefferman, who wrote the problem, told Quanta: “The heroes of the story ... are Córdoba and Martínez-Zoroa.” Córdoba: “Ten years ago, nobody believed there was a singularity for Navier–Stokes.” And, asked whether he uses AI: “I don't use AI: I have Luis.”[4] Buckmaster, in the middle of the worst week of his professional life, found room to write that “in view of this body of work, I believe Luis Martínez-Zoroa deserves a Fields Medal.”[5]</p>
+
+      <p>Tao's reaction is the one I keep rereading. On the mathematics: he blogged the Alpöge–Buckmaster results on September 7 as a breakthrough, said he saw no decisive obstacle to extending to Navier–Stokes, and wrote that “the primary goal of developing mathematical understanding and insight” outweighs “solving these problems” as a proxy.[3] On the week: “The indiscriminate strip-mining of open problems for solutions may destroy the ecosystem from which the next generation of mathematical techniques, problems, and practitioners would have developed,” like “using excavators to loot an archaeological site.” And the line that I think is the real result of September 2026: “There's been this very strange and unprecedented decoupling, this year alone, between getting answers and getting understanding.”[22][23]</p>
+
+      <p>The Clay Institute's president, Martin Bridson, said evaluation would be “deliberately unhurried” and “absolutely rigorous.” The problem is still listed as open.[23] OpenAI, for its part: “We do not intend to claim the Millennium Prize for this result.”[2]</p>
+
+      <h2>Ten thousand agents, from someone who babysits five</h2>
+
+      <p>I said at the top that my first reaction was a question about the prompt. Let me take that seriously for a paragraph, because it is my day job.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Quantity</th>
+              <th>Reported value</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Concurrent agents</td><td>≈ 10,000</td><td>OpenAI announcement[2]</td></tr>
+            <tr><td>Wall-clock to Navier–Stokes proof</td><td>≈ 88 hours (1–5 Sept)</td><td>OpenAI[2][18]</td></tr>
+            <tr><td>Additional time to Lean certificate</td><td>≈ 17 hours, GPT-6 Astra</td><td>OpenAI[2]</td></tr>
+            <tr><td>Messages exchanged (Navier–Stokes)</td><td>≈ 2.7 million</td><td>TNW, from OpenAI[18]</td></tr>
+            <tr><td>Messages exchanged (all problems)</td><td>≈ 4.9 million</td><td>Unite.ai, from OpenAI[19]</td></tr>
+            <tr><td>Output tokens (Navier–Stokes)</td><td>≈ 130 billion</td><td>OpenAI[18]</td></tr>
+            <tr><td>Informal manuscripts</td><td>166 pp (NS), 57 pp (Euler)</td><td>cdn.openai.com[6][13]</td></tr>
+            <tr><td>Formal proof</td><td>404k + 212k lines of Lean</td><td>my clone of the repo[10]</td></tr>
+            <tr><td>Cost</td><td>“millions of dollars”</td><td>Bubeck[17]</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>A hundred and thirty billion output tokens is roughly the token count of a large pretraining corpus, spent on one theorem. The announcement describes agents being “reallocated,” an internal model being “updated” mid-run, and “intermediate findings consolidated.”[18] That is an orchestration story, and the orchestration is the thing OpenAI has said the least about. We do not know the topology of the agent graph, how work was decomposed, how conflicting partial results were reconciled, how the 5 million messages were routed or summarised, or what the humans did between September 1 and September 5. Buckmaster's account of the call is the only description of the human layer that exists, and it says the team ran Euler first, tried the unforced problem, and wrote the prompt with Codex.[5] None of that is damning. All of it contradicts “very little human input,” and it is the kind of detail that decides whether this is a result about a model or a result about a lab.</p>
+
+      <p>I have watched five agents deadlock on a shared file. I do not have an intuition for ten thousand. Whatever the answer to the credit dispute, the system that produced 400,000 lines of kernel-checked Lean in 17 hours is a real artifact, and I would trade a lot of press releases for one honest engineering write-up of how it was built.</p>
+
+      <h2>What this dissection does not say</h2>
+
+      <p>It does not say the Millennium Prize problem, in the sense most people mean it, is solved. Alternatives (A) and (B) are open. Unforced breakdown, which is not one of the four alternatives, is open. Palasek's obstruction suggests the layered route does not extend to it without a new idea.[9]</p>
+
+      <p>It does not say the proof is wrong. I found no gap between the Formal Conjectures encoding and Fefferman's prose, the Lean proof is <code>sorry</code>-free under the three standard axioms, and the physical mechanism, once you write out the scalings, closes. If someone finds a discrepancy, it will be in the 472 lines of encoding or in the toolchain, not in the 400,000 lines of proof.</p>
+
+      <p>It does not say the model did it alone. It does not say the model did it dishonestly. It says that a rumour started a race, that the race was run along a road two Spaniards had spent years paving and two other people had spent a year walking, and that the winner announced twelve hours after the runners-up, with a statement about training data that, by its own wording, cannot be checked from outside.</p>
+
+      <p>It does not say the 166 pages are readable. Buckmaster calls his own Euler write-up “AI slop” and apologises for it. I have read the OpenAI introduction and the proof outline closely, and they are clear and physically motivated. I have not read Section 9, and I do not know anyone who has yet.</p>
+
+      <p>And it does not say whose contribution the theorem “is.” The mechanism is Córdoba and Martínez-Zoroa's. The smooth-forcing rung is Alpöge and Buckmaster's for Euler. The viscous rung, the pulses, the cone condition, and the certificate are, on the available evidence, the machine's. Tao's word “decoupling” is the right one. We have a certified answer to a question that Fefferman wrote down in 2000, and the people who understand why it is true are still catching up to the fact that it is.</p>
+
+      <h2>Reading order</h2>
+
+      <p>On Monday I read Fefferman first, then the theorem, then the Lean statement, then the news. I recommend that order to anyone who wants to know what happened this week.</p>
+
+      <p>Read Fefferman and you learn that the problem has four doors, two of them let you push. Read the theorem and you learn the push is smooth, bounded, and switched off outside a box, and that a fluid at rest still reaches infinite speed under it. Read the Lean challenge and you learn exactly which door was opened, in a formalisation someone else wrote before the key existed. Then read the news and you learn that the door was opened at the end of a long corridor built by other people, some of whom were a few metres from the handle.</p>
+
+      <p>Option C was always in the document. The remarkable thing is not that somebody read it. It is that reading it carefully turned out to be worth several million dollars of compute, one Fields-Medal-worthy program from Madrid, a year of a personal collaboration, and a long weekend in September that none of us have finished dissecting.</p>
+
+      <section class="references" aria-labelledby="references-heading">
+        <h2 id="references-heading">References and links</h2>
+        <ol>
+          <li id="ref-1">C. L. Fefferman, <a href="https://www.claymath.org/wp-content/uploads/2022/06/navierstokes.pdf">“Existence and Smoothness of the Navier–Stokes Equation”</a>, Clay Mathematics Institute official problem description, 2000. Statements (A)–(D) and conditions (4)–(11) are quoted from this document.</li>
+          <li id="ref-2">OpenAI, <a href="https://openai.com/index/navier-stokes-solution/">“On the Navier–Stokes Millennium Prize Problem”</a>, 8 September 2026.</li>
+          <li id="ref-3">T. Tao, <a href="https://terrytao.wordpress.com/2026/09/07/finite-time-blowup-with-smooth-forcing-term-for-the-incompressible-porous-medium-boussinesq-and-incompressible-euler-equations/">“Finite time blowup with smooth forcing term for the incompressible porous medium, Boussinesq, and incompressible Euler equations”</a>, What's new, 7 September 2026.</li>
+          <li id="ref-4">Quanta Magazine, <a href="https://www.quantamagazine.org/ai-has-solved-one-of-maths-1-million-millennium-prize-problems-20260908/">“AI Has Solved One of Math's $1 Million Millennium Prize Problems”</a>, 8 September 2026. Source of the Fefferman, Córdoba, and Martínez-Zoroa quotations.</li>
+          <li id="ref-5">T. Buckmaster, <a href="https://cims.nyu.edu/~tristanb/statement.pdf">Statement</a>, 7 September 2026. Preprints at <a href="https://cims.nyu.edu/~tristanb/euler.pdf">euler.pdf</a>, <a href="https://cims.nyu.edu/~tristanb/boussinesq.pdf">boussinesq.pdf</a>, <a href="https://cims.nyu.edu/~tristanb/ipm.pdf">ipm.pdf</a>; Lean at <a href="https://github.com/tristanbuckmaster/fluid_lean">github.com/tristanbuckmaster/fluid_lean</a>.</li>
+          <li id="ref-6">OpenAI, <a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">“Finite Time Blowup for Navier–Stokes”</a>, 166 pp., 8 September 2026. Theorem 1.1, Sections 2–3, and the scalings in Sections 2.1, 3.1, and 3.3 are taken from this manuscript.</li>
+          <li id="ref-7">D. Córdoba and L. Martínez-Zoroa, <a href="https://arxiv.org/abs/2309.08495">“Blow-up for the incompressible 3D-Euler equations with uniform \(C^{1,1/2-\varepsilon}\cap L^2\) force”</a>, 2023. See also D. Córdoba, L. Martínez-Zoroa, and F. Zheng, <a href="https://arxiv.org/abs/2407.06776">hypodissipative Navier–Stokes with force in \(L^1_tC^{1,\varepsilon}\cap L^\infty_tL^2\)</a>, 2024; D. Córdoba and L. Martínez-Zoroa, <a href="https://arxiv.org/abs/2410.22920">IPM with a smooth source</a>, 2024; D. Córdoba, D. Laín-Sanclemente, and L. Martínez-Zoroa, <a href="https://www.sciencedirect.com/science/article/pii/S0001870825003780">Boussinesq with \(C^{1,\sqrt{4/3}-1-\varepsilon}\) force</a>, Advances in Mathematics, 2025.</li>
+          <li id="ref-8">L. Alpöge and T. Buckmaster, <a href="https://cims.nyu.edu/~tristanb/euler.pdf">“Blowup for the Euler Equations with Smooth Forcing”</a>, 112 pp., September 2026. Theorem 1.1 and the related-work section are quoted from this preprint.</li>
+          <li id="ref-9">S. Palasek, comment on [3], 8 September 2026, as reported in <a href="https://kingy.ai/blog/navier-stokes-ai-proof-claims-dispute/">“OpenAI's Navier–Stokes Proof Claim: Evidence and Dispute”</a>.</li>
+          <li id="ref-10">OpenAI, <a href="https://github.com/openai/NavierStokesAndEuler">NavierStokesAndEuler</a>, Lean 4 formalisations, commit 8937a8f, 8 September 2026. File and line counts are from a shallow clone made on 9 September 2026.</li>
+          <li id="ref-11">The Next Web, <a href="https://thenextweb.com/news/openai-navier-stokes-claim-verification-credit">“OpenAI says it solved Navier-Stokes. Nobody has seen the proof.”</a>, 8 September 2026.</li>
+          <li id="ref-12">Google DeepMind, <a href="https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/Millenium/NavierStokes.lean">Formal Conjectures: Millennium/NavierStokes.lean</a>. The Comparator challenge in [10] is a modified copy of this file.</li>
+          <li id="ref-13">OpenAI, <a href="https://cdn.openai.com/pdf/315b36cd-ec98-4023-8342-93345194ece1/euler.pdf">“Finite Time Blowup for the Euler Equation”</a>, 57 pp., 8 September 2026.</li>
+          <li id="ref-14">T. M. Elgindi, “Finite-time singularity formation for \(C^{1,\alpha}\) solutions to the incompressible Euler equations on \(\mathbb{R}^3\)”, Annals of Mathematics, 2021.</li>
+          <li id="ref-15">J. Chen and T. Y. Hou, <a href="https://arxiv.org/abs/2210.07191">“Stable nearly self-similar blowup of the 2D Boussinesq and 3D Euler equations with smooth data”</a>, 2022.</li>
+          <li id="ref-16">A. Anandkumar, with Ganeshram and Duruisseaux, <a href="https://anima-ai.org/2026/09/07/stable-singularity-of-the-euler-equations-on-r3-without-forcing/">“Stable Singularity of the Euler Equations on \(\mathbb{R}^3\) without forcing”</a>, 7 September 2026.</li>
+          <li id="ref-17">VentureBeat, <a href="https://venturebeat.com/technology/openai-solves-longstanding-math-problem-with-10-000-agent-swarm-but-cant-rule-out-benefitting-from-a-researchers-private-codex-data">“OpenAI solves longstanding math problem with 10,000-agent swarm, but can't rule out benefitting from a researcher's private Codex data”</a>, 8 September 2026. Source of the Bubeck and Chen quotations.</li>
+          <li id="ref-18">The Next Web, <a href="https://thenextweb.com/news/openai-navier-stokes-proof-published-millennium-prize">“OpenAI publishes its Navier-Stokes proof and says it will not claim the Millennium Prize”</a>, 8 September 2026.</li>
+          <li id="ref-19">Unite.ai, <a href="https://www.unite.ai/openai-says-internal-ai-system-resolved-the-navier-stokes-problem/">“OpenAI Says Internal AI System Resolved the Navier–Stokes Problem”</a>, and <a href="https://www.unite.ai/buckmaster-and-alpoge-post-ai-fluid-blowup-proofs-dispute-openai-contact/">“Buckmaster and Alpöge Post AI Fluid Blowup Proofs, Dispute OpenAI Contact”</a>, September 2026.</li>
+          <li id="ref-20">Fortune, <a href="https://fortune.com/2026/09/08/openai-says-it-cracked-navier-stokes-math-grand-challenge-buckmaster-accusation-cheating-intimidation-tao-lament/">“OpenAI says it cracked Navier-Stokes, one of math's grand challenges”</a>, 8 September 2026.</li>
+          <li id="ref-21">OfficeChai, <a href="https://officechai.com/ai/openais-sebastien-bubeck-says-he-tried-to-coordinate-release-of-navier-stokes-related-proofs-with-buckmaster-alpoge-but-was-rebuffed/">“Sebastien Bubeck says he tried to coordinate release of Navier-Stokes-related proofs”</a>, September 2026.</li>
+          <li id="ref-22">T. Tao, posts on <a href="https://mathstodon.xyz/@tao">Mathstodon</a>, September 2026, as quoted in [20].</li>
+          <li id="ref-23">Implicator, <a href="https://www.implicator.ai/clay-institute-navier-stokes-openai-proof-claim/">“Clay Institute Won't Call Navier-Stokes Solved by OpenAI”</a>, September 2026. Source of the Bridson and “decoupling” quotations.</li>
+          <li id="ref-24">Background: J. Leray, Acta Math., 1934; L. Caffarelli, R. Kohn, and L. Nirenberg, Comm. Pure Appl. Math., 1982; T. Tao, <a href="https://arxiv.org/abs/1402.0290">“Finite time blowup for an averaged three-dimensional Navier–Stokes equation”</a>, JAMS, 2016; T. Buckmaster and V. Vicol, Annals of Mathematics, 2019; Y. Wang, C.-Y. Lai, G. Cao-Labora, J. Gómez-Serrano, T. Buckmaster, et al., <a href="https://arxiv.org/abs/2509.14185">“Discovery of Unstable Singularities”</a>, 2025.</li>
+        </ol>
+        <p class="footnote">All quotations from private conversations are as reported by the participants named, and the two accounts of the 6 September calls conflict; I have tried to present both. Line counts, the axiom list, and the challenge statement come from my own clone of the repository on 9 September 2026 and may differ from later commits. The charts are schematic reconstructions from the stated scalings, not plots of the actual solution.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
