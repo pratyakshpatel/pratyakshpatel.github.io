@@ -71,6 +71,29 @@
       margin-top: 0.7rem;
     }
 
+    .timeline-viz {
+      margin: 2.5rem 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      border-radius: 18px !important;
+    }
+
+    .timeline-viz svg {
+      min-width: 760px;
+      box-sizing: border-box;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      border: 1px solid rgba(80, 150, 255, 0.35);
+      border-radius: 18px !important;
+      box-shadow:
+        0 18px 45px rgba(7, 16, 31, 0.28),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+    }
+
+    .timeline-viz .viz-caption {
+      margin: 0.85rem 0 0 !important;
+    }
+
     .table-wrap {
       max-width: 100%;
       overflow-x: auto;
@@ -79,6 +102,12 @@
 
     .table-wrap table {
       min-width: 700px;
+    }
+
+    .viz:focus-visible,
+    .table-wrap:focus-visible {
+      outline: 3px solid #0000ee;
+      outline-offset: 3px;
     }
 
     .references {
@@ -117,6 +146,10 @@
 
       <p>For a very long time, I was thoroughly classical-ML-pilled, thanks largely to my love of statistics. But since starting my internship, I have been learning LLM theory from the bottom up. Somewhere along the way, I got stuck on a question that felt too basic to be interesting: how does a Transformer know that <em>the dog bit the man</em> is not <em>the man bit the dog</em>?</p>
 
+      <p>The question bothered me because classical machine learning had trained a very particular reflex into me. I was used to a dataset being a table: one row per observation, one column per feature, a target somewhere to the right. Shuffle the rows before fitting a model and nothing essential should change. In fact, we usually shuffle them on purpose. The seventh patient in a regression table does not become sicker merely because we move their row above the sixth patient.</p>
+
+      <p>Language breaks that instinct immediately. A sentence is not a bag of exchangeable observations. Its entries occupy places, and those places participate in the meaning. Shuffle the rows of a sentence and you have not reorganized the same evidence; you have described a different event. That was the bridge from the statistics I already loved to the LLM theory I had started learning: before asking how a model predicts the next token, I had to ask how it represents the simple fact that one token came before another.</p>
+
       <p>The words are the same. Their token embeddings are the same. Attention is very good at asking which words resemble or matter to which other words, but a bare dot product contains no left, no right, no before, and no after. Somewhere between the tokenizer and the answer, order has to enter the machine.</p>
 
       <p>I expected the answer to be an engineering detail. I found an abstract-algebra lecture hiding in the query and key vectors.</p>
@@ -131,7 +164,13 @@
 
       <h2>Attention has no ruler</h2>
 
-      <p>Start with one self-attention layer. If the token representations are rows of (X), it forms</p>
+      <p>Let us build the problem from the ground up. A tokenizer first turns text into an ordered list of token IDs. Each ID is used to look up an embedding: a long list of learned numbers that acts as the token's starting coordinates. The model does not receive the word <em>dog</em> as ink on a page. It receives a vector. Before context and position are mixed in, the lookup vector for <em>dog</em> is the same whether the word appears first, fifth, or five-hundredth.</p>
+
+      <p>A vector is useful because it lets the network learn many soft properties at once. There is no single coordinate labelled “is an animal” or “can be a subject,” but directions in the vector space can encode combinations of such tendencies. The exact interpretation is distributed across dimensions and layers. For our story, the important fact is simpler: vectors can be transformed, compared, and combined using linear algebra.</p>
+
+      <p>Self-attention performs those three jobs with queries, keys, and values. A <em>query</em> says what the current token is looking for. A <em>key</em> says what another token offers. Their dot product is a compatibility score: vectors pointing in similar learned directions produce a larger number. A <em>value</em> is the information that gets carried across if the compatibility is high. The library metaphor is imperfect but useful: the query is a search request, keys are catalogue entries, and values are the books retrieved from the matching shelves.</p>
+
+      <p>Start with one self-attention layer. If the token representations are rows of \(X\), it forms</p>
 
       \[
         Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V,
@@ -144,9 +183,13 @@
         =\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_h}}\right)V.
       \]
 
-      <p>The score between token (i) and token (j) begins as (q_i^\top k_j). It sees their content, but neither (i) nor (j) appears in the formula.</p>
+      <p>The matrices \(W_Q\), \(W_K\), and \(W_V\) are learned. Multiplying \(X\) by them produces a query, key, and value for every token. The matrix \(QK^\top\) then contains every query-key comparison: row \(i\), column \(j\) asks how much token \(i\) should attend to token \(j\). Dividing by \(\sqrt{d_h}\) keeps the scores from growing wildly as the head dimension grows. Softmax turns each permitted row into positive weights that sum to one, and multiplying by \(V\) forms a weighted mixture of the information carried by the values.</p>
 
-      <p>This has a precise consequence. Let (P) be a matrix that shuffles the tokens. Without positional information or a mask,</p>
+      <p>Strip away the notation and the mechanism is beautifully direct. Each token looks across the sequence, scores the other tokens, and collects information from them. Several attention heads can learn different notions of relevance: one might track a nearby modifier, another a matching bracket, another a name mentioned much earlier. But relevance and location are different questions. A dot product can learn that <em>dog</em> and <em>bit</em> belong in a grammatical relationship without knowing which one appeared on the left.</p>
+
+      <p>The score between token \(i\) and token \(j\) begins as \(q_i^\top k_j\). It sees their content, but neither \(i\) nor \(j\) appears in the formula.</p>
+
+      <p>This has a precise consequence. Let \(P\) be a matrix that shuffles the tokens. Without positional information or a mask,</p>
 
       \[
         \operatorname{Attention}(PX)=P\operatorname{Attention}(X).
@@ -154,9 +197,15 @@
 
       <p>The layer is permutation <em>equivariant</em>: shuffle the inputs and the same outputs simply follow them to their new places. It has no private notion of where those places are. The original Transformer repaired this by adding sine and cosine vectors to the token embeddings.<a href="#ref-1">[1]</a></p>
 
+      <p><em>Equivariant</em> is worth unpacking because it sounds more forbidding than it is. Imagine giving every token a numbered envelope, running attention, and then rearranging the envelopes. If the mechanism has no positional signal, rearranging before the calculation merely rearranges the answers in the same way. The calculation respects the shuffle. It does not notice that a story has been scrambled; it only follows each vector to its new slot.</p>
+
       <p>There is one caveat worth putting here rather than hiding at the end. A decoder-only LLM also has a causal mask. The mask tells a token which side is the past, and a sufficiently capable model without explicit positional embeddings can recover more positional structure from that asymmetry. What the raw attention score still lacks is a ruler: it does not directly know whether a visible key is one token away or one thousand.</p>
 
+      <p>The mask is a triangular rule placed over the attention matrix. While predicting the next token, position \(i\) may look at positions up to \(i\), but never at the future positions to its right. That asymmetry already gives the sequence an arrow of time. The first token has almost nothing to inspect; later tokens have progressively longer prefixes. This is why it would be too strong to say that a causal Transformer without explicit positional encoding knows absolutely nothing about order. Yet the mask supplies a direction, not a calibrated distance. It says “this happened earlier,” not “this happened exactly 37 steps ago.” RoPE supplies that richer geometry.</p>
+
       <h2>Then somebody rotated the vectors</h2>
+
+      <p>Rotation sounds like an oddly physical operation to perform on a word, so begin with an arrow drawn on paper. An arrow has an \(x\)-coordinate and a \(y\)-coordinate. Turning it by 30 degrees changes both coordinates but preserves its length. Turn it by another 30 degrees and you get exactly the same result as one 60-degree turn. Turn it backwards by 60 degrees and you return to the start. Those elementary facts are the entire mechanism in miniature.</p>
 
       <p>RoPE enters after the content vectors have become queries and keys. Take two coordinates of a query, put them in a plane, and rotate the pair by an angle proportional to its position. For one pair, the rotation is</p>
 
@@ -168,13 +217,19 @@
         \end{bmatrix}.
       \]
 
-      <p>At position (n), RoPE uses (phi=n\theta). It repeats the operation across coordinate pairs using different frequencies (	heta_1,\ldots,\theta_{d/2}). For an even head dimension (d), define</p>
+      <p>You can read this matrix operationally. Feed it the point \((x,y)\); the sines and cosines return the coordinates of the same point after a turn by \(\phi\). Nothing is stretched or crushed. The inverse operation is simply a turn by \(-\phi\), and the inverse matrix is also the transpose. Those facts will matter when a rotated query meets a rotated key.</p>
+
+      <p>At position \(n\), RoPE uses \(\phi=n\theta\). It repeats the operation across coordinate pairs using different frequencies \(\theta_1,\ldots,\theta_{d/2}\). For an even head dimension \(d\), define</p>
 
       \[
         \rho(n)=\operatorname{diag}\!\bigl(
           R(n\theta_1),R(n\theta_2),\ldots,R(n\theta_{d/2})
         \bigr).
       \]
+
+      <p>Suppose one coordinate pair uses an angle of \(\theta\) radians per token. Position zero is not turned at all. Position one is turned by \(\theta\), position two by \(2\theta\), and position \(n\) by \(n\theta\). Moving one token forward is therefore always the same additional rotation. RoPE takes a high-dimensional query, pairs coordinate 0 with 1, coordinate 2 with 3, and so on, then runs this construction in every plane at once.</p>
+
+      <p>The different pairs do not all rotate at the same speed. If they did, the model would effectively own one repeating clock copied many times. Instead, RoPE gives each pair its own \(\theta_i\). Some pairs turn substantially between neighboring tokens; others barely move. Taken together, their phases provide a multi-scale signature of position.</p>
 
       <p>The position-aware vectors are then</p>
 
@@ -184,19 +239,27 @@
         \widetilde k_n=\rho(n)k_n.
       \]
 
-      <p>No vector of position features is added to the content. Position acts on the content. The original RoFormer paper derived this construction in both real rotation matrices and complex notation, then showed how relative displacement appears inside the query-key product.<a href="#ref-2">[2]</a></p>
+      <p>No vector of position features is added to the content. Position <em>acts on</em> the content. That distinction is the conceptual leap. The original Transformer placed a position vector beside the token information by addition. RoPE transforms the query and key themselves, so the later dot product can compare how far each was rotated. Values are usually left unrotated: position changes who attends to whom, while the selected value vectors still carry the information being gathered.</p>
+
+      <p>Because rotations preserve lengths, RoPE does not make a query stronger merely because it appears late in a document. It changes orientation, not magnitude. And because the same position-dependent operation is applied to queries and keys, their interaction has a controlled algebraic form. The original RoFormer paper derived this construction in both real rotation matrices and complex notation, then showed how relative displacement appears inside the query-key product.<a href="#ref-2">[2]</a></p>
 
       <h2>The integers were there all along</h2>
 
-      <p>A group is a set of moves that can be composed, undone, and left unchanged by an identity move. The integers under addition, ((\mathbb Z,+)), are the cleanest example. Move by (m), then by (n), and the total move is (m+n). Zero does nothing. The move (-n) undoes (n).</p>
+      <p>This is where the phrase <em>group theory</em> used to make the story feel more advanced than it is. A group is not, at first, a collection of frightening symbols. It is a disciplined description of reversible moves. You need a rule for composing two moves, an identity move that changes nothing, an inverse that undoes each move, and consistency about how several moves associate. Rotations of a circle form a group. So do the rotations and reflections of a square. So do shifts along an infinite line.</p>
 
-      <p>A representation translates those abstract moves into linear transformations while preserving how they compose. For RoPE,</p>
+      <p>Token positions naturally live in that last example. A move three places to the right followed by a move five places to the right is a move eight places to the right. Move zero places and nothing happens. Move five places right and then five places left and you are back where you began. The integers under addition, \((\mathbb Z,+)\), record every such translation: compose moves by adding them, use zero as the identity, and use \(-n\) to undo \(n\).</p>
+
+      <p>Notice the subtle change of viewpoint. The number 137 is no longer merely a label attached to one box in an array. It is the result of applying the one-step translation 137 times. Position becomes a journey from an origin. Once positions are journeys, the gap between two positions is the journey that carries one to the other.</p>
+
+      <p>A representation translates those abstract moves into concrete linear transformations while preserving how they compose. For RoPE,</p>
 
       \[
         \rho:(\mathbb Z,+)\longrightarrow SO(d),
       \]
 
-      <p>with the image living in the torus of independent planar rotations (SO(2)^{d/2}\subset SO(d)). The defining calculation is only one line:</p>
+      <p>Here <em>representation</em> has a precise mathematical meaning, different from the loose ML habit of calling any hidden vector a representation. We begin with an abstract move such as “advance by seven tokens” and assign it a concrete matrix that acts on vectors. The assignment is valid only if it respects composition. Advancing by three and then four must produce the same matrix as advancing by seven in one step.</p>
+
+      <p>The target \(SO(d)\) is the group of \(d\)-dimensional rotations: linear transformations that preserve lengths and orientation. RoPE uses a particularly simple corner of it, the product of independent planar rotations \(SO(2)^{d/2}\subset SO(d)\). Each two-coordinate plane gets its own little clock, and the block-diagonal matrix runs all of them simultaneously. The defining calculation is only one line:</p>
 
       \[
       \begin{aligned}
@@ -207,9 +270,11 @@
       \end{aligned}
       \]
 
-      <p>Position addition has become matrix multiplication. Also (ho(0)=I) and (ho(-n)=ho(n)^{-1}). This is not a metaphor laid over RoPE after the fact. It is the homomorphism law implemented by the code.</p>
+      <p>Position addition has become matrix multiplication. Also \(\rho(0)=I\) and \(\rho(-n)=\rho(n)^{-1}\). This is not a metaphor laid over RoPE after the fact. It is the homomorphism law implemented by the code.</p>
 
-      <div class="viz">
+      <p>A useful analogy is a mechanical odometer. The abstract event is “travel one more kilometre”; the concrete representation is the new arrangement of numbered wheels. Travel \(m\) kilometres and then \(n\), and the wheels end in the same state as travelling \(m+n\) at once. A single wheel eventually repeats, so it cannot uniquely record an unlimited journey. Several wheels turning at different rates preserve much more information. RoPE replaces decimal wheels with circular phases, but the structural promise is the same: composing movement composes state.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Scrollable diagram: integer positions represented as rotations">
         <svg viewBox="0 0 760 390" role="img" aria-labelledby="representation-title representation-desc">
           <title id="representation-title">Integer positions represented as rotations</title>
           <desc id="representation-desc">A number line with positions zero, one, and two maps to three circles. A vector is unrotated at zero, rotated by theta at one, and rotated by two theta at two. Moving one step twice corresponds to multiplying the one-step rotation twice.</desc>
@@ -256,12 +321,12 @@
           <text x="477" y="218" text-anchor="middle" font-size="11" fill="#0000ee">× ρ(1)</text>
           <text x="380" y="370" text-anchor="middle" font-size="14" fill="#000">1 + 1 = 2 becomes ρ(1)ρ(1) = ρ(2)</text>
         </svg>
-        <div class="viz-caption">One coordinate pair is shown. Real RoPE runs many such clocks at once. The important structure is not the particular angle in the drawing; it is that composing translations composes their rotations.</div>
-      </div>
+        <figcaption class="viz-caption">One coordinate pair is shown. Real RoPE runs many such clocks at once. The important structure is not the particular angle in the drawing; it is that composing translations composes their rotations.</figcaption>
+      </figure>
 
       <h2>Relative position falls out automatically</h2>
 
-      <p>Now put a query at position (m) and a key at position (n). Their attention score contains</p>
+      <p>Now put a query at position \(m\) and a key at position \(n\). Their attention score contains</p>
 
       \[
       \begin{aligned}
@@ -270,6 +335,8 @@
         &amp;=q_m^\top\rho(m)^\top\rho(n)k_n.
       \end{aligned}
       \]
+
+      <p>The middle expression is the whole trick waiting to simplify. Transposing the left-hand rotation moves it between the query and key. Geometrically, this says: instead of comparing two arrows after separately turning both of them, hold the query fixed, undo its turn, and measure how much turn remains on the key. Comparing two orientations never requires knowing where the zero-angle mark was; it requires only the angle between them.</p>
 
       <p>Rotations are orthogonal, so transposing is the same as inverting:</p>
 
@@ -292,9 +359,11 @@
         =q_m^\top\rho(n-m)k_n.}
       \]
 
-      <p>The content still matters through (q_m) and (k_n). But the <em>positional</em> part of the score no longer cares about the two origins separately. It sees the group displacement (n-m).</p>
+      <p>The content still matters through \(q_m\) and \(k_n\). But the <em>positional</em> part of the score no longer cares about the two origins separately. It sees the group displacement \(n-m\).</p>
 
-      <p>Shift the whole sentence by (s) positions and nothing changes in that positional factor:</p>
+      <p>Make it concrete. Put a query at position 14 and a key at position 11. Their positional interaction contains \(\rho(-3)\): the key lies three steps behind the query. Move the same pair deeper into a document, to positions 114 and 111, and the factor is still \(\rho(111-114)=\rho(-3)\). The absolute indices changed by one hundred; the relationship did not. Reverse the two positions and the sign changes, so “three tokens before” and “three tokens after” are distinct rotations.</p>
+
+      <p>Shift the whole sentence by \(s\) positions and nothing changes in that positional factor:</p>
 
       \[
         \rho(m+s)^\top\rho(n+s)=\rho(n-m).
@@ -302,9 +371,13 @@
 
       <p>This is the deeper reason RoPE converts absolute indices on individual vectors into relative offsets inside attention. A common translation cancels because group inverses cancel it. The famous feature is not an extra property bolted onto the rotations; it is what the representation law was always going to produce.</p>
 
+      <p>Now the abstract language has paid rent. Calling \(\rho\) a group representation predicted the behavior before we multiplied the matrices. Any position mechanism built from the same representation pattern inherits this cancellation. The result is not that content disappears—\(q_m\) and \(k_n\) remain different, learned vectors—but that their positional comparison is anchored to separation rather than to an arbitrary beginning of the document.</p>
+
       <h2>The clocks are Fourier characters</h2>
 
-      <p>There is a second way to read the same two coordinates. Identify the real pair ((x_1,x_2)) with one complex number (z=x_1+ix_2). A planar rotation becomes multiplication:</p>
+      <p>If the group-theory description tells us why relative position appears, Fourier analysis tells us what kind of positional signal the model receives. The bridge is the same humble two-dimensional rotation. Complex numbers are not an additional machine bolted onto RoPE; they are a compact language for a plane. The real part gives the horizontal coordinate, the imaginary part the vertical coordinate, and multiplication by a unit complex number turns the point without changing its distance from the origin.</p>
+
+      <p>There is a second way to read the same two coordinates. Identify the real pair \((x_1,x_2)\) with one complex number \(z=x_1+ix_2\). A planar rotation becomes multiplication:</p>
 
       \[
         R(n\theta)
@@ -312,13 +385,15 @@
         z\mapsto ze^{in\theta}.
       \]
 
+      <p>Euler's formula says \(e^{i\alpha}=\cos\alpha+i\sin\alpha\), so you can picture \(e^{in\theta}\) as a clock hand whose angle is \(n\theta\). Increment \(n\) and the hand advances by the same amount. Multiplying by another such term adds the angles, exactly mirroring the composition law we just derived with rotation matrices.</p>
+
       <p>The function</p>
 
       \[
         \chi_\theta(n)=e^{in\theta}
       \]
 
-      <p>is a <em>character</em> of the additive group (mathbb Z): a one-dimensional complex representation satisfying</p>
+      <p>is a <em>character</em> of the additive group \(\mathbb Z\): a one-dimensional complex representation satisfying</p>
 
       \[
         \chi_\theta(m+n)=\chi_\theta(m)\chi_\theta(n).
@@ -326,7 +401,9 @@
 
       <p>Characters are the elementary waves of Fourier analysis. Fourier analysis on the integers studies signals by resolving them against exactly these functions. RoPE is not secretly running an FFT over the sentence, but it is using the same mathematical atoms: each coordinate pair carries the content on one Fourier character of translation.</p>
 
-      <p>In standard RoPE, the frequencies are geometrically spaced. With base (b), a common convention is</p>
+      <p>The word <em>character</em> here has nothing to do with letters in a string. It names a representation that turns group composition into multiplication by complex phases. If ordinary Fourier analysis feels more familiar, think of separating a musical chord into notes. A complicated waveform becomes understandable as a mixture of simple oscillations at different frequencies. RoPE does something conceptually adjacent for displacement: it exposes a token gap through many simple phase changes at once.</p>
+
+      <p>In standard RoPE, the frequencies are geometrically spaced. With base \(b\), a common convention is</p>
 
       \[
         \theta_i=b^{-2i/d},
@@ -341,7 +418,11 @@
 
       <p>The model therefore receives not one position clock but a whole watchmaker's drawer of them.</p>
 
-      <div class="viz">
+      <p>One fast clock may complete several turns while a slow clock has barely left noon. At a particular displacement, the state of the positional system is the joint reading of every clock. Two offsets that look identical on one fast clock can still look different on the slower clocks, just as the minute hand can return to twelve while the hour hand tells you that an hour has passed. This joint phase signature is why reducing RoPE to “sine waves repeat” misses most of the design.</p>
+
+      <p>The geometric spacing of frequencies spreads those clocks across scales. It is the same broad instinct behind logarithmic axes: devote some capacity to fine distinctions nearby and some to orders-of-magnitude changes farther away. No coordinate pair understands “syntax” or “paragraph structure” by itself. Training decides how the query and key projections use the available spectrum. The frequency bank merely gives those learned projections a palette of local and long-range phase relationships.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Scrollable diagram: RoPE frequency clocks">
         <svg viewBox="0 0 760 390" role="img" aria-labelledby="clocks-title clocks-desc">
           <title id="clocks-title">RoPE as a bank of fast and slow phase clocks</title>
           <desc id="clocks-desc">Three cosine-like waves run across token displacement. The high-frequency wave cycles many times, the middle wave cycles several times, and the low-frequency wave changes slowly. The original training range ends at N; a shaded region to the right marks longer positions not seen during pretraining.</desc>
@@ -375,19 +456,25 @@
             <text x="430" y="382">relative token displacement</text>
           </g>
         </svg>
-        <div class="viz-caption">A schematic oscillator bank, not the exact spectrum of one checkpoint. Fast modes provide fine local variation; slow modes provide long-range phase. RoPE remains mathematically defined to the right of (N), but the model did not learn on those combined phases.</div>
-      </div>
+        <figcaption class="viz-caption">A schematic oscillator bank, not the exact spectrum of one checkpoint. Fast modes provide fine local variation; slow modes provide long-range phase. RoPE remains mathematically defined to the right of \(N\), but the model did not learn on those combined phases.</figcaption>
+      </figure>
 
       <h2>A context window is where the clocks remain familiar</h2>
+
+      <p>“Context window” is used for several ceilings that are easy to blur together. There is the maximum length the software will accept. There is the range of lengths and relative distances seen during training. And there is the <em>effective</em> context the trained model can actually use to answer a question. Changing a configuration value may raise the first ceiling without moving the other two. A prompt fitting in memory does not imply that evidence near its beginning will influence the answer well.</p>
 
       <p>Now the question I originally thought was about a configuration file becomes mathematical:</p>
 
       <div class="equation-note">
         <strong>What does “increasing an LLM's context window” mean?</strong><br>
-        It means taking a representation used during training on displacements roughly bounded by (N), then asking learned attention weights to interpret it on displacements approaching (kN).
+        It means taking a representation used during training on displacements roughly bounded by \(N\), then asking learned attention weights to interpret it on displacements approaching \(kN\).
       </div>
 
-      <p>The map (ho(n)) itself does not stop at (N). Sines, cosines, and rotations can be evaluated at any integer. The problem is that computable is not the same as familiar. During pretraining, the query and key weights adapt to a particular distribution of phase differences. Beyond that range, individual clocks may have wrapped around many more times, slow clocks may enter unseen parts of their cycle, and new combinations of phases can change the geometry of attention.</p>
+      <p>Imagine teaching someone to navigate a city using a map that covers ten neighbourhoods. The coordinate grid can be extended across the entire country with a ruler; the arithmetic does not fail at the city boundary. But the traveller has learned decisions from streets, landmarks, and distances inside the mapped region. Coordinates outside it are valid without being familiar. Long-context extrapolation creates a similar gap between a positional rule that remains defined and a network trained to interpret only part of its output.</p>
+
+      <p>The map \(\rho(n)\) itself does not stop at \(N\). Sines, cosines, and rotations can be evaluated at any integer. The problem is that computable is not the same as familiar. During pretraining, the query and key weights adapt to a particular distribution of phase differences. Beyond that range, individual clocks may have wrapped around many more times, slow clocks may enter unseen parts of their cycle, and new combinations of phases can change the geometry of attention.</p>
+
+      <p>This is an ordinary statistical warning in unusual clothing. Generalization is safest near the support of the training distribution. The network has not learned a symbolic rule saying “interpret every possible phase tuple correctly.” Gradient descent has shaped weights using the phase tuples that occurred in finite training sequences. Asking for a much longer sequence means asking those same weights to behave sensibly under a systematic covariate shift in relative position.</p>
 
       <p>For one frequency, offsets separated by a whole wavelength have the same phase:</p>
 
@@ -398,13 +485,19 @@
 
       <p>Across the full bank, the situation is less cartoonish. Different clocks wrap at different rates, and with the usual real-valued frequencies they need not share one exact integer period. The combined code can distinguish positions long after any single clock repeats. Still, approximate phase collisions, finite precision, and out-of-training phase patterns are real concerns.</p>
 
+      <p>Even “distinguish” needs care. RoPE does not issue a barcode that downstream layers simply read. It rotates content-dependent queries and keys, and those vectors are then mixed through attention, residual streams, nonlinearities, and many layers. A positional signature can be mathematically distinct yet too unfamiliar or too weakly used to support retrieval. That is why long-context claims are tested with tasks—finding distant facts, combining evidence, tracking perplexity—not proved by showing that two phase vectors differ.</p>
+
       <p>A February 2026 preprint makes this oscillator-bank view explicit and derives aliasing-like, low-frequency-drift, depth, and floating-point constraints on RoPE bases.<a href="#ref-4">[4]</a> I find the signal-processing language useful, with one guardrail: a bound on one positional mode is not by itself a universal cliff at which every full LLM forgets its context. Model weights, the whole frequency bank, training, and evaluation all sit between a phase calculation and an observed failure.</p>
 
       <h2>Scaling RoPE means retuning a representation</h2>
 
       <p>Most context-extension methods can now be described without memorising their names. They change how far each clock advances per token.</p>
 
-      <div class="table-wrap">
+      <p>The simplest mental picture is a rubber ruler. Suppose a model learned on a ruler ending at \(N\), but we want to place \(sN\) tokens along it. We can squeeze the new positions so that the last one still lands near the old endpoint. Every old phase remains reachable and no clock is forced as far into unseen territory. The price is that neighboring tick marks sit closer together: we bought range by giving up positional resolution.</p>
+
+      <p>That global squeeze is only the beginning of the design space. Local language patterns often depend on fine distinctions among nearby tokens, so slowing the fastest clocks can damage behavior the model already performs well. The slow clocks are the ones most directly responsible for broad changes across a long span. Modern recipes therefore ask whether every frequency should be stretched equally, whether some should be protected, and whether the model needs a small amount of additional training to adapt to the new geometry.</p>
+
+      <section class="table-wrap" tabindex="0" aria-label="Scrollable comparison of RoPE context-extension methods">
         <table>
           <thead>
             <tr>
@@ -416,7 +509,7 @@
           <tbody>
             <tr>
               <td><strong>Position Interpolation</strong></td>
-              <td>Replace (n) by (n/s), so every frequency becomes (	heta_i/s).</td>
+              <td>Replace \(n\) by \(n/s\), so every frequency becomes \(\theta_i/s\).</td>
               <td>The longer sequence fits inside the old phase range, but nearby positions become less separated.</td>
             </tr>
             <tr>
@@ -436,15 +529,19 @@
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
 
-      <p>Position Interpolation is the cleanest example. To extend by a factor (s), it uses</p>
+      <p>Position Interpolation is the cleanest example. To extend by a factor \(s\), it uses</p>
 
       \[
         \rho_{\mathrm{PI}}(n)=\rho(n/s).
       \]
 
+      <p>If a model trained up to 8,000 tokens must accept 32,000, choose \(s=4\). The new position 32,000 is presented with roughly the phase formerly used at 8,000. A displacement of 400 tokens now produces the phase change that 100 tokens produced before. Nothing about the underlying text became shorter; we changed the coordinate system through which attention sees its distance.</p>
+
       <p>The largest new position now produces approximately the largest phase seen during training. The authors extended LLaMA checkpoints from 2,048 to as many as 32,768 tokens with short fine-tuning, while reporting a modest cost on some original-length tasks.<a href="#ref-5">[5]</a> The representation has gained range by spending resolution.</p>
+
+      <p>Short fine-tuning matters because the weights learned to interpret the old ruler. After interpolation, the same syntactic or retrieval pattern arrives with altered phases. Adaptation gives the network examples of the remapped relationship. Frequency-selective methods such as YaRN try to make this adjustment gentler: preserve more of the high-frequency behavior that supports local distinctions, while stretching the lower-frequency dimensions that need room to cover the longer span.</p>
 
       <p>YaRN makes the exchange frequency-specific: keep high-frequency clocks closer to their original speeds, interpolate the slow clocks that would leave the useful global range, blend the middle, and correct the resulting attention scale. Its paper reported 128K extensions with far less fine-tuning data than the preceding recipes.<a href="#ref-6">[6]</a> LongRoPE later searched for separate rescalings rather than prescribing one smooth schedule.<a href="#ref-7">[7]</a></p>
 
@@ -454,71 +551,205 @@
 
       <p>The timeline helped me see that the mathematics did not arrive after the engineering. The same structure kept being exposed one layer at a time.</p>
 
-      <div class="viz">
-        <svg viewBox="0 0 760 370" role="img" aria-labelledby="timeline-title timeline-desc">
-          <title id="timeline-title">Timeline of positional encoding engineering and its mathematical interpretation</title>
-          <desc id="timeline-desc">Two horizontal lanes from 2017 to 2026. The upper engineering lane marks sinusoidal encoding, RoPE, Position Interpolation and YaRN, LongRoPE, and DroPE. The lower mathematical lane marks Fourier clocks, the relative rotation law, phase-modulation analysis, and GRAPE's group-action framework.</desc>
+      <figure class="viz timeline-viz" tabindex="0" aria-label="Scrollable timeline of positional encoding milestones">
+        <svg viewBox="0 0 920 540" role="img" aria-labelledby="timeline-title timeline-desc">
+          <title id="timeline-title">Nine years of positional intelligence, from sinusoidal embeddings to GRAPE and DroPE</title>
+          <desc id="timeline-desc">A high-contrast two-lane timeline from 2017 through 2026. The upper cyan lane follows engineering milestones: sinusoidal position encoding, RoPE, Position Interpolation and YaRN, LongRoPE, and DroPE. The lower amber and pink lane follows the mathematical interpretation: Fourier bases, the translation group represented by rotations, spectral control for context scaling, and the 2026 convergence of phase analysis with GRAPE. Curved lines connect each mechanism to the mathematical idea it exposed.</desc>
 
-          <text x="18" y="92" font-size="12" fill="#000">position</text>
-          <text x="18" y="108" font-size="12" fill="#000">engineering</text>
-          <text x="18" y="245" font-size="12" fill="#000">mathematical</text>
-          <text x="18" y="261" font-size="12" fill="#000">lens</text>
+          <defs>
+            <linearGradient id="timeline-bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#07111f"/>
+              <stop offset="52%" stop-color="#101a31"/>
+              <stop offset="100%" stop-color="#190f2b"/>
+            </linearGradient>
+            <linearGradient id="timeline-engineering" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#56e3ff"/>
+              <stop offset="55%" stop-color="#5794ff"/>
+              <stop offset="100%" stop-color="#8c6cff"/>
+            </linearGradient>
+            <linearGradient id="timeline-theory" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#ffd166"/>
+              <stop offset="55%" stop-color="#ff9f68"/>
+              <stop offset="100%" stop-color="#ff70bd"/>
+            </linearGradient>
+            <linearGradient id="timeline-bridge" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#62dfff"/>
+              <stop offset="50%" stop-color="#8b8dff"/>
+              <stop offset="100%" stop-color="#ff8ec8"/>
+            </linearGradient>
+            <radialGradient id="timeline-spot">
+              <stop offset="0%" stop-color="#7967ff" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#7967ff" stop-opacity="0"/>
+            </radialGradient>
+            <pattern id="timeline-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M32 0H0V32" fill="none" stroke="#b9d5ff" stroke-opacity="0.055" stroke-width="1"/>
+            </pattern>
+            <filter id="timeline-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <filter id="timeline-soft-shadow" x="-30%" y="-30%" width="160%" height="180%">
+              <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#000814" flood-opacity="0.5"/>
+            </filter>
+            <marker id="timeline-arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0L10 5L0 10Z" fill="#8c6cff"/>
+            </marker>
+            <marker id="timeline-arrow-warm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0L10 5L0 10Z" fill="#ff70bd"/>
+            </marker>
+          </defs>
 
-          <line x1="115" y1="120" x2="725" y2="120" stroke="#000" stroke-width="1.5"/>
-          <line x1="115" y1="270" x2="725" y2="270" stroke="#000" stroke-width="1.5"/>
+          <rect width="920" height="540" rx="18" fill="url(#timeline-bg)"/>
+          <rect width="920" height="540" rx="18" fill="url(#timeline-grid)"/>
+          <circle cx="810" cy="270" r="220" fill="url(#timeline-spot)"/>
+          <path d="M0 110H920" stroke="#d7e5ff" stroke-opacity="0.1"/>
 
-          <g stroke="#bbb" stroke-dasharray="3 4">
-            <line x1="140" y1="44" x2="140" y2="320"/>
-            <line x1="290" y1="44" x2="290" y2="320"/>
-            <line x1="445" y1="44" x2="445" y2="320"/>
-            <line x1="545" y1="44" x2="545" y2="320"/>
-            <line x1="675" y1="44" x2="675" y2="320"/>
+          <text x="32" y="34" fill="#6ee7ff" font-size="11" font-weight="700" letter-spacing="2.2">POSITIONAL INTELLIGENCE · 2017—2026</text>
+          <text x="32" y="68" fill="#f7fbff" font-size="23" font-weight="700">Nine years: from adding position to redesigning it</text>
+          <text x="32" y="92" fill="#aebdd5" font-size="12">Engineering shipped the mechanisms. Mathematics exposed the common structure underneath.</text>
+
+          <g font-size="10" font-weight="700" letter-spacing="1">
+            <circle cx="660" cy="31" r="5" fill="#62dcff" filter="url(#timeline-glow)"/>
+            <text x="672" y="35" fill="#ccefff">MECHANISM</text>
+            <circle cx="765" cy="31" r="5" fill="#ff9a77" filter="url(#timeline-glow)"/>
+            <text x="777" y="35" fill="#ffe0c5">MATHEMATICAL LENS</text>
           </g>
 
-          <g fill="#000">
-            <circle cx="140" cy="120" r="6"/>
-            <circle cx="290" cy="120" r="6"/>
-            <circle cx="445" cy="120" r="6"/>
-            <circle cx="545" cy="120" r="6"/>
-          </g>
-          <circle cx="675" cy="120" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+          <rect x="770" y="112" width="134" height="396" rx="18" fill="#856dff" fill-opacity="0.07" stroke="#9a82ff" stroke-opacity="0.26" stroke-dasharray="4 6"/>
+          <text x="837" y="130" text-anchor="middle" fill="#b9a9ff" font-size="9" font-weight="700" letter-spacing="1.6">2026 CONVERGENCE</text>
 
-          <g text-anchor="middle" font-size="11" fill="#000">
-            <text x="140" y="65">sinusoids added</text><text x="140" y="80">to embeddings</text>
-            <text x="290" y="65">RoPE rotates</text><text x="290" y="80">queries and keys</text>
-            <text x="445" y="65">PI + YaRN</text><text x="445" y="80">rescale phases</text>
-            <text x="545" y="146">LongRoPE searches</text><text x="545" y="161">per-clock scales</text>
-          </g>
-          <g text-anchor="middle" font-size="11" fill="#0000ee">
-            <text x="675" y="65">DroPE trains with</text><text x="675" y="80">the clocks, then drops them</text>
+          <g stroke="#c4d8ff" stroke-opacity="0.09" stroke-dasharray="3 7">
+            <line x1="212" y1="111" x2="212" y2="508"/>
+            <line x1="365" y1="111" x2="365" y2="508"/>
+            <line x1="535" y1="111" x2="535" y2="508"/>
+            <line x1="698" y1="111" x2="698" y2="508"/>
+            <line x1="843" y1="111" x2="843" y2="508"/>
           </g>
 
-          <g fill="#000">
-            <circle cx="140" cy="270" r="6"/>
-            <circle cx="290" cy="270" r="6"/>
-          </g>
-          <circle cx="640" cy="270" r="6" fill="#000"/>
-          <circle cx="710" cy="270" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
-
-          <g text-anchor="middle" font-size="11" fill="#000">
-            <text x="140" y="298">a Fourier frequency bank</text>
-            <text x="290" y="298">translation becomes rotation</text>
-            <text x="620" y="225">phase-modulation</text><text x="620" y="240">analysis</text>
-          </g>
-          <g text-anchor="end" font-size="11" fill="#0000ee">
-            <text x="724" y="298">GRAPE starts from</text><text x="724" y="313">group actions</text>
+          <g>
+            <rect x="28" y="204" width="105" height="28" rx="14" fill="#43d9ff" fill-opacity="0.13" stroke="#5ae2ff" stroke-opacity="0.38"/>
+            <text x="80.5" y="222" text-anchor="middle" fill="#80e9ff" font-size="10" font-weight="700" letter-spacing="1.2">ENGINEERING</text>
+            <line x1="150" y1="218" x2="886" y2="218" stroke="url(#timeline-engineering)" stroke-width="3" marker-end="url(#timeline-arrow-cyan)" filter="url(#timeline-glow)"/>
           </g>
 
-          <g text-anchor="middle" font-size="11" fill="#000">
-            <text x="140" y="350">2017</text>
-            <text x="290" y="350">2021</text>
-            <text x="445" y="350">2023</text>
-            <text x="545" y="350">2024</text>
-            <text x="675" y="350">2026</text>
+          <g stroke="url(#timeline-bridge)" stroke-width="1.5" stroke-opacity="0.42" fill="none" stroke-dasharray="5 7">
+            <path d="M212 230C212 274 215 330 215 378"/>
+            <path d="M365 230C365 274 367 330 367 378"/>
+            <path d="M535 230C535 276 570 330 570 378"/>
+            <path d="M698 230C698 282 592 323 570 378"/>
+            <path d="M843 230C843 280 800 330 800 378"/>
+          </g>
+
+          <g filter="url(#timeline-soft-shadow)">
+            <g>
+              <rect x="150" y="140" width="125" height="58" rx="10" fill="#0d2638" stroke="#51dcff" stroke-opacity="0.65"/>
+              <text x="163" y="156" fill="#76e7ff" font-size="9" font-weight="700">2017</text>
+              <text x="212.5" y="174" text-anchor="middle" fill="#f6fbff" font-size="12" font-weight="700">SINUSOIDAL PE</text>
+              <text x="212.5" y="190" text-anchor="middle" fill="#9fb8cc" font-size="10">add phase to embeddings</text>
+              <line x1="212" y1="198" x2="212" y2="208" stroke="#61e2ff"/>
+            </g>
+            <g>
+              <rect x="295" y="140" width="140" height="58" rx="10" fill="#11253e" stroke="#5daeff" stroke-opacity="0.68"/>
+              <text x="308" y="156" fill="#79baff" font-size="9" font-weight="700">2021</text>
+              <text x="365" y="174" text-anchor="middle" fill="#f6fbff" font-size="12" font-weight="700">RoPE</text>
+              <text x="365" y="190" text-anchor="middle" fill="#a7b9d2" font-size="10">rotate queries + keys</text>
+              <line x1="365" y1="198" x2="365" y2="208" stroke="#68aaff"/>
+            </g>
+            <g>
+              <rect x="455" y="140" width="160" height="58" rx="10" fill="#172342" stroke="#778bff" stroke-opacity="0.7"/>
+              <text x="468" y="156" fill="#95a6ff" font-size="9" font-weight="700">2023</text>
+              <text x="535" y="174" text-anchor="middle" fill="#f7f8ff" font-size="12" font-weight="700">PI + YaRN</text>
+              <text x="535" y="190" text-anchor="middle" fill="#b2b8da" font-size="10">rescale phase bands</text>
+              <line x1="535" y1="198" x2="535" y2="208" stroke="#8392ff"/>
+            </g>
+            <g>
+              <rect x="630" y="140" width="135" height="58" rx="10" fill="#1b2142" stroke="#8c77ff" stroke-opacity="0.72"/>
+              <text x="643" y="156" fill="#aa9aff" font-size="9" font-weight="700">2024</text>
+              <text x="697.5" y="174" text-anchor="middle" fill="#faf8ff" font-size="12" font-weight="700">LONGROPE</text>
+              <text x="697.5" y="190" text-anchor="middle" fill="#bcb4d9" font-size="10">search per-clock scales</text>
+              <line x1="698" y1="198" x2="698" y2="208" stroke="#9a82ff"/>
+            </g>
+            <g>
+              <rect x="780" y="140" width="125" height="58" rx="10" fill="#221c42" stroke="#b677ff" stroke-opacity="0.8"/>
+              <text x="793" y="156" fill="#ca9cff" font-size="9" font-weight="700">2026</text>
+              <text x="842.5" y="174" text-anchor="middle" fill="#fff8ff" font-size="12" font-weight="700">DROPE</text>
+              <text x="842.5" y="190" text-anchor="middle" fill="#cbb8dc" font-size="10">train with it → drop it</text>
+              <line x1="843" y1="198" x2="843" y2="208" stroke="#b77cff"/>
+            </g>
+          </g>
+
+          <g filter="url(#timeline-glow)">
+            <circle cx="212" cy="218" r="9" fill="#071624" stroke="#60e3ff" stroke-width="2.5"/><circle cx="212" cy="218" r="3" fill="#a5f3ff"/>
+            <circle cx="365" cy="218" r="9" fill="#0a1528" stroke="#68aaff" stroke-width="2.5"/><circle cx="365" cy="218" r="3" fill="#b0d0ff"/>
+            <circle cx="535" cy="218" r="9" fill="#0e142d" stroke="#8491ff" stroke-width="2.5"/><circle cx="535" cy="218" r="3" fill="#c0c5ff"/>
+            <circle cx="698" cy="218" r="9" fill="#12112e" stroke="#9c83ff" stroke-width="2.5"/><circle cx="698" cy="218" r="3" fill="#d1c3ff"/>
+            <circle cx="843" cy="218" r="10" fill="#180e2a" stroke="#bd7aff" stroke-width="3"/><circle cx="843" cy="218" r="3.5" fill="#ebc2ff"/>
+          </g>
+
+          <g filter="url(#timeline-soft-shadow)">
+            <rect x="205" y="270" width="510" height="62" rx="14" fill="#0c1529" fill-opacity="0.96" stroke="url(#timeline-bridge)" stroke-opacity="0.75"/>
+            <text x="460" y="292" text-anchor="middle" fill="#dce8ff" font-size="10" font-weight="700" letter-spacing="1.6">THE INVARIANT HIDING INSIDE THE IMPLEMENTATION</text>
+            <text x="460" y="316" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">absolute index n  →  action ρ(n)  →  relative gap ρ(n − m)</text>
+          </g>
+
+          <g>
+            <rect x="28" y="376" width="105" height="28" rx="14" fill="#ff966c" fill-opacity="0.12" stroke="#ffac77" stroke-opacity="0.4"/>
+            <text x="80.5" y="394" text-anchor="middle" fill="#ffc184" font-size="10" font-weight="700" letter-spacing="1.2">THEORY</text>
+            <line x1="150" y1="390" x2="886" y2="390" stroke="url(#timeline-theory)" stroke-width="3" marker-end="url(#timeline-arrow-warm)" filter="url(#timeline-glow)"/>
+          </g>
+
+          <g filter="url(#timeline-glow)">
+            <circle cx="215" cy="390" r="9" fill="#1a1723" stroke="#ffd166" stroke-width="2.5"/><circle cx="215" cy="390" r="3" fill="#fff1b1"/>
+            <circle cx="367" cy="390" r="9" fill="#1c1524" stroke="#ffb36c" stroke-width="2.5"/><circle cx="367" cy="390" r="3" fill="#ffe0b2"/>
+            <circle cx="570" cy="390" r="9" fill="#1f1326" stroke="#ff927d" stroke-width="2.5"/><circle cx="570" cy="390" r="3" fill="#ffc3b8"/>
+            <circle cx="800" cy="390" r="10" fill="#211029" stroke="#ff72bc" stroke-width="3"/><circle cx="800" cy="390" r="3.5" fill="#ffc5e7"/>
+          </g>
+
+          <g filter="url(#timeline-soft-shadow)">
+            <g>
+              <line x1="215" y1="400" x2="215" y2="410" stroke="#ffd166"/>
+              <rect x="150" y="410" width="130" height="72" rx="10" fill="#2a221d" stroke="#ffd166" stroke-opacity="0.62"/>
+              <text x="163" y="428" fill="#ffe18a" font-size="9" font-weight="700">2017</text>
+              <text x="215" y="447" text-anchor="middle" fill="#fffaf0" font-size="12" font-weight="700">FOURIER BASIS</text>
+              <text x="215" y="465" text-anchor="middle" fill="#d7c4a3" font-size="10">simple waves encode shifts</text>
+            </g>
+            <g>
+              <line x1="367" y1="400" x2="367" y2="410" stroke="#ffb36c"/>
+              <rect x="295" y="410" width="145" height="72" rx="10" fill="#2a1d22" stroke="#ffaf6f" stroke-opacity="0.66"/>
+              <text x="308" y="428" fill="#ffc184" font-size="9" font-weight="700">2021</text>
+              <text x="367.5" y="447" text-anchor="middle" fill="#fff8f2" font-size="12" font-weight="700">GROUP LAW</text>
+              <text x="367.5" y="465" text-anchor="middle" fill="#d8b7ac" font-size="10">translation becomes rotation</text>
+            </g>
+            <g>
+              <line x1="570" y1="400" x2="570" y2="410" stroke="#ff927d"/>
+              <rect x="475" y="410" width="190" height="72" rx="10" fill="#291823" stroke="#ff8d83" stroke-opacity="0.7"/>
+              <text x="488" y="428" fill="#ffafa4" font-size="9" font-weight="700">2023—2024</text>
+              <text x="570" y="447" text-anchor="middle" fill="#fff7f7" font-size="12" font-weight="700">SPECTRAL CONTROL</text>
+              <text x="570" y="465" text-anchor="middle" fill="#d8b2bb" font-size="10">context scaling edits clock speeds</text>
+            </g>
+            <g>
+              <line x1="800" y1="400" x2="800" y2="410" stroke="#ff72bc"/>
+              <rect x="700" y="410" width="200" height="72" rx="10" fill="#29142b" stroke="#ff72bc" stroke-opacity="0.78"/>
+              <text x="713" y="428" fill="#ff9ed0" font-size="9" font-weight="700">2026</text>
+              <text x="800" y="447" text-anchor="middle" fill="#fff7fc" font-size="12" font-weight="700">PHASE + GROUP</text>
+              <text x="800" y="465" text-anchor="middle" fill="#d6b1cc" font-size="10">analyse limits · learn actions</text>
+            </g>
+          </g>
+
+          <g font-size="9" font-weight="700" letter-spacing="1.2">
+            <rect x="194" y="502" width="134" height="22" rx="11" fill="#58dfff" fill-opacity="0.1" stroke="#58dfff" stroke-opacity="0.3"/>
+            <text x="261" y="517" text-anchor="middle" fill="#8beaff">SCALE THE CLOCKS</text>
+            <rect x="393" y="502" width="134" height="22" rx="11" fill="#ab83ff" fill-opacity="0.1" stroke="#ab83ff" stroke-opacity="0.3"/>
+            <text x="460" y="517" text-anchor="middle" fill="#c3a8ff">LEARN THE ACTION</text>
+            <rect x="592" y="502" width="134" height="22" rx="11" fill="#ff72bc" fill-opacity="0.1" stroke="#ff72bc" stroke-opacity="0.3"/>
+            <text x="659" y="517" text-anchor="middle" fill="#ff9ed0">DROP THE CLOCKS</text>
           </g>
         </svg>
-        <div class="viz-caption">The upper lane is what practitioners changed; the lower lane is the structure those changes exposed. Dates follow the original Transformer, RoFormer, PI, YaRN, LongRoPE, the DroPE release, the 2026 phase preprint, and ICLR 2026 GRAPE.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-10">[10]</a></div>
-      </div>
+        <figcaption class="viz-caption">The cyan lane tracks what practitioners changed; the warm lane tracks the mathematical structure those changes exposed. The center identity is the hinge: a position acts on each vector absolutely, but attention compares those actions relatively. By 2026, the same picture suggests three directions&mdash;rescale the clocks, learn a broader group action, or remove the clocks after training.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a><a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-10">[10]</a></figcaption>
+      </figure>
 
       <p>An August 2026 survey now treats positional encoding and RoPE scaling as one continuous design problem, from absolute coordinates through relative biases to PI, YaRN, and LongRoPE. Its most useful warning is that a model accepting a nominal length is not proof that it can use that length reliably.<a href="#ref-9">[9]</a></p>
 
@@ -526,21 +757,27 @@
 
       <p>GRAPE, published at ICLR 2026, reverses the usual order of explanation. Instead of inventing a positional formula and later noticing its symmetries, it begins with a group action.<a href="#ref-3">[3]</a></p>
 
+      <p>That reversal is similar to designing a bridge from load-bearing principles instead of drawing a shape and checking afterward whether it stands. First decide what positions are allowed to do when they compose. Then choose a family of transformations that obeys those rules. RoPE becomes one answer inside the family rather than an isolated clever trick.</p>
+
       <p>Its multiplicative version writes position as</p>
 
       \[
         G(n)=\exp(n\omega L),
       \]
 
-      <p>where (L^\top=-L) is a skew-symmetric generator. Exponentiating such a generator produces a norm-preserving rotation in (SO(d)), and</p>
+      <p>The notation is denser than the idea. The matrix \(L\) is a <em>generator</em>: it specifies the instantaneous direction of a tiny motion, much as velocity specifies how a location begins to change. The matrix exponential accumulates that tiny motion into a finite transformation at position \(n\). Requiring \(L^\top=-L\)—skew symmetry—ensures that the accumulated transformation is a norm-preserving rotation in \(SO(d)\). In two dimensions, the familiar generator is the quarter-turn pattern with zeros on the diagonal and opposite signs off it.</p>
+
+      <p>Because every position is produced from the same generator, consecutive motions compose cleanly:</p>
 
       \[
         G(m+n)=G(m)G(n)
       \]
 
-      <p>again supplies the exact relative law. Standard RoPE appears when the generators rotate the canonical coordinate pairs independently and the frequencies follow the familiar log-spaced spectrum. GRAPE can instead learn the planes, or couple subspaces more richly.</p>
+      <p>This again supplies the exact relative law. Standard RoPE appears when the generators rotate the canonical coordinate pairs independently and the frequencies follow the familiar log-spaced spectrum. GRAPE can instead learn the planes, or couple subspaces more richly.</p>
 
       <p>The framework also has an additive branch. By lifting vectors into a slightly larger space and using unipotent transformations, it recovers linear attention biases such as ALiBi as another kind of group action. That is the part I find most convincing. RoPE and ALiBi look like unrelated choices in a library dropdown&mdash;one rotates vectors, the other adds a distance penalty&mdash;but both can be organized by asking the same questions: what group describes position, how does it act, and which quantities should remain unchanged?</p>
+
+      <p>ALiBi is easier to picture before the larger-space construction: it subtracts a head-dependent penalty that grows with distance, nudging attention toward nearer keys. A rotation and a linear penalty seem to belong to different mathematical species. The lifting argument shows that both can arise from transformations representing translation; one changes orientations multiplicatively, while the other appears as an additive bias after an extra coordinate is introduced. “Unipotent” describes the resulting shear-like matrices, but the narrative is simple: enlarge the stage and addition can be expressed as a linear action too.</p>
 
       <p>This is why I do not think the group-theory reading is decorative. It generated a design space.</p>
 
@@ -548,7 +785,11 @@
 
       <p>In January 2026, Sakana AI announced DroPE, and the punchline sounded almost rude after all this algebra: train with positional embeddings, then take them away.<a href="#ref-10">[10]</a></p>
 
+      <p>At first this seems contradictory. If rotations provide the ruler that attention lacks, removing them should make the model less capable, not more. The contradiction dissolves once we separate two jobs: helping a network learn during optimization and constraining how the finished network behaves at inference. The best scaffold for constructing something need not remain part of the completed structure.</p>
+
       <p>The paper's argument has three parts. First, explicit position creates a powerful inductive bias during training. A RoPE model begins with non-uniform, displacement-sensitive attention, while a NoPE model has to discover useful positional behavior through the causal mask and data. Second, the learned reliance on fixed phases becomes a liability when inference moves far beyond the training length. Third, after pretraining has already taught the network language and order, a short recalibration at the original context length can remove RoPE without erasing those abilities.</p>
+
+      <p>Think back to the causal mask. It already distinguishes earlier from later and creates different computational histories at different positions. During pretraining, RoPE makes useful distance patterns cheap to discover; the model does not have to infer them all from that asymmetry. By the end of training, however, many layers have internalized patterns about syntax, recurrence, and retrieval. DroPE asks whether those learned circuits can keep working after the explicit phase rotation is removed and the weights are briefly adjusted to the new attention geometry.</p>
 
       <div class="equation-note">
         \[
@@ -559,6 +800,8 @@
           \underbrace{\text{NoPE inference}}_{\text{no unseen phases}}
         \]
       </div>
+
+      <p>The short recalibration step is why “drop” should not be read as deleting RoPE from an arbitrary checkpoint and expecting a miracle. Removing the rotations changes every query-key score. Recalibration lets the model absorb that intervention while examples are still within the length regime it knows. Once the fixed periodic map is gone, inference no longer feeds the network phase combinations beyond that map's training range—although all the other difficulties of long-context reasoning remain.</p>
 
       <p>In the authors' experiments, this produced zero-shot extension beyond the pretrained sequence length without long-context fine-tuning, across models up to 7B parameters. It is evidence for a fascinating distinction, not a funeral for RoPE. Qwen's deployed recipe scales the representation; GRAPE generalizes it; DroPE removes it after using it to make optimization easier. All three can be sensible because they solve different parts of the problem.</p>
 
