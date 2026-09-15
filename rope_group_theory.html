@@ -71,29 +71,6 @@
       margin-top: 0.7rem;
     }
 
-    .timeline-viz {
-      margin: 2.5rem 0 !important;
-      padding: 0 !important;
-      background: transparent !important;
-      border: 0 !important;
-      border-radius: 18px !important;
-    }
-
-    .timeline-viz svg {
-      min-width: 760px;
-      box-sizing: border-box;
-      font-family: Verdana, Geneva, Tahoma, sans-serif;
-      border: 1px solid rgba(80, 150, 255, 0.35);
-      border-radius: 18px !important;
-      box-shadow:
-        0 18px 45px rgba(7, 16, 31, 0.28),
-        0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
-    }
-
-    .timeline-viz .viz-caption {
-      margin: 0.85rem 0 0 !important;
-    }
-
     .table-wrap {
       max-width: 100%;
       overflow-x: auto;
@@ -551,205 +528,71 @@
 
       <p>The timeline helped me see that the mathematics did not arrive after the engineering. The same structure kept being exposed one layer at a time.</p>
 
-      <figure class="viz timeline-viz" tabindex="0" aria-label="Scrollable timeline of positional encoding milestones">
-        <svg viewBox="0 0 920 540" role="img" aria-labelledby="timeline-title timeline-desc">
-          <title id="timeline-title">Nine years of positional intelligence, from sinusoidal embeddings to GRAPE and DroPE</title>
-          <desc id="timeline-desc">A high-contrast two-lane timeline from 2017 through 2026. The upper cyan lane follows engineering milestones: sinusoidal position encoding, RoPE, Position Interpolation and YaRN, LongRoPE, and DroPE. The lower amber and pink lane follows the mathematical interpretation: Fourier bases, the translation group represented by rotations, spectral control for context scaling, and the 2026 convergence of phase analysis with GRAPE. Curved lines connect each mechanism to the mathematical idea it exposed.</desc>
+      <section class="viz" tabindex="0" aria-label="Scrollable timeline of positional encoding milestones">
+        <svg viewBox="0 0 760 370" role="img" aria-labelledby="timeline-title timeline-desc">
+          <title id="timeline-title">Timeline of positional encoding engineering and its mathematical interpretation</title>
+          <desc id="timeline-desc">Two horizontal lanes from 2017 to 2026. The upper engineering lane marks sinusoidal encoding, RoPE, Position Interpolation and YaRN, LongRoPE, and DroPE. The lower mathematical lane marks Fourier clocks, the relative rotation law, phase-modulation analysis, and GRAPE's group-action framework.</desc>
 
-          <defs>
-            <linearGradient id="timeline-bg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#07111f"/>
-              <stop offset="52%" stop-color="#101a31"/>
-              <stop offset="100%" stop-color="#190f2b"/>
-            </linearGradient>
-            <linearGradient id="timeline-engineering" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#56e3ff"/>
-              <stop offset="55%" stop-color="#5794ff"/>
-              <stop offset="100%" stop-color="#8c6cff"/>
-            </linearGradient>
-            <linearGradient id="timeline-theory" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#ffd166"/>
-              <stop offset="55%" stop-color="#ff9f68"/>
-              <stop offset="100%" stop-color="#ff70bd"/>
-            </linearGradient>
-            <linearGradient id="timeline-bridge" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#62dfff"/>
-              <stop offset="50%" stop-color="#8b8dff"/>
-              <stop offset="100%" stop-color="#ff8ec8"/>
-            </linearGradient>
-            <radialGradient id="timeline-spot">
-              <stop offset="0%" stop-color="#7967ff" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="#7967ff" stop-opacity="0"/>
-            </radialGradient>
-            <pattern id="timeline-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M32 0H0V32" fill="none" stroke="#b9d5ff" stroke-opacity="0.055" stroke-width="1"/>
-            </pattern>
-            <filter id="timeline-glow" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            <filter id="timeline-soft-shadow" x="-30%" y="-30%" width="160%" height="180%">
-              <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#000814" flood-opacity="0.5"/>
-            </filter>
-            <marker id="timeline-arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-              <path d="M0 0L10 5L0 10Z" fill="#8c6cff"/>
-            </marker>
-            <marker id="timeline-arrow-warm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-              <path d="M0 0L10 5L0 10Z" fill="#ff70bd"/>
-            </marker>
-          </defs>
+          <text x="18" y="92" font-size="12" fill="#000">position</text>
+          <text x="18" y="108" font-size="12" fill="#000">engineering</text>
+          <text x="18" y="245" font-size="12" fill="#000">mathematical</text>
+          <text x="18" y="261" font-size="12" fill="#000">lens</text>
 
-          <rect width="920" height="540" rx="18" fill="url(#timeline-bg)"/>
-          <rect width="920" height="540" rx="18" fill="url(#timeline-grid)"/>
-          <circle cx="810" cy="270" r="220" fill="url(#timeline-spot)"/>
-          <path d="M0 110H920" stroke="#d7e5ff" stroke-opacity="0.1"/>
+          <line x1="115" y1="120" x2="725" y2="120" stroke="#000" stroke-width="1.5"/>
+          <line x1="115" y1="270" x2="725" y2="270" stroke="#000" stroke-width="1.5"/>
 
-          <text x="32" y="34" fill="#6ee7ff" font-size="11" font-weight="700" letter-spacing="2.2">POSITIONAL INTELLIGENCE · 2017—2026</text>
-          <text x="32" y="68" fill="#f7fbff" font-size="23" font-weight="700">Nine years: from adding position to redesigning it</text>
-          <text x="32" y="92" fill="#aebdd5" font-size="12">Engineering shipped the mechanisms. Mathematics exposed the common structure underneath.</text>
-
-          <g font-size="10" font-weight="700" letter-spacing="1">
-            <circle cx="660" cy="31" r="5" fill="#62dcff" filter="url(#timeline-glow)"/>
-            <text x="672" y="35" fill="#ccefff">MECHANISM</text>
-            <circle cx="765" cy="31" r="5" fill="#ff9a77" filter="url(#timeline-glow)"/>
-            <text x="777" y="35" fill="#ffe0c5">MATHEMATICAL LENS</text>
+          <g stroke="#bbb" stroke-dasharray="3 4">
+            <line x1="140" y1="44" x2="140" y2="320"/>
+            <line x1="290" y1="44" x2="290" y2="320"/>
+            <line x1="445" y1="44" x2="445" y2="320"/>
+            <line x1="545" y1="44" x2="545" y2="320"/>
+            <line x1="675" y1="44" x2="675" y2="320"/>
           </g>
 
-          <rect x="770" y="112" width="134" height="396" rx="18" fill="#856dff" fill-opacity="0.07" stroke="#9a82ff" stroke-opacity="0.26" stroke-dasharray="4 6"/>
-          <text x="837" y="130" text-anchor="middle" fill="#b9a9ff" font-size="9" font-weight="700" letter-spacing="1.6">2026 CONVERGENCE</text>
+          <g fill="#000">
+            <circle cx="140" cy="120" r="6"/>
+            <circle cx="290" cy="120" r="6"/>
+            <circle cx="445" cy="120" r="6"/>
+            <circle cx="545" cy="120" r="6"/>
+          </g>
+          <circle cx="675" cy="120" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
 
-          <g stroke="#c4d8ff" stroke-opacity="0.09" stroke-dasharray="3 7">
-            <line x1="212" y1="111" x2="212" y2="508"/>
-            <line x1="365" y1="111" x2="365" y2="508"/>
-            <line x1="535" y1="111" x2="535" y2="508"/>
-            <line x1="698" y1="111" x2="698" y2="508"/>
-            <line x1="843" y1="111" x2="843" y2="508"/>
+          <g text-anchor="middle" font-size="11" fill="#000">
+            <text x="140" y="65">sinusoids added</text><text x="140" y="80">to embeddings</text>
+            <text x="290" y="65">RoPE rotates</text><text x="290" y="80">queries and keys</text>
+            <text x="445" y="65">PI + YaRN</text><text x="445" y="80">rescale phases</text>
+            <text x="545" y="146">LongRoPE searches</text><text x="545" y="161">per-clock scales</text>
+          </g>
+          <g text-anchor="middle" font-size="11" fill="#0000ee">
+            <text x="675" y="65">DroPE trains with</text><text x="675" y="80">the clocks, then drops them</text>
           </g>
 
-          <g>
-            <rect x="28" y="204" width="105" height="28" rx="14" fill="#43d9ff" fill-opacity="0.13" stroke="#5ae2ff" stroke-opacity="0.38"/>
-            <text x="80.5" y="222" text-anchor="middle" fill="#80e9ff" font-size="10" font-weight="700" letter-spacing="1.2">ENGINEERING</text>
-            <line x1="150" y1="218" x2="886" y2="218" stroke="url(#timeline-engineering)" stroke-width="3" marker-end="url(#timeline-arrow-cyan)" filter="url(#timeline-glow)"/>
+          <g fill="#000">
+            <circle cx="140" cy="270" r="6"/>
+            <circle cx="290" cy="270" r="6"/>
+          </g>
+          <circle cx="640" cy="270" r="6" fill="#000"/>
+          <circle cx="710" cy="270" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+
+          <g text-anchor="middle" font-size="11" fill="#000">
+            <text x="140" y="298">a Fourier</text><text x="140" y="313">frequency bank</text>
+            <text x="290" y="298">translation becomes</text><text x="290" y="313">rotation</text>
+            <text x="620" y="225">phase-modulation</text><text x="620" y="240">analysis</text>
+          </g>
+          <g text-anchor="end" font-size="11" fill="#0000ee">
+            <text x="724" y="298">GRAPE starts from</text><text x="724" y="313">group actions</text>
           </g>
 
-          <g stroke="url(#timeline-bridge)" stroke-width="1.5" stroke-opacity="0.42" fill="none" stroke-dasharray="5 7">
-            <path d="M212 230C212 274 215 330 215 378"/>
-            <path d="M365 230C365 274 367 330 367 378"/>
-            <path d="M535 230C535 276 570 330 570 378"/>
-            <path d="M698 230C698 282 592 323 570 378"/>
-            <path d="M843 230C843 280 800 330 800 378"/>
-          </g>
-
-          <g filter="url(#timeline-soft-shadow)">
-            <g>
-              <rect x="150" y="140" width="125" height="58" rx="10" fill="#0d2638" stroke="#51dcff" stroke-opacity="0.65"/>
-              <text x="163" y="156" fill="#76e7ff" font-size="9" font-weight="700">2017</text>
-              <text x="212.5" y="174" text-anchor="middle" fill="#f6fbff" font-size="12" font-weight="700">SINUSOIDAL PE</text>
-              <text x="212.5" y="190" text-anchor="middle" fill="#9fb8cc" font-size="10">add phase to embeddings</text>
-              <line x1="212" y1="198" x2="212" y2="208" stroke="#61e2ff"/>
-            </g>
-            <g>
-              <rect x="295" y="140" width="140" height="58" rx="10" fill="#11253e" stroke="#5daeff" stroke-opacity="0.68"/>
-              <text x="308" y="156" fill="#79baff" font-size="9" font-weight="700">2021</text>
-              <text x="365" y="174" text-anchor="middle" fill="#f6fbff" font-size="12" font-weight="700">RoPE</text>
-              <text x="365" y="190" text-anchor="middle" fill="#a7b9d2" font-size="10">rotate queries + keys</text>
-              <line x1="365" y1="198" x2="365" y2="208" stroke="#68aaff"/>
-            </g>
-            <g>
-              <rect x="455" y="140" width="160" height="58" rx="10" fill="#172342" stroke="#778bff" stroke-opacity="0.7"/>
-              <text x="468" y="156" fill="#95a6ff" font-size="9" font-weight="700">2023</text>
-              <text x="535" y="174" text-anchor="middle" fill="#f7f8ff" font-size="12" font-weight="700">PI + YaRN</text>
-              <text x="535" y="190" text-anchor="middle" fill="#b2b8da" font-size="10">rescale phase bands</text>
-              <line x1="535" y1="198" x2="535" y2="208" stroke="#8392ff"/>
-            </g>
-            <g>
-              <rect x="630" y="140" width="135" height="58" rx="10" fill="#1b2142" stroke="#8c77ff" stroke-opacity="0.72"/>
-              <text x="643" y="156" fill="#aa9aff" font-size="9" font-weight="700">2024</text>
-              <text x="697.5" y="174" text-anchor="middle" fill="#faf8ff" font-size="12" font-weight="700">LONGROPE</text>
-              <text x="697.5" y="190" text-anchor="middle" fill="#bcb4d9" font-size="10">search per-clock scales</text>
-              <line x1="698" y1="198" x2="698" y2="208" stroke="#9a82ff"/>
-            </g>
-            <g>
-              <rect x="780" y="140" width="125" height="58" rx="10" fill="#221c42" stroke="#b677ff" stroke-opacity="0.8"/>
-              <text x="793" y="156" fill="#ca9cff" font-size="9" font-weight="700">2026</text>
-              <text x="842.5" y="174" text-anchor="middle" fill="#fff8ff" font-size="12" font-weight="700">DROPE</text>
-              <text x="842.5" y="190" text-anchor="middle" fill="#cbb8dc" font-size="10">train with it → drop it</text>
-              <line x1="843" y1="198" x2="843" y2="208" stroke="#b77cff"/>
-            </g>
-          </g>
-
-          <g filter="url(#timeline-glow)">
-            <circle cx="212" cy="218" r="9" fill="#071624" stroke="#60e3ff" stroke-width="2.5"/><circle cx="212" cy="218" r="3" fill="#a5f3ff"/>
-            <circle cx="365" cy="218" r="9" fill="#0a1528" stroke="#68aaff" stroke-width="2.5"/><circle cx="365" cy="218" r="3" fill="#b0d0ff"/>
-            <circle cx="535" cy="218" r="9" fill="#0e142d" stroke="#8491ff" stroke-width="2.5"/><circle cx="535" cy="218" r="3" fill="#c0c5ff"/>
-            <circle cx="698" cy="218" r="9" fill="#12112e" stroke="#9c83ff" stroke-width="2.5"/><circle cx="698" cy="218" r="3" fill="#d1c3ff"/>
-            <circle cx="843" cy="218" r="10" fill="#180e2a" stroke="#bd7aff" stroke-width="3"/><circle cx="843" cy="218" r="3.5" fill="#ebc2ff"/>
-          </g>
-
-          <g filter="url(#timeline-soft-shadow)">
-            <rect x="205" y="270" width="510" height="62" rx="14" fill="#0c1529" fill-opacity="0.96" stroke="url(#timeline-bridge)" stroke-opacity="0.75"/>
-            <text x="460" y="292" text-anchor="middle" fill="#dce8ff" font-size="10" font-weight="700" letter-spacing="1.6">THE INVARIANT HIDING INSIDE THE IMPLEMENTATION</text>
-            <text x="460" y="316" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">absolute index n  →  action ρ(n)  →  relative gap ρ(n − m)</text>
-          </g>
-
-          <g>
-            <rect x="28" y="376" width="105" height="28" rx="14" fill="#ff966c" fill-opacity="0.12" stroke="#ffac77" stroke-opacity="0.4"/>
-            <text x="80.5" y="394" text-anchor="middle" fill="#ffc184" font-size="10" font-weight="700" letter-spacing="1.2">THEORY</text>
-            <line x1="150" y1="390" x2="886" y2="390" stroke="url(#timeline-theory)" stroke-width="3" marker-end="url(#timeline-arrow-warm)" filter="url(#timeline-glow)"/>
-          </g>
-
-          <g filter="url(#timeline-glow)">
-            <circle cx="215" cy="390" r="9" fill="#1a1723" stroke="#ffd166" stroke-width="2.5"/><circle cx="215" cy="390" r="3" fill="#fff1b1"/>
-            <circle cx="367" cy="390" r="9" fill="#1c1524" stroke="#ffb36c" stroke-width="2.5"/><circle cx="367" cy="390" r="3" fill="#ffe0b2"/>
-            <circle cx="570" cy="390" r="9" fill="#1f1326" stroke="#ff927d" stroke-width="2.5"/><circle cx="570" cy="390" r="3" fill="#ffc3b8"/>
-            <circle cx="800" cy="390" r="10" fill="#211029" stroke="#ff72bc" stroke-width="3"/><circle cx="800" cy="390" r="3.5" fill="#ffc5e7"/>
-          </g>
-
-          <g filter="url(#timeline-soft-shadow)">
-            <g>
-              <line x1="215" y1="400" x2="215" y2="410" stroke="#ffd166"/>
-              <rect x="150" y="410" width="130" height="72" rx="10" fill="#2a221d" stroke="#ffd166" stroke-opacity="0.62"/>
-              <text x="163" y="428" fill="#ffe18a" font-size="9" font-weight="700">2017</text>
-              <text x="215" y="447" text-anchor="middle" fill="#fffaf0" font-size="12" font-weight="700">FOURIER BASIS</text>
-              <text x="215" y="465" text-anchor="middle" fill="#d7c4a3" font-size="10">simple waves encode shifts</text>
-            </g>
-            <g>
-              <line x1="367" y1="400" x2="367" y2="410" stroke="#ffb36c"/>
-              <rect x="295" y="410" width="145" height="72" rx="10" fill="#2a1d22" stroke="#ffaf6f" stroke-opacity="0.66"/>
-              <text x="308" y="428" fill="#ffc184" font-size="9" font-weight="700">2021</text>
-              <text x="367.5" y="447" text-anchor="middle" fill="#fff8f2" font-size="12" font-weight="700">GROUP LAW</text>
-              <text x="367.5" y="465" text-anchor="middle" fill="#d8b7ac" font-size="10">translation becomes rotation</text>
-            </g>
-            <g>
-              <line x1="570" y1="400" x2="570" y2="410" stroke="#ff927d"/>
-              <rect x="475" y="410" width="190" height="72" rx="10" fill="#291823" stroke="#ff8d83" stroke-opacity="0.7"/>
-              <text x="488" y="428" fill="#ffafa4" font-size="9" font-weight="700">2023—2024</text>
-              <text x="570" y="447" text-anchor="middle" fill="#fff7f7" font-size="12" font-weight="700">SPECTRAL CONTROL</text>
-              <text x="570" y="465" text-anchor="middle" fill="#d8b2bb" font-size="10">context scaling edits clock speeds</text>
-            </g>
-            <g>
-              <line x1="800" y1="400" x2="800" y2="410" stroke="#ff72bc"/>
-              <rect x="700" y="410" width="200" height="72" rx="10" fill="#29142b" stroke="#ff72bc" stroke-opacity="0.78"/>
-              <text x="713" y="428" fill="#ff9ed0" font-size="9" font-weight="700">2026</text>
-              <text x="800" y="447" text-anchor="middle" fill="#fff7fc" font-size="12" font-weight="700">PHASE + GROUP</text>
-              <text x="800" y="465" text-anchor="middle" fill="#d6b1cc" font-size="10">analyse limits · learn actions</text>
-            </g>
-          </g>
-
-          <g font-size="9" font-weight="700" letter-spacing="1.2">
-            <rect x="194" y="502" width="134" height="22" rx="11" fill="#58dfff" fill-opacity="0.1" stroke="#58dfff" stroke-opacity="0.3"/>
-            <text x="261" y="517" text-anchor="middle" fill="#8beaff">SCALE THE CLOCKS</text>
-            <rect x="393" y="502" width="134" height="22" rx="11" fill="#ab83ff" fill-opacity="0.1" stroke="#ab83ff" stroke-opacity="0.3"/>
-            <text x="460" y="517" text-anchor="middle" fill="#c3a8ff">LEARN THE ACTION</text>
-            <rect x="592" y="502" width="134" height="22" rx="11" fill="#ff72bc" fill-opacity="0.1" stroke="#ff72bc" stroke-opacity="0.3"/>
-            <text x="659" y="517" text-anchor="middle" fill="#ff9ed0">DROP THE CLOCKS</text>
+          <g text-anchor="middle" font-size="11" fill="#000">
+            <text x="140" y="350">2017</text>
+            <text x="290" y="350">2021</text>
+            <text x="445" y="350">2023</text>
+            <text x="545" y="350">2024</text>
+            <text x="675" y="350">2026</text>
           </g>
         </svg>
-        <figcaption class="viz-caption">The cyan lane tracks what practitioners changed; the warm lane tracks the mathematical structure those changes exposed. The center identity is the hinge: a position acts on each vector absolutely, but attention compares those actions relatively. By 2026, the same picture suggests three directions&mdash;rescale the clocks, learn a broader group action, or remove the clocks after training.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a><a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-10">[10]</a></figcaption>
-      </figure>
+        <div class="viz-caption">The upper lane is what practitioners changed; the lower lane is the structure those changes exposed. Dates follow the original Transformer, RoFormer, PI, YaRN, LongRoPE, the DroPE release, the 2026 phase preprint, and ICLR 2026 GRAPE.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a><a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-10">[10]</a></div>
+      </section>
 
       <p>An August 2026 survey now treats positional encoding and RoPE scaling as one continuous design problem, from absolute coordinates through relative biases to PI, YaRN, and LongRoPE. Its most useful warning is that a model accepting a nominal length is not proof that it can use that length reliably.<a href="#ref-9">[9]</a></p>
 
