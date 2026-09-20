@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A first-person journey through decision trees, random forests, gradient boosting, XGBoost, CatBoost, interpretability, and why tree-based methods remain so good on tabular data.">
+  <title>I Grinded Trees Until I Could See the Forest</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    /* The shared palette and typography come from site.css. This page is wider only
+       so the notes can live in the margins without narrowing the essay itself. */
+    body.tree-methods-page {
+      max-width: 80rem !important;
+      counter-reset: sidenote-counter;
+      overflow-x: hidden;
+    }
+
+    .tree-nav,
+    .article-frame,
+    .tree-footer {
+      width: 100%;
+      max-width: 50rem;
+      margin-right: auto !important;
+      margin-left: auto !important;
+    }
+
+    .article-frame {
+      overflow: visible;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .essay-map {
+      margin: 1.7rem 0 2.2rem;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+    }
+
+    .essay-map strong {
+      display: block;
+      margin-bottom: 0.45rem;
+    }
+
+    .essay-map ol {
+      columns: 2;
+      column-gap: 2.5rem;
+      margin-bottom: 0;
+    }
+
+    .equation-note,
+    .practice-note {
+      margin: 1.5rem 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #999;
+      border-left: 4px solid #000;
+    }
+
+    .practice-note > :last-child,
+    .equation-note > :last-child {
+      margin-bottom: 0 !important;
+    }
+
+    .viz {
+      margin: 2rem 0 !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 700px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+    }
+
+    .viz:focus-visible,
+    .split-lab:focus-within,
+    .table-wrap:focus-visible {
+      outline: 3px solid #0000ee;
+      outline-offset: 3px;
+    }
+
+    .split-lab {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #777;
+    }
+
+    .split-lab h3 {
+      margin-top: 0 !important;
+    }
+
+    .split-lab svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-width: 680px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid #aaa;
+    }
+
+    .split-controls {
+      display: grid;
+      grid-template-columns: auto minmax(12rem, 1fr) auto;
+      gap: 0.8rem;
+      align-items: center;
+      margin: 0.9rem 0 0.55rem;
+    }
+
+    .split-controls input[type="range"] {
+      width: 100%;
+      accent-color: #0000ee;
+    }
+
+    .split-readout {
+      min-height: 3em;
+      margin-bottom: 0 !important;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-wrap table {
+      min-width: 720px;
+    }
+
+    /* Numbered margin notes, following the label + checkbox + span mechanism used
+       by LaTeX.css. On wide screens they float outside the text; on narrower
+       screens the number becomes a disclosure control. */
+    label.sidenote-toggle.sidenote-number {
+      counter-increment: sidenote-counter;
+      color: #0000ee;
+      cursor: help;
+    }
+
+    label.sidenote-toggle.sidenote-number::after {
+      content: counter(sidenote-counter);
+      position: relative;
+      top: -0.45em;
+      padding: 0 0.08em;
+      font-size: 0.7em;
+      line-height: 0;
+    }
+
+    label.sidenote-toggle.sidenote-number:has(+ input.sidenote-toggle:focus-visible) {
+      outline: 2px solid #000;
+      outline-offset: 2px;
+    }
+
+    input.sidenote-toggle {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    span.sidenote {
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.25rem -15rem 0.9rem 1.2rem;
+      color: #222;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    span.sidenote.left {
+      float: left;
+      clear: left;
+      margin-right: 1.2rem;
+      margin-left: -15rem;
+      text-align: right;
+    }
+
+    span.sidenote::before {
+      content: counter(sidenote-counter) ". ";
+      color: #0000ee;
+      font-weight: 700;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 1320px) {
+      body.tree-methods-page {
+        max-width: 50rem !important;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: none;
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 0.65rem 0 1rem;
+        padding: 0.7rem 0.8rem;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 3px solid #0000ee;
+        text-align: left;
+      }
+
+      input.sidenote-toggle:checked + span.sidenote {
+        display: block;
+      }
+
+      label.sidenote-toggle.sidenote-number {
+        cursor: pointer;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .essay-map ol {
+        columns: 1;
+      }
+
+      .split-controls {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+      }
+    }
+
+    @media print {
+      body.tree-methods-page {
+        max-width: none !important;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        width: auto;
+        margin: 0.4rem 0 0.8rem;
+        padding-left: 0.8rem;
+        border-left: 2px solid #777;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="tree-methods-page">
+  <nav class="nav-links tree-nav" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article class="article-frame">
+      <h1>I Grinded Trees Until I Could See the Forest</h1>
+      <div class="meta">20 September, 2026 &middot; If-statements, forests, residuals, and my favourite way to learn a table</div>
+
+      <p>I love tree-based methods. I grinded them so much in college that, at some point, every rectangular dataset began to look like it was asking me the same question: <em>what would a tree notice first?</em></p>
+
+      <p>Random forests appeared in assignments, boosted trees appeared whenever somebody cared about the leaderboard, and Isolation Forest became one of the first algorithms I wanted to implement line by line instead of merely importing. When a neural network made me count layers, tune learning rates, and wonder whether my loss curve was a cry for help, a tree would sit down with the columns, ask a sequence of blunt yes-or-no questions, and give me a baseline I could trust.</p>
+
+      <p>That reliability made me use trees. Their geometry made me love them.</p>
+
+      <p>A decision tree turns a table into regions. A random forest turns unstable trees into a committee. Gradient boosting turns trees into a basis for following a loss downhill. XGBoost turns that descent into a regularized second-order calculation. CatBoost takes one of the most dangerous tabular operations&mdash;using the target to encode categories&mdash;and changes the order of time so the answer cannot leak backward. These methods share a silhouette, but they solve different problems.</p>
+
+      <p>My earlier <a href="rotation_forest.html">Rotation Forest post</a> was about changing the coordinate system so axis-aligned trees could see oblique structure. This essay starts one level lower. I want to build the whole family from the first split: why the split is greedy, why a tree memorizes, why averaging works, why boosting is not averaging, why modern libraries are so fast, and why the phrase <em>interpretable model</em> deserves more suspicion than it usually gets.</p>
+
+      <p class="lede"><strong>The central idea is almost embarrassingly small: a tree learns by repeatedly asking which single question makes the answers on either side less mixed. Everything else is an argument about how to make that greedy habit useful.</strong></p>
+
+      <nav class="essay-map" aria-label="Map of the essay">
+        <strong>The route through the forest</strong>
+        <ol>
+          <li><a href="#one-question">One question</a></li>
+          <li><a href="#geometry">Recursive geometry</a></li>
+          <li><a href="#memorization">Why one tree memorizes</a></li>
+          <li><a href="#bagging">Bagging and random forests</a></li>
+          <li><a href="#boosting">Boosting and residuals</a></li>
+          <li><a href="#modern-boosters">Modern boosters</a></li>
+          <li><a href="#tabular">Why tables like trees</a></li>
+          <li><a href="#interpretation">Interpretation traps</a></li>
+          <li><a href="#failure">Where trees fail</a></li>
+          <li><a href="#playbook">My practical playbook</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="one-question">A tree begins as one question</h2>
+
+      <p>Imagine a tiny classification problem. Each row is a student; the columns record attendance, hours studied, sleep, and perhaps whether the student submitted the assignments. The target says whether the student passed. We could begin with any column and any threshold. <em>Attendance above 72 percent?</em> <em>Study time below four hours?</em> <em>All assignments submitted?</em></p>
+
+      <p>A standard CART-style tree searches those candidate questions and chooses the split that most reduces impurity<label for="sn-impurity" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about impurity"></label><input type="checkbox" id="sn-impurity" class="sidenote-toggle"><span class="sidenote"><strong>Impurity</strong> is a numerical measure of how mixed the labels inside a node are. A pure node contains only one class; a maximally mixed binary node is half and half. It is not moral impurity, despite the vocabulary making every tree sound faintly Victorian.</span>. Then it forgets all the alternatives it did not choose, moves to each child node, and repeats. This is a <em>greedy</em> procedure<label for="sn-greedy" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about greedy algorithms"></label><input type="checkbox" id="sn-greedy" class="sidenote-toggle"><span class="sidenote left"><strong>Greedy</strong> means choosing the best move available now without jointly optimizing the entire future tree. Finding the globally smallest optimal decision tree is computationally hard; practical algorithms accept local choices and control the damage later.</span>: it chooses the best immediate improvement, not the best complete tree among every tree that could ever be grown.<a href="#ref-1">[1]</a></p>
+
+      <p>For binary classification, the Gini impurity at a node is</p>
+
+      \[
+        G = 1-p^2-(1-p)^2 = 2p(1-p),
+      \]
+
+      <p>where \(p\) is the fraction of class-one examples. If every row has the same label, \(p\) is zero or one and \(G=0\). If the node is split evenly, \(p=1/2\) and \(G=1/2\), its largest value. For more than two classes, the same idea becomes</p>
+
+      \[
+        G(S)=1-\sum_{k=1}^{K}p_k^2.
+      \]
+
+      <p>A candidate split divides the rows \(S\) into left and right subsets. The tree compares the parent's impurity with the size-weighted impurity of the children:</p>
+
+      \[
+        \Delta G
+        =G(S)
+        -\frac{|S_L|}{|S|}G(S_L)
+        -\frac{|S_R|}{|S|}G(S_R).
+      \]
+
+      <p>The winning question has the largest \(\Delta G\). Entropy can replace Gini<label for="sn-entropy" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about entropy"></label><input type="checkbox" id="sn-entropy" class="sidenote-toggle"><span class="sidenote"><strong>Entropy</strong> is \(-\sum_k p_k\log p_k\). It comes from information theory and measures uncertainty in the labels. Gini and entropy curve a little differently, but on ordinary classification problems they often choose very similar splits.</span>:</p>
+
+      \[
+        H(S)=-\sum_{k=1}^{K}p_k\log p_k.
+      \]
+
+      <p>For regression, labels are not categories, so mixing means spread. CART usually chooses the split that minimizes the sum of squared deviations within the two children. Each leaf then predicts the mean response of its training rows. Change the loss and the leaf changes: absolute-error trees naturally use medians; quantile losses target quantiles; survival trees need a risk-set-aware criterion. The branches look similar because the important choice is hidden in the objective.</p>
+
+      <figure class="viz" tabindex="0" aria-label="A decision tree paired with its rectangular partition of two-dimensional feature space">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="tree-partition-title tree-partition-desc">
+          <title id="tree-partition-title">One tree, shown as questions and as geometry</title>
+          <desc id="tree-partition-desc">On the left, a tree first splits on feature x one, then splits each child on x two. On the right, those questions create rectangular regions in a two-dimensional plane. Matching labels connect nodes to boundaries.</desc>
+          <defs>
+            <marker id="tree-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="170" y="28" text-anchor="middle" font-size="16" font-weight="bold">questions</text>
+          <rect x="82" y="52" width="176" height="48" fill="rgba(255,255,255,.35)" stroke="#000"/>
+          <text x="170" y="81" text-anchor="middle" font-size="14">study hours &lt; 4.5?</text>
+
+          <line x1="126" y1="100" x2="78" y2="151" stroke="#000" marker-end="url(#tree-arrow)"/>
+          <line x1="214" y1="100" x2="262" y2="151" stroke="#000" marker-end="url(#tree-arrow)"/>
+          <text x="92" y="124" font-size="12">yes</text>
+          <text x="237" y="124" font-size="12">no</text>
+
+          <rect x="15" y="158" width="126" height="48" fill="rgba(255,255,255,.35)" stroke="#000"/>
+          <text x="78" y="187" text-anchor="middle" font-size="13">attendance &lt; 72?</text>
+          <rect x="199" y="158" width="126" height="48" fill="rgba(255,255,255,.35)" stroke="#000"/>
+          <text x="262" y="187" text-anchor="middle" font-size="13">sleep &lt; 6?</text>
+
+          <line x1="48" y1="206" x2="35" y2="258" stroke="#000"/>
+          <line x1="108" y1="206" x2="122" y2="258" stroke="#000"/>
+          <line x1="230" y1="206" x2="216" y2="258" stroke="#000"/>
+          <line x1="294" y1="206" x2="308" y2="258" stroke="#000"/>
+
+          <g font-size="13" text-anchor="middle">
+            <rect x="4" y="259" width="62" height="43" fill="#000" stroke="#000"/>
+            <text x="35" y="285" fill="#fff">fail</text>
+            <rect x="91" y="259" width="62" height="43" fill="none" stroke="#0000ee" stroke-width="2"/>
+            <text x="122" y="285" fill="#0000ee">pass</text>
+            <rect x="185" y="259" width="62" height="43" fill="#000" stroke="#000"/>
+            <text x="216" y="285" fill="#fff">fail</text>
+            <rect x="277" y="259" width="62" height="43" fill="none" stroke="#0000ee" stroke-width="2"/>
+            <text x="308" y="285" fill="#0000ee">pass</text>
+          </g>
+
+          <line x1="370" y1="30" x2="370" y2="385" stroke="#aaa" stroke-dasharray="5 5"/>
+
+          <text x="565" y="28" text-anchor="middle" font-size="16" font-weight="bold">the same tree as a partition</text>
+          <rect x="425" y="52" width="280" height="280" fill="rgba(255,255,255,.2)" stroke="#000"/>
+          <line x1="565" y1="52" x2="565" y2="332" stroke="#0000ee" stroke-width="3"/>
+          <line x1="425" y1="216" x2="565" y2="216" stroke="#000" stroke-width="2"/>
+          <line x1="565" y1="148" x2="705" y2="148" stroke="#000" stroke-width="2"/>
+          <rect x="425" y="216" width="140" height="116" fill="rgba(0,0,0,.12)"/>
+          <rect x="565" y="148" width="140" height="184" fill="rgba(0,0,0,.12)"/>
+          <g font-size="12" fill="#000">
+            <text x="496" y="350" text-anchor="middle">study hours</text>
+            <text x="407" y="194" text-anchor="middle" transform="rotate(-90 407 194)">attendance / sleep</text>
+            <text x="570" y="370" fill="#0000ee">4.5</text>
+            <text x="535" y="209">72</text>
+            <text x="676" y="142">6</text>
+          </g>
+          <g font-size="13" font-weight="bold" text-anchor="middle">
+            <text x="495" y="280" fill="#fff">fail</text>
+            <text x="495" y="135" fill="#0000ee">pass</text>
+            <text x="635" y="242" fill="#fff">fail</text>
+            <text x="635" y="102" fill="#0000ee">pass</text>
+          </g>
+
+          <text x="380" y="408" text-anchor="middle" font-size="13">Following a path through questions is the same operation as locating a point inside nested rectangles.</text>
+        </svg>
+        <figcaption class="viz-caption">The diagram of boxes and the partition of feature space are not two metaphors. They are literally the same fitted function viewed from two directions.</figcaption>
+      </figure>
+
+      <h3>Move the split yourself</h3>
+
+      <p>The formula becomes less abstract when the threshold moves. In the little dataset below, outlined blue circles are class A and black squares are class B. Drag the threshold. The best-looking split is the one that leaves the least mixed pair of children, not necessarily the one that puts the line through the largest empty gap.</p>
+
+      <section class="split-lab" aria-labelledby="split-lab-title">
+        <h3 id="split-lab-title">Split laboratory</h3>
+        <div class="viz" style="margin: 0 !important;" tabindex="0">
+          <svg id="split-svg" viewBox="0 0 760 330" role="img" aria-labelledby="split-svg-title split-svg-desc">
+            <title id="split-svg-title">Interactive one-dimensional classification split</title>
+            <desc id="split-svg-desc">Blue circles and black squares are plotted by one feature. A vertical threshold controlled by a slider divides them. Text below reports weighted child impurity and impurity gain.</desc>
+            <rect id="split-left-shade" x="70" y="35" width="310" height="225" fill="rgba(0,0,238,.05)"/>
+            <rect id="split-right-shade" x="380" y="35" width="310" height="225" fill="rgba(0,0,0,.04)"/>
+            <line x1="70" y1="260" x2="690" y2="260" stroke="#000" stroke-width="1.5"/>
+            <line id="split-line" x1="380" y1="30" x2="380" y2="270" stroke="#0000ee" stroke-width="3"/>
+            <text id="split-line-label" x="386" y="26" font-size="13" fill="#0000ee">threshold = 5.0</text>
+            <g id="split-points"></g>
+            <g font-size="12" fill="#000" text-anchor="middle">
+              <text x="70" y="282">1</text><text x="147.5" y="282">2</text><text x="225" y="282">3</text>
+              <text x="302.5" y="282">4</text><text x="380" y="282">5</text><text x="457.5" y="282">6</text>
+              <text x="535" y="282">7</text><text x="612.5" y="282">8</text><text x="690" y="282">9</text>
+              <text x="380" y="312" font-size="14">one feature, sorted from low to high</text>
+            </g>
+          </svg>
+        </div>
+        <div class="split-controls">
+          <label for="split-threshold"><strong>Threshold</strong></label>
+          <input id="split-threshold" type="range" min="1" max="9" step="0.1" value="5" aria-describedby="split-readout">
+          <output id="split-value" for="split-threshold">5.0</output>
+        </div>
+        <p id="split-readout" class="split-readout" aria-live="polite">left: 9 rows (A=7, B=2), Gini=0.346 | right: 8 rows (A=1, B=7), Gini=0.219 | weighted impurity=0.286 | gain=0.212</p>
+      </section>
+
+      <p>Two details from this tiny exercise survive all the way to industrial boosting systems. First, a feature's numeric scale is almost irrelevant: sorting values and trying thresholds gives the same partitions after any monotone rescaling. Second, the procedure cares about local separation, not about a global coefficient. The meaning of “high attendance” can change after an earlier branch has already established that study time is low.</p>
+
+      <h2 id="geometry">Every path is a region</h2>
+
+      <p>A root-to-leaf path is a conjunction of rules. If a row travels through \(x_1&lt;4.5\), then \(x_2\geq72\), then \(x_3&lt;6\), its leaf represents the rectangular region where all three statements hold. In \(d\) dimensions the rectangles become hyperrectangles, but the logic does not change.</p>
+
+      <p>The fitted regression tree can be written as</p>
+
+      \[
+        \widehat f(x)=\sum_{m=1}^{M}c_m\mathbf 1\{x\in R_m\},
+      \]
+
+      <p>where the leaves define disjoint regions \(R_m\), \(c_m\) is the prediction in region \(m\), and the indicator switches that prediction on when \(x\) lands there. This makes a tree a piecewise-constant function<label for="sn-piecewise" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about piecewise constant functions"></label><input type="checkbox" id="sn-piecewise" class="sidenote-toggle"><span class="sidenote left"><strong>Piecewise constant</strong> means the prediction is flat inside each region and jumps at a boundary. A single regression tree does not draw a smooth slope. An ensemble can make the jumps tiny enough to approximate one.</span>. Classification leaves store class counts or probabilities instead of a mean, but they are still constant until a boundary is crossed.</p>
+
+      <p>I find this representation useful because it dissolves some mystery. Trees discover interactions automatically because later questions are conditional on earlier ones. A sleep threshold can matter only for low-attendance students without anybody manually adding an interaction term \(\text{sleep}\times\text{attendance}\). The interaction is the path.</p>
+
+      <p>The limitation is equally geometric. Ordinary splits are axis-aligned. A clean diagonal boundary like \(x_1+x_2&gt;0\) becomes a staircase of rectangles. A deeper tree can approximate the diagonal, but it spends leaves to do it. This is the reason oblique trees optimize linear combinations at nodes, and the reason <a href="rotation_forest.html">rotating the features</a> can turn a complicated staircase back into one easy cut.</p>
+
+      <p>There is also no natural notion of distance. Two rows can be numerically close yet fall on opposite sides of an early threshold and receive different predictions. Two distant rows can land in the same leaf and become identical to the model. The learned topology is made of shared paths, not Euclidean neighborhoods.</p>
+
+      <h2 id="memorization">Why one tree remembers too much</h2>
+
+      <p>If we keep splitting until every leaf is pure, a tree can often memorize the training set. One mislabeled row gets its own tiny rectangle. A measurement error becomes a branch. A rare coincidence becomes a rule delivered with absolute confidence. Training error falls toward zero while the boundary acquires hundreds of brittle corners.</p>
+
+      <p>This is the classic high-variance problem<label for="sn-variance" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about variance"></label><input type="checkbox" id="sn-variance" class="sidenote-toggle"><span class="sidenote"><strong>Variance</strong> here means sensitivity to the training sample. If replacing a handful of rows produces a very different predictor, the method has high variance. Deep trees are famous for it because early split changes reroute everything below them.</span>. A small perturbation in the data can change the root split. Once the root changes, every later split sees a different subset, so the whole tree can reorganize. The model is not merely wiggly; it is structurally unstable.</p>
+
+      <p>We can stop growth in advance with maximum depth, minimum leaf size, minimum split gain, or a maximum number of leaves. Or we can grow a large tree and prune it afterward. CART's cost-complexity pruning chooses a subtree \(T\) by balancing fit against leaf count:</p>
+
+      \[
+        R_\alpha(T)=R(T)+\alpha|T|.
+      \]
+
+      <p>Here \(R(T)\) is the training loss of the leaves and \(|T|\) is their number. At \(\alpha=0\), the biggest tree is attractive. As \(\alpha\) rises, a new leaf must earn its existence by reducing enough error. Cross-validation chooses the trade-off.</p>
+
+      <p>Pruning is one answer to instability: make one tree less ambitious. Ensembles take the more interesting answer: let trees remain unstable, then arrange their errors so they cancel.</p>
+
+      <h2 id="bagging">Bag the unstable thing</h2>
+
+      <p>Bagging begins with a wonderful act of statistical mischief. From a training set of \(n\) rows, draw \(n\) rows <em>with replacement</em>. Some appear several times; about \(36.8\) percent are absent. Fit a deep tree to that bootstrap sample<label for="sn-bootstrap" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about bootstrap samples"></label><input type="checkbox" id="sn-bootstrap" class="sidenote-toggle"><span class="sidenote left"><strong>Bootstrap sample.</strong> Drawing \(n\) times with replacement from \(n\) rows leaves a particular row out with probability \((1-1/n)^n\), which approaches \(e^{-1}\approx0.368\). The resample has the same size but a different empirical world.</span>. Repeat hundreds of times. Average regression predictions or vote on classes.<a href="#ref-2">[2]</a></p>
+
+      <p>Bagging works because each tree reacts differently to its altered dataset. The wild local errors are not identical, so averaging smooths them. If the trees were independent and each had variance \(\sigma^2\), averaging \(B\) of them would reduce variance to \(\sigma^2/B\). Trees trained on related samples are not independent. If their pairwise error correlation is roughly \(\rho\), the variance of their mean is approximately</p>
+
+      \[
+        \operatorname{Var}(\bar T)
+        =\rho\sigma^2+\frac{1-\rho}{B}\sigma^2.
+      \]
+
+      <p>The second term shrinks with more trees. The first does not. Once \(B\) is large, adding yet another nearly identical tree buys almost nothing. This equation is the soul of Random Forest: preserve trees that are individually useful while reducing \(\rho\), their shared mistakes.</p>
+
+      <p>Breiman's Random Forest does that by hiding most features at each split.<a href="#ref-3">[3]</a> A classification tree might be offered only \(\sqrt d\) of the \(d\) columns. If one feature is overwhelmingly strong, ordinary bagged trees all choose it near the root and become variations of the same model. Feature subsampling occasionally removes that obvious answer and forces a tree to discover a second route. Some individual trees weaken. The committee becomes stronger because its members stop making the same error<label for="sn-decorrelation" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about decorrelation"></label><input type="checkbox" id="sn-decorrelation" class="sidenote-toggle"><span class="sidenote"><strong>Decorrelation</strong> does not mean the trees become statistically independent. It means their prediction errors become less aligned. Ensemble diversity matters only when the alternative members remain competent enough to be worth averaging.</span>.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Bagging and random forest shown as ways to average diverse trees">
+        <svg viewBox="0 0 760 445" role="img" aria-labelledby="forest-title forest-desc">
+          <title id="forest-title">From one unstable tree to a decorrelated forest</title>
+          <desc id="forest-desc">A dataset produces several bootstrap samples. Bagged trees repeatedly favor the same dominant feature and have correlated errors. Random forest trees also see random subsets of features and take more varied paths. Both are averaged, but the less correlated forest retains less variance.</desc>
+          <defs>
+            <marker id="forest-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="380" y="25" text-anchor="middle" font-size="16" font-weight="bold">variance falls only when the mistakes disagree</text>
+          <rect x="20" y="55" width="105" height="90" fill="rgba(255,255,255,.3)" stroke="#000"/>
+          <g fill="#000"><circle cx="42" cy="78" r="3"/><circle cx="65" cy="92" r="3"/><circle cx="91" cy="74" r="3"/><circle cx="51" cy="121" r="3"/></g>
+          <g fill="none" stroke="#0000ee" stroke-width="2"><circle cx="76" cy="117" r="4"/><circle cx="104" cy="106" r="4"/><circle cx="108" cy="129" r="4"/></g>
+          <text x="72" y="164" text-anchor="middle" font-size="13">training table</text>
+
+          <line x1="130" y1="100" x2="190" y2="100" stroke="#000" marker-end="url(#forest-arrow)"/>
+          <text x="160" y="86" text-anchor="middle" font-size="12">bootstrap</text>
+
+          <g font-size="12" text-anchor="middle">
+            <rect x="200" y="48" width="88" height="42" fill="rgba(255,255,255,.3)" stroke="#000"/><text x="244" y="73">sample 1</text>
+            <rect x="200" y="104" width="88" height="42" fill="rgba(255,255,255,.3)" stroke="#000"/><text x="244" y="129">sample 2</text>
+            <rect x="200" y="160" width="88" height="42" fill="rgba(255,255,255,.3)" stroke="#000"/><text x="244" y="185">sample 3</text>
+          </g>
+
+          <line x1="300" y1="42" x2="300" y2="215" stroke="#aaa" stroke-dasharray="4 4"/>
+          <text x="405" y="53" text-anchor="middle" font-size="14" font-weight="bold">bagging</text>
+          <text x="405" y="74" text-anchor="middle" font-size="12">all features offered</text>
+          <g stroke="#000" fill="none" stroke-width="1.4">
+            <path d="M350 107 L330 132 M350 107 L370 132 M330 132 L319 154 M330 132 L341 154"/>
+            <path d="M405 107 L385 132 M405 107 L425 132 M385 132 L374 154 M385 132 L396 154"/>
+            <path d="M460 107 L440 132 M460 107 L480 132 M440 132 L429 154 M440 132 L451 154"/>
+          </g>
+          <g fill="#000" font-size="11" text-anchor="middle"><text x="350" y="101">x₁</text><text x="405" y="101">x₁</text><text x="460" y="101">x₁</text></g>
+          <text x="405" y="182" text-anchor="middle" font-size="12">strong trees, similar roots</text>
+          <text x="405" y="200" text-anchor="middle" font-size="12">higher error correlation ρ</text>
+
+          <line x1="510" y1="42" x2="510" y2="215" stroke="#aaa" stroke-dasharray="4 4"/>
+          <text x="630" y="53" text-anchor="middle" font-size="14" font-weight="bold" fill="#0000ee">random forest</text>
+          <text x="630" y="74" text-anchor="middle" font-size="12">new feature subset per split</text>
+          <g stroke="#0000ee" fill="none" stroke-width="1.4">
+            <path d="M570 107 L550 132 M570 107 L590 132 M550 132 L539 154 M550 132 L561 154"/>
+            <path d="M630 107 L610 132 M630 107 L650 132 M610 132 L599 154 M610 132 L621 154"/>
+            <path d="M690 107 L670 132 M690 107 L710 132 M670 132 L659 154 M670 132 L681 154"/>
+          </g>
+          <g fill="#0000ee" font-size="11" text-anchor="middle"><text x="570" y="101">x₁</text><text x="630" y="101">x₄</text><text x="690" y="101">x₂</text></g>
+          <text x="630" y="182" text-anchor="middle" font-size="12">different plausible routes</text>
+          <text x="630" y="200" text-anchor="middle" font-size="12">lower error correlation ρ</text>
+
+          <line x1="405" y1="215" x2="405" y2="268" stroke="#000" marker-end="url(#forest-arrow)"/>
+          <line x1="630" y1="215" x2="630" y2="268" stroke="#0000ee" marker-end="url(#forest-arrow)"/>
+          <rect x="331" y="276" width="148" height="54" fill="rgba(255,255,255,.3)" stroke="#000"/>
+          <text x="405" y="299" text-anchor="middle" font-size="13">average / vote</text><text x="405" y="317" text-anchor="middle" font-size="12">variance floor: ρσ²</text>
+          <rect x="556" y="276" width="148" height="54" fill="rgba(255,255,255,.3)" stroke="#0000ee" stroke-width="2"/>
+          <text x="630" y="299" text-anchor="middle" font-size="13" fill="#0000ee">average / vote</text><text x="630" y="317" text-anchor="middle" font-size="12">smaller ρ, lower floor</text>
+
+          <text x="380" y="375" text-anchor="middle" font-size="14">more trees reduce the uncorrelated term</text>
+          <line x1="145" y1="397" x2="615" y2="397" stroke="#000"/>
+          <path d="M145 350 C245 386, 340 392, 615 395" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <line x1="145" y1="350" x2="145" y2="405" stroke="#000"/><line x1="615" y1="397" x2="615" y2="405" stroke="#000"/>
+          <text x="145" y="423" text-anchor="middle" font-size="11">few trees</text><text x="615" y="423" text-anchor="middle" font-size="11">many trees</text>
+          <text x="129" y="362" text-anchor="end" font-size="11">variance</text>
+        </svg>
+        <figcaption class="viz-caption">Bootstrap sampling creates different datasets; feature subsampling creates different opportunities. Random Forest succeeds when that extra diversity lowers shared error more than it weakens each tree.</figcaption>
+      </figure>
+
+      <h3>The rows a tree never saw</h3>
+
+      <p>Those absent bootstrap rows give bagged forests an almost free validation mechanism. For each training row, collect predictions only from trees whose bootstrap sample excluded it. Aggregate them and compute an out-of-bag score<label for="sn-oob" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about out-of-bag estimation"></label><input type="checkbox" id="sn-oob" class="sidenote-toggle"><span class="sidenote left"><strong>Out-of-bag (OOB)</strong> predictions are out-of-sample for each individual tree, though not a replacement for a truly untouched final test set. They are especially useful for quick model comparison and permutation importance inside a forest.</span>. It resembles cross-validation without explicitly fitting \(K\) separate forests.</p>
+
+      <p>Extremely Randomized Trees push the diversity lever further.<a href="#ref-4">[4]</a> Instead of exhaustively finding the best threshold among the offered features, they sample thresholds and select among those random candidates. Less optimization per tree means more bias, less variance, and often faster fitting. Rotation Forest changes the view instead: rotate feature subsets, then grow ordinary trees.<a href="#ref-12">[12]</a> These are three answers to the same design question: <em>where should disagreement between competent trees come from?</em></p>
+
+      <p>One operational detail is worth saying plainly. More trees usually do not make a random forest overfit in the way more depth makes one tree overfit. Once the ensemble is large enough, error tends to plateau because we are estimating its average more precisely. Training cost and memory keep rising, though, and a forest of ten thousand trees is not a personality trait.</p>
+
+      <h2 id="boosting">Boosting changes the conversation</h2>
+
+      <p>Bagging trains trees in parallel and asks them to disagree. Boosting trains trees in sequence and asks each one to repair the current model. The difference is not cosmetic. A forest averages complete predictors:</p>
+
+      \[
+        \widehat f_{\text{forest}}(x)=\frac{1}{B}\sum_{b=1}^{B}T_b(x).
+      \]
+
+      <p>A boosted model adds small corrections:</p>
+
+      \[
+        F_M(x)=F_0(x)+\eta\sum_{m=1}^{M}h_m(x).
+      \]
+
+      <p>The learning rate \(\eta\) makes each new tree whisper rather than shout. No tree needs to solve the whole task. It needs only to point toward an improvement from where the ensemble currently stands.</p>
+
+      <h3>AdaBoost: pay more attention to the embarrassment</h3>
+
+      <p>AdaBoost's story is easiest in classification. Start with equal weight on every training row. Fit a weak classifier, often a stump with one split. Increase the weight of rows it misclassified and decrease the weight of rows it got right. Fit the next learner to the reweighted data. At the end, combine learners using votes weighted by their accuracy.<a href="#ref-5">[5]</a></p>
+
+      <p>If labels are \(y_i\in\{-1,+1\}\) and a weak learner is \(h_m(x)\), its weighted error is \(\varepsilon_m\), and its vote is</p>
+
+      \[
+        \alpha_m=\frac12\log\frac{1-\varepsilon_m}{\varepsilon_m}.
+      \]
+
+      <p>The row weights update as</p>
+
+      \[
+        w_i\leftarrow w_i\exp\bigl(-\alpha_m y_i h_m(x_i)\bigr).
+      \]
+
+      <p>Correctly classified rows have positive \(y_i h_m(x_i)\) and shrink in weight; mistakes grow. The final sign of \(\sum_m\alpha_m h_m(x)\) decides the class. More deeply, AdaBoost increases the classification margin<label for="sn-margin" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about classification margins"></label><input type="checkbox" id="sn-margin" class="sidenote-toggle"><span class="sidenote"><strong>Margin</strong> is the signed confidence \(yF(x)\). A positive margin means a correct prediction, and a large positive margin means the ensemble is correct with room to spare. Boosting often keeps improving test error after training error reaches zero because it continues widening margins.</span>: not just whether a row is correct, but how far its weighted vote lies from the decision boundary.</p>
+
+      <p>The weakness is visible in the update. A mislabeled or pathological row can keep accumulating weight because the ensemble cannot satisfy it. Later learners contort themselves around that one impossible demand. Robust losses and regularization soften this behavior, but the lesson is general: focusing on mistakes is powerful only when mistakes contain signal.</p>
+
+      <h3>Gradient boosting: fit the direction the loss wants</h3>
+
+      <p>Friedman's gradient boosting machine made the idea much broader.<a href="#ref-6">[6]</a> Treat the current predictor \(F(x)\) as a point in a space of functions. Ask which direction would reduce the loss fastest. Fit a tree to approximate that direction. Add it to the model. This is gradient descent, except the parameter being updated is a function<label for="sn-functional-gradient" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about functional gradients"></label><input type="checkbox" id="sn-functional-gradient" class="sidenote-toggle"><span class="sidenote left"><strong>Functional gradient</strong> means differentiating the objective with respect to the model's output function rather than a fixed vector of coefficients. The fitted tree projects that ideal direction onto the set of functions a small tree can express.</span>.</p>
+
+      <p>For training pairs \((x_i,y_i)\) and loss \(L(y,F(x))\), compute pseudo-residuals</p>
+
+      \[
+        r_{im}=-\left[\frac{\partial L(y_i,F(x_i))}{\partial F(x_i)}\right]_{F=F_{m-1}}.
+      \]
+
+      <p>Fit a regression tree \(h_m\) to \((x_i,r_{im})\), choose the best step size for its leaves, and update</p>
+
+      \[
+        F_m(x)=F_{m-1}(x)+\eta h_m(x).
+      \]
+
+      <p>With squared error, \(L=(y-F)^2/2\), the negative gradient is simply \(y-F\), the ordinary residual. The next tree predicts what the ensemble still gets wrong. With logistic loss, pseudo-residuals encode a classification probability error. With a quantile loss, they become asymmetric signs. Same boosting machinery, different definition of “please repair this.”</p>
+
+      <figure class="viz" tabindex="0" aria-label="Three rounds of gradient boosting fit residual structure in sequence">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="boost-title boost-desc">
+          <title id="boost-title">Gradient boosting as sequential residual repair</title>
+          <desc id="boost-desc">The first panel shows data and a flat initial prediction. The second shows residuals and a small tree correction. The third adds the correction to form a better stepwise model, leaving smaller residuals for the next tree.</desc>
+          <defs>
+            <marker id="boost-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="118" y="27" text-anchor="middle" font-size="15" font-weight="bold">1. current model</text>
+          <g transform="translate(28 52)">
+            <line x1="20" y1="235" x2="202" y2="235" stroke="#000"/><line x1="20" y1="235" x2="20" y2="15" stroke="#000"/>
+            <g fill="#000"><circle cx="38" cy="201" r="4"/><circle cx="58" cy="190" r="4"/><circle cx="80" cy="168" r="4"/><circle cx="102" cy="128" r="4"/><circle cx="125" cy="112" r="4"/><circle cx="148" cy="67" r="4"/><circle cx="173" cy="59" r="4"/><circle cx="194" cy="31" r="4"/></g>
+            <line x1="20" y1="126" x2="202" y2="126" stroke="#0000ee" stroke-width="3"/>
+            <text x="111" y="255" text-anchor="middle" font-size="11">x</text><text x="7" y="22" font-size="11">y</text>
+            <text x="111" y="117" text-anchor="middle" font-size="11" fill="#0000ee">F₀ = mean(y)</text>
+          </g>
+
+          <line x1="244" y1="170" x2="277" y2="170" stroke="#000" marker-end="url(#boost-arrow)"/>
+          <text x="260" y="154" text-anchor="middle" font-size="11">residuals</text>
+
+          <text x="380" y="27" text-anchor="middle" font-size="15" font-weight="bold">2. small repair tree</text>
+          <g transform="translate(290 52)">
+            <line x1="20" y1="126" x2="202" y2="126" stroke="#777" stroke-dasharray="4 3"/>
+            <line x1="20" y1="235" x2="202" y2="235" stroke="#000"/><line x1="20" y1="235" x2="20" y2="15" stroke="#000"/>
+            <g stroke="#aaa"><line x1="38" y1="126" x2="38" y2="201"/><line x1="58" y1="126" x2="58" y2="190"/><line x1="80" y1="126" x2="80" y2="168"/><line x1="102" y1="126" x2="102" y2="128"/><line x1="125" y1="126" x2="125" y2="112"/><line x1="148" y1="126" x2="148" y2="67"/><line x1="173" y1="126" x2="173" y2="59"/><line x1="194" y1="126" x2="194" y2="31"/></g>
+            <path d="M20 184 H96 V128 H145 V69 H202" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <text x="111" y="255" text-anchor="middle" font-size="11">x</text><text x="7" y="22" font-size="11">r</text>
+            <text x="111" y="216" text-anchor="middle" font-size="11" fill="#0000ee">h₁(x) approximates −gradient</text>
+          </g>
+
+          <line x1="506" y1="170" x2="539" y2="170" stroke="#000" marker-end="url(#boost-arrow)"/>
+          <text x="522" y="154" text-anchor="middle" font-size="11">add ηh₁</text>
+
+          <text x="642" y="27" text-anchor="middle" font-size="15" font-weight="bold">3. improved ensemble</text>
+          <g transform="translate(552 52)">
+            <line x1="20" y1="235" x2="202" y2="235" stroke="#000"/><line x1="20" y1="235" x2="20" y2="15" stroke="#000"/>
+            <g fill="#000"><circle cx="38" cy="201" r="4"/><circle cx="58" cy="190" r="4"/><circle cx="80" cy="168" r="4"/><circle cx="102" cy="128" r="4"/><circle cx="125" cy="112" r="4"/><circle cx="148" cy="67" r="4"/><circle cx="173" cy="59" r="4"/><circle cx="194" cy="31" r="4"/></g>
+            <path d="M20 171 H96 V127 H145 V80 H202" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <g stroke="#aaa" stroke-dasharray="3 3"><line x1="38" y1="171" x2="38" y2="201"/><line x1="58" y1="171" x2="58" y2="190"/><line x1="80" y1="171" x2="80" y2="168"/><line x1="102" y1="127" x2="102" y2="128"/><line x1="125" y1="127" x2="125" y2="112"/><line x1="148" y1="80" x2="148" y2="67"/><line x1="173" y1="80" x2="173" y2="59"/><line x1="194" y1="80" x2="194" y2="31"/></g>
+            <text x="111" y="255" text-anchor="middle" font-size="11">x</text><text x="7" y="22" font-size="11">y</text>
+            <text x="111" y="216" text-anchor="middle" font-size="11" fill="#0000ee">F₁ = F₀ + ηh₁</text>
+          </g>
+
+          <rect x="82" y="342" width="596" height="57" fill="rgba(255,255,255,.28)" stroke="#777"/>
+          <text x="380" y="366" text-anchor="middle" font-size="13">The next tree never sees the original task in isolation.</text>
+          <text x="380" y="386" text-anchor="middle" font-size="13">It sees the derivative of the ensemble's remaining error.</text>
+        </svg>
+        <figcaption class="viz-caption">Squared-error boosting makes the residual story literal. For other differentiable losses, the targets are negative gradients rather than ordinary residuals.</figcaption>
+      </figure>
+
+      <p>Tree depth now means something different from tree count. A depth-one stump can express one interaction-free correction. A depth-two or depth-three tree can capture small conditional interactions. Hundreds of shallow corrections often generalize better than a few heroic deep ones. The learning rate and number of trees trade against each other: smaller steps usually need more rounds but can trace a more careful path.</p>
+
+      <p>This is shrinkage<label for="sn-shrinkage" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about shrinkage"></label><input type="checkbox" id="sn-shrinkage" class="sidenote-toggle"><span class="sidenote left"><strong>Shrinkage</strong> multiplies every new tree by a learning rate below one. It regularizes the stagewise path. A tiny rate is not automatically better: it can require huge ensembles, and with enough rounds even small steps can overfit.</span>, and it is one reason early stopping matters. Monitor a held-out fold, stop when its loss has not improved for a patience window, and keep the best iteration. The useful number of boosting rounds is learned from validation, not chosen because 1,000 looks serious.</p>
+
+      <h2 id="modern-boosters">Why XGBoost feels like Newton's method in a forest</h2>
+
+      <p>XGBoost did not invent gradient boosting. Its contribution was to turn a beautiful statistical idea into a regularized, sparse-aware, cache-conscious system that could be trusted on large real tables.<a href="#ref-7">[7]</a> The mathematical signature is a second-order approximation to the objective.</p>
+
+      <p>At boosting round \(t\), let \(g_i\) and \(h_i\) be the first and second derivatives of the loss with respect to the current prediction for row \(i\). For a proposed tree with leaves \(j=1,\ldots,T\) and leaf weights \(w_j\), the approximate regularized objective becomes</p>
+
+      \[
+        \widetilde{\mathcal L}^{(t)}
+        =\sum_{j=1}^{T}\left[
+          G_jw_j+\frac12(H_j+\lambda)w_j^2
+        \right]+\gamma T,
+      \]
+
+      <p>where \(G_j=\sum_{i\in I_j}g_i\) and \(H_j=\sum_{i\in I_j}h_i\). The best weight for that leaf has a closed form:</p>
+
+      \[
+        w_j^*=-\frac{G_j}{H_j+\lambda}.
+      \]
+
+      <p>The Hessian<label for="sn-hessian" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about Hessians"></label><input type="checkbox" id="sn-hessian" class="sidenote-toggle"><span class="sidenote"><strong>Hessian</strong> usually means the matrix of second derivatives. Here each training prediction is a scalar, so \(h_i\) is the corresponding second derivative of the loss. It tells the update how sharply the loss curves around the current prediction.</span> in the denominator makes this Newton-like: when the loss is sharply curved, the step is cautious. The \(\lambda\) term shrinks leaf weights; \(\gamma\) charges for adding a leaf. A candidate split is accepted only if the reduction in approximate loss pays those costs.</p>
+
+      <p>The engineering matters as much as the derivation. Exact split search sorts every value, which is expensive at scale. Histogram boosters bin continuous values and accumulate gradients per bin. A threshold can then be evaluated over perhaps 255 bins instead of millions of distinct numbers. Missing values can learn a default branch. Sparse columns can skip absent entries. Parallel prefix sums and careful memory layout make an algorithm built from if-statements behave like serious systems software.</p>
+
+      <h3>LightGBM and CatBoost solve different bottlenecks</h3>
+
+      <p>LightGBM made histogram training aggressively efficient and grows trees leaf-wise: split the leaf with the largest current gain instead of expanding every level symmetrically.<a href="#ref-8">[8]</a> This can reduce loss quickly, but on small data it can create deep, narrow branches that memorize. Parameters such as number of leaves and minimum data per leaf often matter more than a ceremonial maximum depth.</p>
+
+      <p>CatBoost begins from the categorical-feature problem.<a href="#ref-9">[9]</a> Suppose we replace each category with the mean target for that category. If we compute the mean using all rows, each row's own label leaks into its feature. Rare categories can practically carry the answer. If we compute encodings on one fixed holdout, we waste data and create distribution mismatch.</p>
+
+      <p>CatBoost permutes the data and computes an ordered target statistic<label for="sn-ordered" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about ordered target statistics"></label><input type="checkbox" id="sn-ordered" class="sidenote-toggle"><span class="sidenote left"><strong>Ordered target statistic.</strong> For a row at position \(i\) in a random permutation, encode its category using only earlier rows with that category, plus a prior. The row's label cannot predict itself because, in this artificial time, it has not happened yet.</span> for each row using only rows that came earlier in a random ordering. Its ordered boosting machinery applies the same instinct to residual construction, reducing a subtle prediction shift between training examples and unseen data. This is not simply “XGBoost but categories.” It is an algorithm built around leakage control.</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table>
+          <caption>How the major tree families create and combine learners.</caption>
+          <thead>
+            <tr><th>Family</th><th>How trees differ</th><th>How predictions combine</th><th>Main strength</th><th>Main risk</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Pruned tree</td><td>There is one</td><td>One leaf prediction</td><td>Transparent global structure</td><td>Instability or underfitting</td></tr>
+            <tr><td>Bagging</td><td>Bootstrap rows</td><td>Parallel average</td><td>Variance reduction</td><td>Correlated trees</td></tr>
+            <tr><td>Random Forest</td><td>Bootstrap rows + feature subsets</td><td>Parallel average</td><td>Strong, forgiving baseline</td><td>Large model; flat extrapolation</td></tr>
+            <tr><td>Extra Trees</td><td>Random features + thresholds</td><td>Parallel average</td><td>Speed and decorrelation</td><td>Extra bias</td></tr>
+            <tr><td>Gradient boosting</td><td>Each tree fits the current negative gradient</td><td>Sequential sum</td><td>Highly accurate loss optimization</td><td>Sensitive tuning and overfit</td></tr>
+            <tr><td>CatBoost</td><td>Ordered categorical statistics + ordered residuals</td><td>Sequential sum</td><td>Mixed tabular data with categories</td><td>More machinery to understand</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="tabular">Why tabular data keeps inviting trees back</h2>
+
+      <p>There is now a small industry devoted to announcing that deep learning has conquered tabular data, followed by a benchmark in which tuned boosted trees remain irritatingly competitive. The fairest reading is not “neural networks cannot learn tables.” They can. The question is which inductive bias spends data most efficiently on the kinds of tables people actually have.</p>
+
+      <p>Real tables mix continuous measurements, integer counts, binary flags, missingness patterns, skewed money columns, bounded ratios, dates, and categories. Feature meanings do not usually repeat across columns the way edges repeat across an image or tokens repeat across text. A convolution can share one detector across every location because pixels have a stable local geometry. What should be shared between <em>age</em>, <em>postcode</em>, <em>number of late payments</em>, and <em>browser family</em>?</p>
+
+      <p>Trees make fewer demands:</p>
+
+      <ul>
+        <li><strong>They are insensitive to monotone scaling.</strong> Replacing income with its logarithm changes threshold locations but not the order of rows. Standardization is usually unnecessary.</li>
+        <li><strong>They localize interactions.</strong> A feature can matter only inside one subgroup, which is common in policy, medicine, credit, churn, and advertising.</li>
+        <li><strong>They ignore irrelevant columns reasonably well.</strong> A useless feature rarely wins a split repeatedly, although enough noise and depth can still manufacture gains.</li>
+        <li><strong>They handle irregular decision surfaces.</strong> Threshold effects and saturation are natural rather than forced through smooth activations.</li>
+        <li><strong>They are strong in the medium-data regime.</strong> When there are thousands or hundreds of thousands of rows rather than billions, their bias can be a gift.</li>
+      </ul>
+
+      <p>Grinsztajn, Oyallon, and Varoquaux tested this more systematically and found that tree-based models remained strongest on typical medium-sized tabular benchmarks, with neural networks particularly challenged by uninformative features and irregular target functions.<a href="#ref-10">[10]</a> That is a benchmark result, not a law. Very large tables, transferable embeddings, multimodal inputs, differentiable end-to-end systems, and pretraining can change the answer.</p>
+
+      <p>There is another reason trees feel good in applied work: the baseline is fast to falsify. I can fit a sensible CatBoost or histogram-boosting model, inspect validation slices, and learn whether the table contains predictive signal before building a cathedral around it. A good baseline is not merely a number to beat. It is an instrument for finding out whether the project deserves another week.</p>
+
+      <h2 id="interpretation">A split you can read is not automatically an explanation</h2>
+
+      <p>A small decision tree is globally inspectable. I can print every path and tell you the complete fitted rule. A forest or boosted ensemble with thousands of leaves is different. Each component is made of readable if-statements, but the sum is no more readable by eye than a novel becomes simple because every sentence uses familiar words.</p>
+
+      <p>The first trap is built-in impurity importance. Add up how much each feature reduced the split criterion, and features with many possible thresholds tend to receive more opportunities to look useful. Continuous measurements and high-cardinality identifiers can beat a genuinely predictive binary feature through sheer audition count. Training-set importance also rewards overfit splits.</p>
+
+      <p>Permutation importance asks a better predictive question: if I scramble this column in held-out data, how much does performance fall? But correlated features complicate it. If two columns carry the same information, scrambling one leaves its twin intact and makes both look dispensable. Scrambling a feature can also create impossible rows&mdash;a pregnant value attached to an incompatible demographic, or yesterday's balance detached from today's balance.</p>
+
+      <p>Partial dependence averages predictions while varying one feature. Individual conditional expectation keeps one line per row. Accumulated local effects avoid some extrapolation into empty combinations. All are descriptions of the fitted model under interventions we choose; none automatically identifies a causal effect.</p>
+
+      <p>TreeSHAP efficiently decomposes a tree ensemble prediction into feature contributions based on Shapley values<label for="sn-shapley" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about Shapley values"></label><input type="checkbox" id="sn-shapley" class="sidenote-toggle"><span class="sidenote"><strong>Shapley value.</strong> Borrowed from cooperative game theory, it averages a feature's marginal contribution over possible coalitions of other features. The mathematical allocation is exact for a chosen value function; the causal meaning still depends on how “missing” features are modeled.</span>.<a href="#ref-11">[11]</a> The contributions add to the difference between the prediction and a baseline, which is genuinely useful for debugging and case-level explanation. But correlated variables force a choice about what it means for a feature to be absent. Different background distributions can allocate credit differently while explaining the same prediction.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Layers of tree model interpretation from structure to causal claims">
+        <svg viewBox="0 0 760 390" role="img" aria-labelledby="interpret-title interpret-desc">
+          <title id="interpret-title">Four increasingly demanding interpretation questions</title>
+          <desc id="interpret-desc">A staircase begins with what the model computed, then which features its predictions rely on, then why one prediction differs from baseline, and finally what would happen under an intervention. The final causal step is separated and marked as requiring assumptions beyond the tree.</desc>
+          <g font-size="14">
+            <rect x="55" y="270" width="170" height="72" fill="rgba(255,255,255,.28)" stroke="#000"/>
+            <text x="140" y="296" text-anchor="middle" font-weight="bold">Structure</text>
+            <text x="140" y="318" text-anchor="middle">Which rules and leaves?</text>
+
+            <rect x="225" y="207" width="170" height="135" fill="rgba(255,255,255,.28)" stroke="#000"/>
+            <text x="310" y="234" text-anchor="middle" font-weight="bold">Reliance</text>
+            <text x="310" y="256" text-anchor="middle">What hurts held-out</text>
+            <text x="310" y="275" text-anchor="middle">performance when changed?</text>
+
+            <rect x="395" y="136" width="170" height="206" fill="rgba(255,255,255,.28)" stroke="#0000ee" stroke-width="2"/>
+            <text x="480" y="163" text-anchor="middle" font-weight="bold" fill="#0000ee">Attribution</text>
+            <text x="480" y="185" text-anchor="middle">How is this prediction</text>
+            <text x="480" y="204" text-anchor="middle">split among features?</text>
+
+            <rect x="565" y="58" width="155" height="284" fill="rgba(255,255,255,.28)" stroke="#000" stroke-dasharray="6 4" stroke-width="2"/>
+            <text x="642" y="86" text-anchor="middle" font-weight="bold">Causation</text>
+            <text x="642" y="110" text-anchor="middle">What happens if the</text>
+            <text x="642" y="129" text-anchor="middle">world is intervened on?</text>
+            <text x="642" y="181" text-anchor="middle" font-size="12">requires design or</text>
+            <text x="642" y="199" text-anchor="middle" font-size="12">causal assumptions</text>
+            <line x1="585" y1="224" x2="700" y2="224" stroke="#000"/>
+            <text x="642" y="250" text-anchor="middle" font-size="12">not supplied by</text>
+            <text x="642" y="268" text-anchor="middle" font-size="12">feature importance,</text>
+            <text x="642" y="286" text-anchor="middle" font-size="12">PDP, or SHAP</text>
+          </g>
+          <text x="380" y="374" text-anchor="middle" font-size="13">Readable components help with the first steps. They do not teleport us to the last one.</text>
+        </svg>
+        <figcaption class="viz-caption">Interpretation tools answer different questions. Confusing attribution with intervention is a category error, even when the underlying model is made entirely of readable splits.</figcaption>
+      </figure>
+
+      <p>My current rule is to triangulate. Use held-out permutation importance for reliance, SHAP or path contributions for individual debugging, partial-dependence-style plots for shape, and subgroup error analysis for consequences. If the decision is high stakes, add domain review and a causal design. One colourful beeswarm plot is not due process.</p>
+
+      <h2 id="failure">Where the forest ends</h2>
+
+      <h3>Trees do not extrapolate</h3>
+
+      <p>Suppose a regression tree has seen temperatures only from 10 to 35 degrees. Beyond the largest training value, every hotter point follows the same rightmost branches and lands in the same leaf. Its prediction goes flat. A boosted ensemble adds many flat functions; outside all learned thresholds, the sum is still flat.</p>
+
+      <p>This is extrapolation<label for="sn-extrapolation" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about extrapolation"></label><input type="checkbox" id="sn-extrapolation" class="sidenote-toggle"><span class="sidenote left"><strong>Extrapolation</strong> means predicting beyond the support of the training inputs. Interpolation fills gaps among examples already represented. Trees are excellent interpolators of irregular structure and poor at continuing trends beyond observed thresholds.</span>, and it matters whenever the trend itself is the object: growth curves, physical response, demand under unprecedented prices, or climate regimes outside the sample. A linear or mechanistic component may be safer, perhaps with trees modeling residual deviations.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Linear regression and a tree ensemble compared outside the training range">
+        <svg viewBox="0 0 760 345" role="img" aria-labelledby="extra-title extra-desc">
+          <title id="extra-title">Interpolation strength and extrapolation failure</title>
+          <desc id="extra-desc">Inside a shaded training range, a stepwise tree ensemble tracks curved data more closely than a line. Outside the range, the tree prediction remains flat while the linear prediction continues its trend. Neither is universally correct, but only one encodes continuation.</desc>
+          <rect x="92" y="35" width="442" height="244" fill="rgba(255,255,255,.22)"/>
+          <rect x="534" y="35" width="145" height="244" fill="rgba(0,0,0,.05)"/>
+          <line x1="75" y1="279" x2="700" y2="279" stroke="#000"/>
+          <line x1="75" y1="279" x2="75" y2="25" stroke="#000"/>
+          <line x1="534" y1="30" x2="534" y2="286" stroke="#777" stroke-dasharray="5 4"/>
+          <text x="313" y="54" text-anchor="middle" font-size="13">observed training range</text>
+          <text x="606" y="54" text-anchor="middle" font-size="13">unseen range</text>
+          <path d="M92 251 L135 238 L175 223 L215 205 L255 184 L295 166 L335 140 L375 125 L415 94 L455 79 L495 54" fill="none" stroke="#999" stroke-width="2"/>
+          <g fill="#000"><circle cx="105" cy="246" r="4"/><circle cx="155" cy="229" r="4"/><circle cx="201" cy="209" r="4"/><circle cx="246" cy="190" r="4"/><circle cx="292" cy="168" r="4"/><circle cx="337" cy="143" r="4"/><circle cx="382" cy="119" r="4"/><circle cx="428" cy="92" r="4"/><circle cx="478" cy="66" r="4"/></g>
+          <path d="M92 241 H150 V224 H205 V207 H260 V184 H315 V160 H370 V128 H425 V98 H485 V69 H679" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <line x1="92" y1="255" x2="679" y2="36" stroke="#000" stroke-width="2" stroke-dasharray="7 4"/>
+          <text x="570" y="114" font-size="12">linear trend continues</text>
+          <text x="548" y="91" font-size="12" fill="#0000ee">tree stays at last plateau</text>
+          <text x="380" y="322" text-anchor="middle" font-size="13">feature value &rarr;</text>
+        </svg>
+        <figcaption class="viz-caption">Inside the data, flexible steps can win. Outside it, a tree has no concept of slope. The dashed line may extrapolate correctly or disastrously; the point is that it encodes a continuation rule and the tree does not.</figcaption>
+      </figure>
+
+      <h3>Smooth structure is expensive</h3>
+
+      <p>An axis-aligned tree approximates circles, rotations, and smooth additive relationships with stairs. Enough depth or boosting rounds can make the stairs fine, but a model that already encodes smoothness may need far less data. Kernel methods, generalized additive models, linear models with good transformations, or neural networks can be the better bias.</p>
+
+      <p>Images, audio, and language also have reusable structure. A tree sees a million pixels as a million unrelated columns unless somebody engineers the locality. Deep models learn shared representations, and pretraining lets one example teach many tasks. Throwing raw text embeddings into boosted trees can be an excellent downstream baseline; asking a forest to discover syntax from token IDs is not.</p>
+
+      <h3>Probabilities need inspection</h3>
+
+      <p>A leaf probability is a fraction of training labels, then bagging or boosting transforms and averages such quantities. Ranking can be excellent while the numbers are overconfident or underconfident. Calibration<label for="sn-calibration" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about calibration"></label><input type="checkbox" id="sn-calibration" class="sidenote-toggle"><span class="sidenote"><strong>Calibration</strong> asks whether events predicted with probability 0.7 happen about 70 percent of the time. It is distinct from discrimination: a model can rank positives beautifully while assigning unreliable probabilities.</span> should be checked with reliability diagrams and a proper scoring rule such as log loss or the Brier score, preferably on data not already used for early stopping. Platt scaling or isotonic regression can help if fitted on a separate calibration set.</p>
+
+      <p>Finally, trees do not repair the data-generating process. Leakage, time travel, selection bias, concept drift, censored outcomes, and label policy all survive a beautiful validation score. Because boosters are so good at finding weak shortcuts, they can make a flawed experiment look unusually convincing.</p>
+
+      <h2 id="playbook">The order I actually try things</h2>
+
+      <p>After grinding these methods for years, my tree workflow has become less heroic and more boring. That is a compliment.</p>
+
+      <ol>
+        <li><strong>Fix the split before the model.</strong> If deployment predicts the future, validation must move forward in time. If rows share users, households, devices, patients, or matches, group them. No ensemble can cross-validate away leakage.</li>
+        <li><strong>Fit a small tree.</strong> Not because it will win, but because it exposes suspicious thresholds, missingness shortcuts, and target bugs in a form I can read.</li>
+        <li><strong>Fit a Random Forest or Extra Trees baseline.</strong> They are forgiving, parallel, and reveal whether nonlinear interactions matter without a delicate boosting schedule.</li>
+        <li><strong>Fit one serious booster.</strong> CatBoost is my first choice for messy categories; histogram gradient boosting, LightGBM, or XGBoost are natural for mostly numeric large tables. I use early stopping and tune leaf complexity before obsessing over tiny regularization differences.</li>
+        <li><strong>Compare under the real metric and budget.</strong> PR-AUC for rare positives, pinball loss for quantiles, calibration for decisions, latency and model size for production. Accuracy is not a diplomatic solution to incompatible costs.</li>
+        <li><strong>Inspect slices and stability.</strong> I vary seeds, folds, and time windows; examine subgroup errors; check whether important features survive perturbation; and compare train-validation gaps.</li>
+        <li><strong>Earn complexity.</strong> Stacking, target encoding, monotonic constraints, custom objectives, and neural hybrids enter only after a clean baseline shows what they must improve.</li>
+      </ol>
+
+      <div class="practice-note">
+        <strong>My compact default.</strong>
+        <p>For a new supervised table: leakage-safe split, naive baseline, shallow diagnostic tree, CatBoost or histogram boosting with early stopping, then Random Forest as a differently biased check. If two strong families fail on the same rows, I look at the data before I search for a more fashionable architecture.</p>
+      </div>
+
+      <h2>What this story does not say</h2>
+
+      <p>It does not say trees always win on tables. “Tabular” is a storage format, not a single statistical regime. A table can contain ten billion examples, images embedded into vectors, time-dependent panels, spatial fields, or repeated measurements with known structure. The best model depends on which regularities deserve to be shared.</p>
+
+      <p>It does not say scaling is literally irrelevant. Threshold partitions survive monotone transforms, but histogram binning, numerical precision, regularization, distance-based preprocessing, and interpretation can still change. Extreme outliers can also consume bins and make plots useless.</p>
+
+      <p>It does not say feature importance explains the world. It explains some aspect of one fitted predictor under one perturbation or allocation rule. Causality needs assumptions about how the data were generated, not merely an ensemble with good test AUC.</p>
+
+      <p>And it does not say one library is universally best. XGBoost, LightGBM, CatBoost, scikit-learn's histogram boosting, Random Forest, and Extra Trees occupy overlapping but distinct engineering trade-offs. A fair comparison holds folds, search effort, and compute budgets steady.</p>
+
+      <h2>The model that kept teaching me how models think</h2>
+
+      <p>I began with trees because they worked. I stayed because every extension teaches a different machine-learning lesson without hiding the mechanism.</p>
+
+      <p>A single tree teaches greedy optimization and the bias-variance trade-off. Pruning teaches that a model should pay rent for complexity. Bagging teaches that instability can be averaged into strength. Random Forest teaches that diversity is useful only when it decorrelates competent errors. Extra Trees teaches that less optimization can generalize better. Rotation Forest teaches that coordinates decide what a simple learner finds simple. AdaBoost teaches that errors can be turned into attention. Gradient boosting teaches that a model can descend through function space. XGBoost teaches that curvature and systems engineering both matter. CatBoost teaches that the order in which information becomes available is part of the algorithm.</p>
+
+      <p>That is an absurd amount of machine learning hiding inside repeated if-statements.</p>
+
+      <p>The college grinding mattered because it changed what I saw. At first I saw a catalogue: decision tree, random forest, AdaBoost, gradient boosting, XGBoost. Separate chapters, separate exam questions. Eventually I saw one continuous argument. A tree is expressive but unstable. Average it. The averages are too correlated. Randomize the features. Parallel correction leaves bias. Correct sequentially. First-order corrections ignore curvature. Use second derivatives. Categories leak target information. Give the rows an artificial past.</p>
+
+      <p>Every method is the previous method noticing one of its own bad habits.</p>
+
+      <p>That may be why I still reach for trees whenever a new table lands in front of me. They do not ask me to believe that scale will rescue a vague problem. They force concrete questions. Which threshold? Which rows? Which loss? Which interaction? Which mistakes are shared? Which information was available at prediction time?</p>
+
+      <p>I grinded tree-based methods in college because I loved how often they won. I love them now because I understand more clearly how they can lose.</p>
+
+      <section class="references" aria-labelledby="references-title">
+        <h2 id="references-title">References and links</h2>
+        <ol>
+          <li id="ref-1">L. Breiman, J. H. Friedman, R. A. Olshen, and C. J. Stone, <a href="https://www.routledge.com/Classification-and-Regression-Trees/Breiman-Friedman-Olshen-Stone/p/book/9780412048418"><em>Classification and Regression Trees</em></a>, 1984.</li>
+          <li id="ref-2">L. Breiman, <a href="https://link.springer.com/article/10.1007/BF00058655">“Bagging Predictors”</a>, <em>Machine Learning</em>, 1996.</li>
+          <li id="ref-3">L. Breiman, <a href="https://link.springer.com/article/10.1023/A:1010933404324">“Random Forests”</a>, <em>Machine Learning</em>, 2001.</li>
+          <li id="ref-4">P. Geurts, D. Ernst, and L. Wehenkel, <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1">“Extremely Randomized Trees”</a>, <em>Machine Learning</em>, 2006.</li>
+          <li id="ref-5">Y. Freund and R. E. Schapire, <a href="https://www.sciencedirect.com/science/article/pii/S002200009791504X">“A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting”</a>, <em>Journal of Computer and System Sciences</em>, 1997.</li>
+          <li id="ref-6">J. H. Friedman, <a href="https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-5/Greedy-function-approximation-A-gradient-boosting-machine/10.1214/aos/1013203451.full">“Greedy Function Approximation: A Gradient Boosting Machine”</a>, <em>The Annals of Statistics</em>, 2001.</li>
+          <li id="ref-7">T. Chen and C. Guestrin, <a href="https://arxiv.org/abs/1603.02754">“XGBoost: A Scalable Tree Boosting System”</a>, KDD, 2016.</li>
+          <li id="ref-8">G. Ke et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html">“LightGBM: A Highly Efficient Gradient Boosting Decision Tree”</a>, NeurIPS, 2017.</li>
+          <li id="ref-9">L. Prokhorenkova, G. Gusev, A. Vorobev, A. V. Dorogush, and A. Gulin, <a href="https://proceedings.neurips.cc/paper_files/paper/2018/hash/14491b756b3a51daac41c24863285549-Abstract.html">“CatBoost: Unbiased Boosting with Categorical Features”</a>, NeurIPS, 2018.</li>
+          <li id="ref-10">L. Grinsztajn, E. Oyallon, and G. Varoquaux, <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/0378c7692da36807bdec87ab043cdadc-Abstract-Datasets_and_Benchmarks.html">“Why Do Tree-Based Models Still Outperform Deep Learning on Typical Tabular Data?”</a>, NeurIPS Datasets and Benchmarks, 2022.</li>
+          <li id="ref-11">S. M. Lundberg et al., <a href="https://www.nature.com/articles/s42256-019-0138-9">“From Local Explanations to Global Understanding with Explainable AI for Trees”</a>, <em>Nature Machine Intelligence</em>, 2020.</li>
+          <li id="ref-12">J. J. Rodriguez, L. I. Kuncheva, and C. J. Alonso, <a href="https://ieeexplore.ieee.org/document/1677518">“Rotation Forest: A New Classifier Ensemble Method”</a>, <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 2006; see also my <a href="rotation_forest.html">long-form implementation note</a>.</li>
+        </ol>
+      </section>
+    </article>
+  </main>
+
+  <footer class="tree-footer">
+    &copy; 2026 Pratyaksh Patel. You may use, share, and adapt with credit.
+  </footer>
+
+  <script>
+    (function () {
+      const points = [
+        {x: 1.2, y: 212, c: 0}, {x: 1.7, y: 170, c: 0},
+        {x: 2.1, y: 220, c: 0}, {x: 2.6, y: 128, c: 0},
+        {x: 3.0, y: 190, c: 0}, {x: 3.4, y: 88, c: 1},
+        {x: 3.9, y: 146, c: 0}, {x: 4.4, y: 205, c: 0},
+        {x: 4.8, y: 104, c: 1}, {x: 5.3, y: 174, c: 1},
+        {x: 5.8, y: 218, c: 1}, {x: 6.2, y: 86, c: 1},
+        {x: 6.7, y: 143, c: 0}, {x: 7.1, y: 199, c: 1},
+        {x: 7.6, y: 112, c: 1}, {x: 8.1, y: 167, c: 1},
+        {x: 8.6, y: 72, c: 1}
+      ];
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const group = document.getElementById('split-points');
+      const slider = document.getElementById('split-threshold');
+      const value = document.getElementById('split-value');
+      const line = document.getElementById('split-line');
+      const lineLabel = document.getElementById('split-line-label');
+      const leftShade = document.getElementById('split-left-shade');
+      const rightShade = document.getElementById('split-right-shade');
+      const readout = document.getElementById('split-readout');
+
+      const xPixel = x => 70 + ((x - 1) / 8) * 620;
+
+      points.forEach(point => {
+        let mark;
+        if (point.c === 0) {
+          mark = document.createElementNS(svgNS, 'circle');
+          mark.setAttribute('cx', xPixel(point.x));
+          mark.setAttribute('cy', point.y);
+          mark.setAttribute('r', '7');
+          mark.setAttribute('fill', 'none');
+          mark.setAttribute('stroke', '#0000ee');
+          mark.setAttribute('stroke-width', '3');
+        } else {
+          mark = document.createElementNS(svgNS, 'rect');
+          mark.setAttribute('x', xPixel(point.x) - 6);
+          mark.setAttribute('y', point.y - 6);
+          mark.setAttribute('width', '12');
+          mark.setAttribute('height', '12');
+          mark.setAttribute('fill', '#000');
+        }
+        group.appendChild(mark);
+      });
+
+      function gini(rows) {
+        if (!rows.length) return 0;
+        const ones = rows.reduce((sum, row) => sum + row.c, 0);
+        const p = ones / rows.length;
+        return 1 - p * p - (1 - p) * (1 - p);
+      }
+
+      function counts(rows) {
+        const b = rows.reduce((sum, row) => sum + row.c, 0);
+        return {a: rows.length - b, b};
+      }
+
+      function updateSplit() {
+        const threshold = Number(slider.value);
+        const x = xPixel(threshold);
+        const left = points.filter(point => point.x < threshold);
+        const right = points.filter(point => point.x >= threshold);
+        const parentGini = gini(points);
+        const weighted = (left.length * gini(left) + right.length * gini(right)) / points.length;
+        const gain = parentGini - weighted;
+        const lc = counts(left);
+        const rc = counts(right);
+
+        line.setAttribute('x1', x);
+        line.setAttribute('x2', x);
+        lineLabel.setAttribute('x', Math.min(x + 6, 570));
+        lineLabel.textContent = 'threshold = ' + threshold.toFixed(1);
+        leftShade.setAttribute('width', Math.max(0, x - 70));
+        rightShade.setAttribute('x', x);
+        rightShade.setAttribute('width', Math.max(0, 690 - x));
+        value.value = threshold.toFixed(1);
+        readout.textContent =
+          'left: ' + left.length + ' rows (A=' + lc.a + ', B=' + lc.b + '), Gini=' + gini(left).toFixed(3) +
+          ' | right: ' + right.length + ' rows (A=' + rc.a + ', B=' + rc.b + '), Gini=' + gini(right).toFixed(3) +
+          ' | weighted impurity=' + weighted.toFixed(3) + ' | gain=' + gain.toFixed(3);
+      }
+
+      slider.addEventListener('input', updateSplit);
+      updateSplit();
+    }());
+  </script>
+</body>
+</html>
