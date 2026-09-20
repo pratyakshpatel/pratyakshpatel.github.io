@@ -157,39 +157,18 @@
       min-width: 720px;
     }
 
-    /* Numbered margin notes, following the label + checkbox + span mechanism used
-       by LaTeX.css. On wide screens they float outside the text; on narrower
-       screens the number becomes a disclosure control. */
-    label.sidenote-toggle.sidenote-number {
+    /* Numbered notes stay in the margins when there is room and move into the
+       article on smaller screens. They are always visible. */
+    sup.sidenote-number {
       counter-increment: sidenote-counter;
       color: #0000ee;
-      cursor: help;
-    }
-
-    label.sidenote-toggle.sidenote-number::after {
-      content: counter(sidenote-counter);
-      position: relative;
-      top: -0.45em;
-      padding: 0 0.08em;
       font-size: 0.7em;
       line-height: 0;
     }
 
-    label.sidenote-toggle.sidenote-number:has(+ input.sidenote-toggle:focus-visible) {
-      outline: 2px solid #000;
-      outline-offset: 2px;
-    }
-
-    input.sidenote-toggle {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      padding: 0;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-      border: 0;
+    sup.sidenote-number::after {
+      content: counter(sidenote-counter);
+      padding: 0 0.08em;
     }
 
     span.sidenote {
@@ -236,23 +215,17 @@
 
       span.sidenote,
       span.sidenote.left {
-        display: none;
+        display: block;
         float: none;
         clear: both;
         width: auto;
-        margin: 0.65rem 0 1rem;
-        padding: 0.7rem 0.8rem;
+        margin: 0.45rem 0 0.85rem 1rem;
+        padding: 0.45rem 0.65rem;
         background: rgba(255, 255, 255, 0.3);
-        border-left: 3px solid #0000ee;
+        border-left: 2px solid #777;
+        font-size: 0.74rem;
+        line-height: 1.4;
         text-align: left;
-      }
-
-      input.sidenote-toggle:checked + span.sidenote {
-        display: block;
-      }
-
-      label.sidenote-toggle.sidenote-number {
-        cursor: pointer;
       }
     }
 
@@ -264,6 +237,12 @@
       .split-controls {
         grid-template-columns: 1fr;
         gap: 0.35rem;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        margin-left: 0.55rem;
+        font-size: 0.72rem;
       }
     }
 
@@ -296,13 +275,15 @@
       <h1>I Grinded Trees Until I Could See the Forest</h1>
       <div class="meta">20 September, 2026 &middot; If-statements, forests, residuals, and my favourite way to learn a table</div>
 
-      <p>I love tree-based methods. I grinded them so much in college that, at some point, every rectangular dataset began to look like it was asking me the same question: <em>what would a tree notice first?</em></p>
+      <p>I started with statistics and classical machine learning, and that was the part of the subject I loved first. I could sit with the maths, understand why a model had made a decision, and then try to code a rough version myself. Deep learning came much later for me. During college, if the data arrived in a CSV, I would almost always try a tree first. I grinded tree-based methods much more than the syllabus ever asked me to.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Trying something new.</strong></span></p>
 
-      <p>Random forests appeared in assignments, boosted trees appeared whenever somebody cared about the leaderboard, and Isolation Forest became one of the first algorithms I wanted to implement line by line instead of merely importing. When a neural network made me count layers, tune learning rates, and wonder whether my loss curve was a cry for help, a tree would sit down with the columns, ask a sequence of blunt yes-or-no questions, and give me a baseline I could trust.</p>
+      <p>At first it was mostly assignments. I used random forests all the time, tried boosted trees whenever I wanted to squeeze out a better score, and eventually implemented Isolation Forest from scratch because I wanted to know what the library was doing. I remember that implementation better than most of the coursework. Writing the splits and path-length logic myself was when trees properly clicked for me.</p>
 
-      <p>That reliability made me use trees. Their geometry made me love them.</p>
+      <p>By the time I got serious about neural networks, I already had years of this stuff in my head. Deep learning gave me architectures, activations, optimizers, and loss curves to worry about. Trees still felt more immediate: pick a feature, choose a threshold, look at the two groups, and repeat. On tabular data, they were usually the first baseline I trusted.</p>
 
-      <p>A decision tree turns a table into regions. A random forest turns unstable trees into a committee. Gradient boosting turns trees into a basis for following a loss downhill. XGBoost turns that descent into a regularized second-order calculation. CatBoost takes one of the most dangerous tabular operations&mdash;using the target to encode categories&mdash;and changes the order of time so the answer cannot leak backward. These methods share a silhouette, but they solve different problems.</p>
+      <p>That is really where the affection comes from. Trees work, and I can follow what they are doing.</p>
+
+      <p>Calling all of these <em>tree-based methods</em> can make them sound more alike than they are. A single decision tree, a random forest, and XGBoost are not just three strengths of the same model. Forests try to average away the instability of individual trees. Boosting keeps returning to what the current model got wrong. XGBoost makes that process more careful with curvature and regularization, while CatBoost pays particular attention to categorical data and leakage. They are related, but they are solving different problems.</p>
 
       <p>My earlier <a href="rotation_forest.html">Rotation Forest post</a> was about changing the coordinate system so axis-aligned trees could see oblique structure. This essay starts one level lower. I want to build the whole family from the first split: why the split is greedy, why a tree memorizes, why averaging works, why boosting is not averaging, why modern libraries are so fast, and why the phrase <em>interpretable model</em> deserves more suspicion than it usually gets.</p>
 
@@ -328,7 +309,7 @@
 
       <p>Imagine a tiny classification problem. Each row is a student; the columns record attendance, hours studied, sleep, and perhaps whether the student submitted the assignments. The target says whether the student passed. We could begin with any column and any threshold. <em>Attendance above 72 percent?</em> <em>Study time below four hours?</em> <em>All assignments submitted?</em></p>
 
-      <p>A standard CART-style tree searches those candidate questions and chooses the split that most reduces impurity<label for="sn-impurity" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about impurity"></label><input type="checkbox" id="sn-impurity" class="sidenote-toggle"><span class="sidenote"><strong>Impurity</strong> is a numerical measure of how mixed the labels inside a node are. A pure node contains only one class; a maximally mixed binary node is half and half. It is not moral impurity, despite the vocabulary making every tree sound faintly Victorian.</span>. Then it forgets all the alternatives it did not choose, moves to each child node, and repeats. This is a <em>greedy</em> procedure<label for="sn-greedy" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about greedy algorithms"></label><input type="checkbox" id="sn-greedy" class="sidenote-toggle"><span class="sidenote left"><strong>Greedy</strong> means choosing the best move available now without jointly optimizing the entire future tree. Finding the globally smallest optimal decision tree is computationally hard; practical algorithms accept local choices and control the damage later.</span>: it chooses the best immediate improvement, not the best complete tree among every tree that could ever be grown.<a href="#ref-1">[1]</a></p>
+      <p>A standard CART-style tree searches those candidate questions and chooses the split that most reduces impurity<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Impurity</strong> is a numerical measure of how mixed the labels inside a node are. A pure node contains only one class; a maximally mixed binary node is half and half. It is not moral impurity, despite the vocabulary making every tree sound faintly Victorian.</span>. Then it forgets all the alternatives it did not choose, moves to each child node, and repeats. This is a <em>greedy</em> procedure<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Greedy</strong> means choosing the best move available now without jointly optimizing the entire future tree. Finding the globally smallest optimal decision tree is computationally hard; practical algorithms accept local choices and control the damage later.</span>: it chooses the best immediate improvement, not the best complete tree among every tree that could ever be grown.<a href="#ref-1">[1]</a></p>
 
       <p>For binary classification, the Gini impurity at a node is</p>
 
@@ -351,7 +332,7 @@
         -\frac{|S_R|}{|S|}G(S_R).
       \]
 
-      <p>The winning question has the largest \(\Delta G\). Entropy can replace Gini<label for="sn-entropy" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about entropy"></label><input type="checkbox" id="sn-entropy" class="sidenote-toggle"><span class="sidenote"><strong>Entropy</strong> is \(-\sum_k p_k\log p_k\). It comes from information theory and measures uncertainty in the labels. Gini and entropy curve a little differently, but on ordinary classification problems they often choose very similar splits.</span>:</p>
+      <p>The winning question has the largest \(\Delta G\). Entropy can replace Gini<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Entropy</strong> is \(-\sum_k p_k\log p_k\). It comes from information theory and measures uncertainty in the labels. Gini and entropy curve a little differently, but on ordinary classification problems they often choose very similar splits.</span>:</p>
 
       \[
         H(S)=-\sum_{k=1}^{K}p_k\log p_k.
@@ -471,7 +452,7 @@
         \widehat f(x)=\sum_{m=1}^{M}c_m\mathbf 1\{x\in R_m\},
       \]
 
-      <p>where the leaves define disjoint regions \(R_m\), \(c_m\) is the prediction in region \(m\), and the indicator switches that prediction on when \(x\) lands there. This makes a tree a piecewise-constant function<label for="sn-piecewise" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about piecewise constant functions"></label><input type="checkbox" id="sn-piecewise" class="sidenote-toggle"><span class="sidenote left"><strong>Piecewise constant</strong> means the prediction is flat inside each region and jumps at a boundary. A single regression tree does not draw a smooth slope. An ensemble can make the jumps tiny enough to approximate one.</span>. Classification leaves store class counts or probabilities instead of a mean, but they are still constant until a boundary is crossed.</p>
+      <p>where the leaves define disjoint regions \(R_m\), \(c_m\) is the prediction in region \(m\), and the indicator switches that prediction on when \(x\) lands there. This makes a tree a piecewise-constant function<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Piecewise constant</strong> means the prediction is flat inside each region and jumps at a boundary. A single regression tree does not draw a smooth slope. An ensemble can make the jumps tiny enough to approximate one.</span>. Classification leaves store class counts or probabilities instead of a mean, but they are still constant until a boundary is crossed.</p>
 
       <p>I find this representation useful because it dissolves some mystery. Trees discover interactions automatically because later questions are conditional on earlier ones. A sleep threshold can matter only for low-attendance students without anybody manually adding an interaction term \(\text{sleep}\times\text{attendance}\). The interaction is the path.</p>
 
@@ -483,7 +464,7 @@
 
       <p>If we keep splitting until every leaf is pure, a tree can often memorize the training set. One mislabeled row gets its own tiny rectangle. A measurement error becomes a branch. A rare coincidence becomes a rule delivered with absolute confidence. Training error falls toward zero while the boundary acquires hundreds of brittle corners.</p>
 
-      <p>This is the classic high-variance problem<label for="sn-variance" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about variance"></label><input type="checkbox" id="sn-variance" class="sidenote-toggle"><span class="sidenote"><strong>Variance</strong> here means sensitivity to the training sample. If replacing a handful of rows produces a very different predictor, the method has high variance. Deep trees are famous for it because early split changes reroute everything below them.</span>. A small perturbation in the data can change the root split. Once the root changes, every later split sees a different subset, so the whole tree can reorganize. The model is not merely wiggly; it is structurally unstable.</p>
+      <p>This is the classic high-variance problem<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Variance</strong> here means sensitivity to the training sample. If replacing a handful of rows produces a very different predictor, the method has high variance. Deep trees are famous for it because early split changes reroute everything below them.</span>. A small perturbation in the data can change the root split. Once the root changes, every later split sees a different subset, so the whole tree can reorganize. The model is not merely wiggly; it is structurally unstable.</p>
 
       <p>We can stop growth in advance with maximum depth, minimum leaf size, minimum split gain, or a maximum number of leaves. Or we can grow a large tree and prune it afterward. CART's cost-complexity pruning chooses a subtree \(T\) by balancing fit against leaf count:</p>
 
@@ -497,7 +478,7 @@
 
       <h2 id="bagging">Bag the unstable thing</h2>
 
-      <p>Bagging begins with a wonderful act of statistical mischief. From a training set of \(n\) rows, draw \(n\) rows <em>with replacement</em>. Some appear several times; about \(36.8\) percent are absent. Fit a deep tree to that bootstrap sample<label for="sn-bootstrap" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about bootstrap samples"></label><input type="checkbox" id="sn-bootstrap" class="sidenote-toggle"><span class="sidenote left"><strong>Bootstrap sample.</strong> Drawing \(n\) times with replacement from \(n\) rows leaves a particular row out with probability \((1-1/n)^n\), which approaches \(e^{-1}\approx0.368\). The resample has the same size but a different empirical world.</span>. Repeat hundreds of times. Average regression predictions or vote on classes.<a href="#ref-2">[2]</a></p>
+      <p>Bagging begins with a wonderful act of statistical mischief. From a training set of \(n\) rows, draw \(n\) rows <em>with replacement</em>. Some appear several times; about \(36.8\) percent are absent. Fit a deep tree to that bootstrap sample<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Bootstrap sample.</strong> Drawing \(n\) times with replacement from \(n\) rows leaves a particular row out with probability \((1-1/n)^n\), which approaches \(e^{-1}\approx0.368\). The resample has the same size but a different empirical world.</span>. Repeat hundreds of times. Average regression predictions or vote on classes.<a href="#ref-2">[2]</a></p>
 
       <p>Bagging works because each tree reacts differently to its altered dataset. The wild local errors are not identical, so averaging smooths them. If the trees were independent and each had variance \(\sigma^2\), averaging \(B\) of them would reduce variance to \(\sigma^2/B\). Trees trained on related samples are not independent. If their pairwise error correlation is roughly \(\rho\), the variance of their mean is approximately</p>
 
@@ -508,7 +489,7 @@
 
       <p>The second term shrinks with more trees. The first does not. Once \(B\) is large, adding yet another nearly identical tree buys almost nothing. This equation is the soul of Random Forest: preserve trees that are individually useful while reducing \(\rho\), their shared mistakes.</p>
 
-      <p>Breiman's Random Forest does that by hiding most features at each split.<a href="#ref-3">[3]</a> A classification tree might be offered only \(\sqrt d\) of the \(d\) columns. If one feature is overwhelmingly strong, ordinary bagged trees all choose it near the root and become variations of the same model. Feature subsampling occasionally removes that obvious answer and forces a tree to discover a second route. Some individual trees weaken. The committee becomes stronger because its members stop making the same error<label for="sn-decorrelation" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about decorrelation"></label><input type="checkbox" id="sn-decorrelation" class="sidenote-toggle"><span class="sidenote"><strong>Decorrelation</strong> does not mean the trees become statistically independent. It means their prediction errors become less aligned. Ensemble diversity matters only when the alternative members remain competent enough to be worth averaging.</span>.</p>
+      <p>Breiman's Random Forest does that by hiding most features at each split.<a href="#ref-3">[3]</a> A classification tree might be offered only \(\sqrt d\) of the \(d\) columns. If one feature is overwhelmingly strong, ordinary bagged trees all choose it near the root and become variations of the same model. Feature subsampling occasionally removes that obvious answer and forces a tree to discover a second route. Some individual trees weaken. The committee becomes stronger because its members stop making the same error<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Decorrelation</strong> does not mean the trees become statistically independent. It means their prediction errors become less aligned. Ensemble diversity matters only when the alternative members remain competent enough to be worth averaging.</span>.</p>
 
       <figure class="viz" tabindex="0" aria-label="Bagging and random forest shown as ways to average diverse trees">
         <svg viewBox="0 0 760 445" role="img" aria-labelledby="forest-title forest-desc">
@@ -578,7 +559,7 @@
 
       <h3>The rows a tree never saw</h3>
 
-      <p>Those absent bootstrap rows give bagged forests an almost free validation mechanism. For each training row, collect predictions only from trees whose bootstrap sample excluded it. Aggregate them and compute an out-of-bag score<label for="sn-oob" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about out-of-bag estimation"></label><input type="checkbox" id="sn-oob" class="sidenote-toggle"><span class="sidenote left"><strong>Out-of-bag (OOB)</strong> predictions are out-of-sample for each individual tree, though not a replacement for a truly untouched final test set. They are especially useful for quick model comparison and permutation importance inside a forest.</span>. It resembles cross-validation without explicitly fitting \(K\) separate forests.</p>
+      <p>Those absent bootstrap rows give bagged forests an almost free validation mechanism. For each training row, collect predictions only from trees whose bootstrap sample excluded it. Aggregate them and compute an out-of-bag score<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Out-of-bag (OOB)</strong> predictions are out-of-sample for each individual tree, though not a replacement for a truly untouched final test set. They are especially useful for quick model comparison and permutation importance inside a forest.</span>. It resembles cross-validation without explicitly fitting \(K\) separate forests.</p>
 
       <p>Extremely Randomized Trees push the diversity lever further.<a href="#ref-4">[4]</a> Instead of exhaustively finding the best threshold among the offered features, they sample thresholds and select among those random candidates. Less optimization per tree means more bias, less variance, and often faster fitting. Rotation Forest changes the view instead: rotate feature subsets, then grow ordinary trees.<a href="#ref-12">[12]</a> These are three answers to the same design question: <em>where should disagreement between competent trees come from?</em></p>
 
@@ -616,13 +597,13 @@
         w_i\leftarrow w_i\exp\bigl(-\alpha_m y_i h_m(x_i)\bigr).
       \]
 
-      <p>Correctly classified rows have positive \(y_i h_m(x_i)\) and shrink in weight; mistakes grow. The final sign of \(\sum_m\alpha_m h_m(x)\) decides the class. More deeply, AdaBoost increases the classification margin<label for="sn-margin" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about classification margins"></label><input type="checkbox" id="sn-margin" class="sidenote-toggle"><span class="sidenote"><strong>Margin</strong> is the signed confidence \(yF(x)\). A positive margin means a correct prediction, and a large positive margin means the ensemble is correct with room to spare. Boosting often keeps improving test error after training error reaches zero because it continues widening margins.</span>: not just whether a row is correct, but how far its weighted vote lies from the decision boundary.</p>
+      <p>Correctly classified rows have positive \(y_i h_m(x_i)\) and shrink in weight; mistakes grow. The final sign of \(\sum_m\alpha_m h_m(x)\) decides the class. More deeply, AdaBoost increases the classification margin<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Margin</strong> is the signed confidence \(yF(x)\). A positive margin means a correct prediction, and a large positive margin means the ensemble is correct with room to spare. Boosting often keeps improving test error after training error reaches zero because it continues widening margins.</span>: not just whether a row is correct, but how far its weighted vote lies from the decision boundary.</p>
 
       <p>The weakness is visible in the update. A mislabeled or pathological row can keep accumulating weight because the ensemble cannot satisfy it. Later learners contort themselves around that one impossible demand. Robust losses and regularization soften this behavior, but the lesson is general: focusing on mistakes is powerful only when mistakes contain signal.</p>
 
       <h3>Gradient boosting: fit the direction the loss wants</h3>
 
-      <p>Friedman's gradient boosting machine made the idea much broader.<a href="#ref-6">[6]</a> Treat the current predictor \(F(x)\) as a point in a space of functions. Ask which direction would reduce the loss fastest. Fit a tree to approximate that direction. Add it to the model. This is gradient descent, except the parameter being updated is a function<label for="sn-functional-gradient" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about functional gradients"></label><input type="checkbox" id="sn-functional-gradient" class="sidenote-toggle"><span class="sidenote left"><strong>Functional gradient</strong> means differentiating the objective with respect to the model's output function rather than a fixed vector of coefficients. The fitted tree projects that ideal direction onto the set of functions a small tree can express.</span>.</p>
+      <p>Friedman's gradient boosting machine made the idea much broader.<a href="#ref-6">[6]</a> Treat the current predictor \(F(x)\) as a point in a space of functions. Ask which direction would reduce the loss fastest. Fit a tree to approximate that direction. Add it to the model. This is gradient descent, except the parameter being updated is a function<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Functional gradient</strong> means differentiating the objective with respect to the model's output function rather than a fixed vector of coefficients. The fitted tree projects that ideal direction onto the set of functions a small tree can express.</span>.</p>
 
       <p>For training pairs \((x_i,y_i)\) and loss \(L(y,F(x))\), compute pseudo-residuals</p>
 
@@ -692,7 +673,7 @@
 
       <p>Tree depth now means something different from tree count. A depth-one stump can express one interaction-free correction. A depth-two or depth-three tree can capture small conditional interactions. Hundreds of shallow corrections often generalize better than a few heroic deep ones. The learning rate and number of trees trade against each other: smaller steps usually need more rounds but can trace a more careful path.</p>
 
-      <p>This is shrinkage<label for="sn-shrinkage" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about shrinkage"></label><input type="checkbox" id="sn-shrinkage" class="sidenote-toggle"><span class="sidenote left"><strong>Shrinkage</strong> multiplies every new tree by a learning rate below one. It regularizes the stagewise path. A tiny rate is not automatically better: it can require huge ensembles, and with enough rounds even small steps can overfit.</span>, and it is one reason early stopping matters. Monitor a held-out fold, stop when its loss has not improved for a patience window, and keep the best iteration. The useful number of boosting rounds is learned from validation, not chosen because 1,000 looks serious.</p>
+      <p>This is shrinkage<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Shrinkage</strong> multiplies every new tree by a learning rate below one. It regularizes the stagewise path. A tiny rate is not automatically better: it can require huge ensembles, and with enough rounds even small steps can overfit.</span>, and it is one reason early stopping matters. Monitor a held-out fold, stop when its loss has not improved for a patience window, and keep the best iteration. The useful number of boosting rounds is learned from validation, not chosen because 1,000 looks serious.</p>
 
       <h2 id="modern-boosters">Why XGBoost feels like Newton's method in a forest</h2>
 
@@ -713,7 +694,7 @@
         w_j^*=-\frac{G_j}{H_j+\lambda}.
       \]
 
-      <p>The Hessian<label for="sn-hessian" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about Hessians"></label><input type="checkbox" id="sn-hessian" class="sidenote-toggle"><span class="sidenote"><strong>Hessian</strong> usually means the matrix of second derivatives. Here each training prediction is a scalar, so \(h_i\) is the corresponding second derivative of the loss. It tells the update how sharply the loss curves around the current prediction.</span> in the denominator makes this Newton-like: when the loss is sharply curved, the step is cautious. The \(\lambda\) term shrinks leaf weights; \(\gamma\) charges for adding a leaf. A candidate split is accepted only if the reduction in approximate loss pays those costs.</p>
+      <p>The Hessian<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Hessian</strong> usually means the matrix of second derivatives. Here each training prediction is a scalar, so \(h_i\) is the corresponding second derivative of the loss. It tells the update how sharply the loss curves around the current prediction.</span> in the denominator makes this Newton-like: when the loss is sharply curved, the step is cautious. The \(\lambda\) term shrinks leaf weights; \(\gamma\) charges for adding a leaf. A candidate split is accepted only if the reduction in approximate loss pays those costs.</p>
 
       <p>The engineering matters as much as the derivation. Exact split search sorts every value, which is expensive at scale. Histogram boosters bin continuous values and accumulate gradients per bin. A threshold can then be evaluated over perhaps 255 bins instead of millions of distinct numbers. Missing values can learn a default branch. Sparse columns can skip absent entries. Parallel prefix sums and careful memory layout make an algorithm built from if-statements behave like serious systems software.</p>
 
@@ -723,7 +704,7 @@
 
       <p>CatBoost begins from the categorical-feature problem.<a href="#ref-9">[9]</a> Suppose we replace each category with the mean target for that category. If we compute the mean using all rows, each row's own label leaks into its feature. Rare categories can practically carry the answer. If we compute encodings on one fixed holdout, we waste data and create distribution mismatch.</p>
 
-      <p>CatBoost permutes the data and computes an ordered target statistic<label for="sn-ordered" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about ordered target statistics"></label><input type="checkbox" id="sn-ordered" class="sidenote-toggle"><span class="sidenote left"><strong>Ordered target statistic.</strong> For a row at position \(i\) in a random permutation, encode its category using only earlier rows with that category, plus a prior. The row's label cannot predict itself because, in this artificial time, it has not happened yet.</span> for each row using only rows that came earlier in a random ordering. Its ordered boosting machinery applies the same instinct to residual construction, reducing a subtle prediction shift between training examples and unseen data. This is not simply “XGBoost but categories.” It is an algorithm built around leakage control.</p>
+      <p>CatBoost permutes the data and computes an ordered target statistic<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Ordered target statistic.</strong> For a row at position \(i\) in a random permutation, encode its category using only earlier rows with that category, plus a prior. The row's label cannot predict itself because, in this artificial time, it has not happened yet.</span> for each row using only rows that came earlier in a random ordering. Its ordered boosting machinery applies the same instinct to residual construction, reducing a subtle prediction shift between training examples and unseen data. This is not simply “XGBoost but categories.” It is an algorithm built around leakage control.</p>
 
       <div class="table-wrap" tabindex="0">
         <table>
@@ -768,11 +749,11 @@
 
       <p>The first trap is built-in impurity importance. Add up how much each feature reduced the split criterion, and features with many possible thresholds tend to receive more opportunities to look useful. Continuous measurements and high-cardinality identifiers can beat a genuinely predictive binary feature through sheer audition count. Training-set importance also rewards overfit splits.</p>
 
-      <p>Permutation importance asks a better predictive question: if I scramble this column in held-out data, how much does performance fall? But correlated features complicate it. If two columns carry the same information, scrambling one leaves its twin intact and makes both look dispensable. Scrambling a feature can also create impossible rows&mdash;a pregnant value attached to an incompatible demographic, or yesterday's balance detached from today's balance.</p>
+      <p>Permutation importance asks a better predictive question: if I scramble this column in held-out data, how much does performance fall? But correlated features complicate it. If two columns carry the same information, scrambling one leaves its twin intact and makes both look dispensable. Scrambling a feature can also create impossible rows, such as a pregnant value attached to an incompatible demographic or yesterday's balance detached from today's balance.</p>
 
       <p>Partial dependence averages predictions while varying one feature. Individual conditional expectation keeps one line per row. Accumulated local effects avoid some extrapolation into empty combinations. All are descriptions of the fitted model under interventions we choose; none automatically identifies a causal effect.</p>
 
-      <p>TreeSHAP efficiently decomposes a tree ensemble prediction into feature contributions based on Shapley values<label for="sn-shapley" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about Shapley values"></label><input type="checkbox" id="sn-shapley" class="sidenote-toggle"><span class="sidenote"><strong>Shapley value.</strong> Borrowed from cooperative game theory, it averages a feature's marginal contribution over possible coalitions of other features. The mathematical allocation is exact for a chosen value function; the causal meaning still depends on how “missing” features are modeled.</span>.<a href="#ref-11">[11]</a> The contributions add to the difference between the prediction and a baseline, which is genuinely useful for debugging and case-level explanation. But correlated variables force a choice about what it means for a feature to be absent. Different background distributions can allocate credit differently while explaining the same prediction.</p>
+      <p>TreeSHAP efficiently decomposes a tree ensemble prediction into feature contributions based on Shapley values<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Shapley value.</strong> Borrowed from cooperative game theory, it averages a feature's marginal contribution over possible coalitions of other features. The mathematical allocation is exact for a chosen value function; the causal meaning still depends on how “missing” features are modeled.</span>.<a href="#ref-11">[11]</a> The contributions add to the difference between the prediction and a baseline, which is genuinely useful for debugging and case-level explanation. But correlated variables force a choice about what it means for a feature to be absent. Different background distributions can allocate credit differently while explaining the same prediction.</p>
 
       <figure class="viz" tabindex="0" aria-label="Layers of tree model interpretation from structure to causal claims">
         <svg viewBox="0 0 760 390" role="img" aria-labelledby="interpret-title interpret-desc">
@@ -817,7 +798,7 @@
 
       <p>Suppose a regression tree has seen temperatures only from 10 to 35 degrees. Beyond the largest training value, every hotter point follows the same rightmost branches and lands in the same leaf. Its prediction goes flat. A boosted ensemble adds many flat functions; outside all learned thresholds, the sum is still flat.</p>
 
-      <p>This is extrapolation<label for="sn-extrapolation" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about extrapolation"></label><input type="checkbox" id="sn-extrapolation" class="sidenote-toggle"><span class="sidenote left"><strong>Extrapolation</strong> means predicting beyond the support of the training inputs. Interpolation fills gaps among examples already represented. Trees are excellent interpolators of irregular structure and poor at continuing trends beyond observed thresholds.</span>, and it matters whenever the trend itself is the object: growth curves, physical response, demand under unprecedented prices, or climate regimes outside the sample. A linear or mechanistic component may be safer, perhaps with trees modeling residual deviations.</p>
+      <p>This is extrapolation<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Extrapolation</strong> means predicting beyond the support of the training inputs. Interpolation fills gaps among examples already represented. Trees are excellent interpolators of irregular structure and poor at continuing trends beyond observed thresholds.</span>, and it matters whenever the trend itself is the object: growth curves, physical response, demand under unprecedented prices, or climate regimes outside the sample. A linear or mechanistic component may be safer, perhaps with trees modeling residual deviations.</p>
 
       <figure class="viz" tabindex="0" aria-label="Linear regression and a tree ensemble compared outside the training range">
         <svg viewBox="0 0 760 345" role="img" aria-labelledby="extra-title extra-desc">
@@ -849,7 +830,7 @@
 
       <h3>Probabilities need inspection</h3>
 
-      <p>A leaf probability is a fraction of training labels, then bagging or boosting transforms and averages such quantities. Ranking can be excellent while the numbers are overconfident or underconfident. Calibration<label for="sn-calibration" class="sidenote-toggle sidenote-number" aria-label="Toggle sidenote about calibration"></label><input type="checkbox" id="sn-calibration" class="sidenote-toggle"><span class="sidenote"><strong>Calibration</strong> asks whether events predicted with probability 0.7 happen about 70 percent of the time. It is distinct from discrimination: a model can rank positives beautifully while assigning unreliable probabilities.</span> should be checked with reliability diagrams and a proper scoring rule such as log loss or the Brier score, preferably on data not already used for early stopping. Platt scaling or isotonic regression can help if fitted on a separate calibration set.</p>
+      <p>A leaf probability is a fraction of training labels, then bagging or boosting transforms and averages such quantities. Ranking can be excellent while the numbers are overconfident or underconfident. Calibration<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Calibration</strong> asks whether events predicted with probability 0.7 happen about 70 percent of the time. It is distinct from discrimination: a model can rank positives beautifully while assigning unreliable probabilities.</span> should be checked with reliability diagrams and a proper scoring rule such as log loss or the Brier score, preferably on data not already used for early stopping. Platt scaling or isotonic regression can help if fitted on a separate calibration set.</p>
 
       <p>Finally, trees do not repair the data-generating process. Leakage, time travel, selection bias, concept drift, censored outcomes, and label policy all survive a beautiful validation score. Because boosters are so good at finding weak shortcuts, they can make a flawed experiment look unusually convincing.</p>
 
