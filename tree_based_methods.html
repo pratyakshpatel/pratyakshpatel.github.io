@@ -292,6 +292,7 @@
       <nav class="essay-map" aria-label="Map of the essay">
         <strong>The route through the forest</strong>
         <ol>
+          <li><a href="#history">A short history</a></li>
           <li><a href="#one-question">One question</a></li>
           <li><a href="#geometry">Recursive geometry</a></li>
           <li><a href="#memorization">Why one tree memorizes</a></li>
@@ -304,6 +305,90 @@
           <li><a href="#playbook">My practical playbook</a></li>
         </ol>
       </nav>
+
+      <h2 id="history">How the forest grew</h2>
+
+      <p>I used to remember these methods as a list of names from different lectures. The history is much easier to hold onto once the arrows are visible. One useful starting point is Morgan and Sonquist's 1963 work on Automatic Interaction Detection. It recursively split survey data to reduce prediction error, which already contains the basic instinct of a regression tree.<a href="#ref-13">[13]</a> At roughly the same time, Hunt, Marin, and Stone were studying computer programs that learned concepts through tree-shaped questions.<a href="#ref-14">[14]</a></p>
+
+      <p>Those statistical and machine-learning threads produced CART and ID3 in the 1980s. The next wave did not replace the tree. It kept the tree and changed how many were fitted, what each one saw, and how their answers were combined. That is the lineage I care about in this essay.</p>
+
+      <section id="history-timeline" class="viz" tabindex="0" aria-label="Scrollable timeline of major tree-based machine-learning methods">
+        <svg viewBox="0 0 760 510" role="img" aria-labelledby="tree-history-title tree-history-desc">
+          <title id="tree-history-title">From early recursive partitioning to modern boosted-tree systems</title>
+          <desc id="tree-history-desc">A two-lane timeline. The first lane shows Automatic Interaction Detection in 1963, concept-learning systems in 1966, CART in 1984, and ID3 in 1986. The second lane shows AdaBoost in 1995, bagging in 1996, Random Forest and gradient boosting in 2001, Extra Trees and Rotation Forest in 2006, then XGBoost, LightGBM, and CatBoost from 2016 to 2018.</desc>
+          <defs>
+            <marker id="history-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="18" y="35" font-size="12" font-weight="bold">single-tree foundations</text>
+          <line x1="80" y1="135" x2="710" y2="135" stroke="#000" stroke-width="1.5" marker-end="url(#history-arrow)"/>
+
+          <g text-anchor="middle" font-size="12">
+            <circle cx="115" cy="135" r="6" fill="#000"/>
+            <line x1="115" y1="129" x2="115" y2="94" stroke="#000"/>
+            <rect x="58" y="47" width="114" height="47" fill="rgba(255,255,255,.3)" stroke="#000"/>
+            <text x="115" y="66" font-weight="bold">1963</text>
+            <text x="115" y="83">AID</text>
+
+            <circle cx="285" cy="135" r="6" fill="#000"/>
+            <line x1="285" y1="141" x2="285" y2="174" stroke="#000"/>
+            <rect x="222" y="174" width="126" height="54" fill="rgba(255,255,255,.3)" stroke="#000"/>
+            <text x="285" y="194" font-weight="bold">1966</text>
+            <text x="285" y="211">concept learning</text>
+
+            <circle cx="500" cy="135" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+            <line x1="500" y1="128" x2="500" y2="94" stroke="#0000ee"/>
+            <rect x="443" y="47" width="114" height="47" fill="rgba(255,255,255,.3)" stroke="#0000ee" stroke-width="1.5"/>
+            <text x="500" y="66" font-weight="bold" fill="#0000ee">1984</text>
+            <text x="500" y="83" fill="#0000ee">CART</text>
+
+            <circle cx="670" cy="135" r="6" fill="#000"/>
+            <line x1="670" y1="141" x2="670" y2="174" stroke="#000"/>
+            <rect x="613" y="174" width="114" height="47" fill="rgba(255,255,255,.3)" stroke="#000"/>
+            <text x="670" y="193" font-weight="bold">1986</text>
+            <text x="670" y="210">ID3</text>
+          </g>
+
+          <text x="18" y="255" font-size="12" font-weight="bold">ensembles and systems</text>
+          <line x1="80" y1="350" x2="710" y2="350" stroke="#000" stroke-width="1.5" marker-end="url(#history-arrow)"/>
+
+          <g text-anchor="middle" font-size="11">
+            <circle cx="105" cy="350" r="6" fill="#000"/>
+            <line x1="105" y1="344" x2="105" y2="315" stroke="#000"/>
+            <text x="105" y="292" font-weight="bold">1995</text>
+            <text x="105" y="307">AdaBoost</text>
+
+            <circle cx="220" cy="350" r="6" fill="#000"/>
+            <line x1="220" y1="356" x2="220" y2="389" stroke="#000"/>
+            <text x="220" y="410" font-weight="bold">1996</text>
+            <text x="220" y="426">bagging</text>
+
+            <circle cx="360" cy="350" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+            <line x1="360" y1="343" x2="360" y2="305" stroke="#0000ee"/>
+            <text x="360" y="276" font-weight="bold" fill="#0000ee">2001</text>
+            <text x="360" y="292" fill="#0000ee">Random Forest</text>
+            <text x="360" y="307" fill="#0000ee">gradient boosting</text>
+
+            <circle cx="510" cy="350" r="6" fill="#000"/>
+            <line x1="510" y1="356" x2="510" y2="389" stroke="#000"/>
+            <text x="510" y="410" font-weight="bold">2006</text>
+            <text x="510" y="426">Extra + Rotation Forest</text>
+
+            <circle cx="665" cy="350" r="7" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+            <line x1="665" y1="343" x2="665" y2="305" stroke="#0000ee"/>
+            <text x="665" y="262" font-weight="bold" fill="#0000ee">2016 to 2018</text>
+            <text x="665" y="278" fill="#0000ee">XGBoost</text>
+            <text x="665" y="293" fill="#0000ee">LightGBM</text>
+            <text x="665" y="308" fill="#0000ee">CatBoost</text>
+          </g>
+
+          <rect x="94" y="456" width="572" height="38" fill="rgba(255,255,255,.28)" stroke="#777"/>
+          <text x="380" y="480" text-anchor="middle" font-size="12">the same tree is averaged, randomized, or added as a correction</text>
+        </svg>
+        <div class="viz-caption">The dates mark publications, not the first moment anybody had a similar thought, and the spacing is for readability rather than scale. The two roots matter: survey statistics gave us recursive partitioning, while AI research gave us tree induction from examples. CART and ID3 made those ideas systematic; the ensemble era then turned instability into a design tool.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a><a href="#ref-4">[4]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-8">[8]</a><a href="#ref-9">[9]</a><a href="#ref-12">[12]</a><a href="#ref-13">[13]</a><a href="#ref-14">[14]</a><a href="#ref-15">[15]</a><a href="#ref-16">[16]</a></div>
+      </section>
 
       <h2 id="one-question">A tree begins as one question</h2>
 
@@ -337,6 +422,69 @@
       \[
         H(S)=-\sum_{k=1}^{K}p_k\log p_k.
       \]
+
+      <figure id="impurity-curves" class="viz" tabindex="0" aria-label="Graph comparing Gini impurity, entropy, and classification error across class proportions">
+        <svg viewBox="0 0 760 360" role="img" aria-labelledby="impurity-title impurity-desc">
+          <title id="impurity-title">How three classification impurities change with class balance</title>
+          <desc id="impurity-desc">A line graph from zero to one for the positive-class fraction. Entropy, Gini impurity, and classification error are zero at pure nodes and largest at an even class split. Entropy rises most sharply near purity.</desc>
+
+          <g stroke="#ccc" stroke-width="1">
+            <line x1="90" y1="285" x2="680" y2="285"/>
+            <line x1="90" y1="227.5" x2="680" y2="227.5"/>
+            <line x1="90" y1="170" x2="680" y2="170"/>
+            <line x1="90" y1="112.5" x2="680" y2="112.5"/>
+            <line x1="90" y1="55" x2="680" y2="55"/>
+          </g>
+          <line x1="90" y1="285" x2="690" y2="285" stroke="#000" stroke-width="1.5"/>
+          <line x1="90" y1="295" x2="90" y2="45" stroke="#000" stroke-width="1.5"/>
+
+          <g font-size="11" fill="#000">
+            <text x="80" y="289" text-anchor="end">0</text>
+            <text x="80" y="231.5" text-anchor="end">0.25</text>
+            <text x="80" y="174" text-anchor="end">0.50</text>
+            <text x="80" y="116.5" text-anchor="end">0.75</text>
+            <text x="80" y="59" text-anchor="end">1.00</text>
+            <text x="90" y="306" text-anchor="middle">0</text>
+            <text x="237.5" y="306" text-anchor="middle">0.25</text>
+            <text x="385" y="306" text-anchor="middle">0.50</text>
+            <text x="532.5" y="306" text-anchor="middle">0.75</text>
+            <text x="680" y="306" text-anchor="middle">1</text>
+            <text x="385" y="335" text-anchor="middle" font-size="13">fraction of class 1, p</text>
+            <text x="25" y="170" text-anchor="middle" font-size="13" transform="rotate(-90 25 170)">impurity</text>
+          </g>
+
+          <polyline points="90,285 149,177.1 208,118.9 267,82.4 326,61.7 385,55 444,61.7 503,82.4 562,118.9 621,177.1 680,285" fill="none" stroke="#0000ee" stroke-width="3" stroke-linejoin="round"/>
+          <polyline points="90,285 149,243.6 208,211.4 267,188.4 326,174.6 385,170 444,174.6 503,188.4 562,211.4 621,243.6 680,285" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+          <polyline points="90,285 149,262 208,239 267,216 326,193 385,170 444,193 503,216 562,239 621,262 680,285" fill="none" stroke="#777" stroke-width="2.5" stroke-dasharray="7 5" stroke-linejoin="round"/>
+
+          <g font-size="12">
+            <line x1="465" y1="35" x2="495" y2="35" stroke="#0000ee" stroke-width="3"/><text x="503" y="39" fill="#0000ee">entropy, base 2</text>
+            <line x1="465" y1="55" x2="495" y2="55" stroke="#000" stroke-width="3"/><text x="503" y="59">Gini</text>
+            <line x1="465" y1="75" x2="495" y2="75" stroke="#777" stroke-width="2.5" stroke-dasharray="7 5"/><text x="503" y="79">classification error</text>
+          </g>
+
+          <line x1="385" y1="55" x2="385" y2="285" stroke="#aaa" stroke-dasharray="3 4"/>
+          <text x="397" y="97" font-size="11">most uncertain</text>
+          <text x="104" y="273" font-size="11">pure</text>
+          <text x="646" y="273" font-size="11">pure</text>
+        </svg>
+        <figcaption class="viz-caption">All three measures agree on the endpoints and the most mixed point. Entropy reacts more strongly near a nearly pure node, while Gini is flatter. Gini and entropy still rank many candidate splits similarly. Classification error is included as a reference; it is comparatively insensitive, so tree-growing algorithms usually prefer Gini or entropy.</figcaption>
+      </figure>
+
+      <div class="equation-note">
+        <strong>One complete split, with the arithmetic exposed.</strong>
+        <p>The split laboratory below begins with 8 class-A rows and 9 class-B rows, so the parent impurity is</p>
+        \[
+          G(S)=1-\left(\frac{8}{17}\right)^2-\left(\frac{9}{17}\right)^2=0.498.
+        \]
+        <p>At threshold 5, the left child has counts \((7,2)\), giving \(G(S_L)=0.346\). The right child has counts \((1,7)\), giving \(G(S_R)=0.219\). Weighting by child size gives</p>
+        \[
+          G_{\text{children}}
+          =\frac{9}{17}(0.346)+\frac{8}{17}(0.219)
+          =0.286.
+        \]
+        <p>The gain is simply what disappeared: \(\Delta G=0.498-0.286=0.212\). No probability magic is hiding inside the word <em>gain</em>.</p>
+      </div>
 
       <p>For regression, labels are not categories, so mixing means spread. CART usually chooses the split that minimizes the sum of squared deviations within the two children. Each leaf then predicts the mean response of its training rows. Change the loss and the leaf changes: absolute-error trees naturally use medians; quantile losses target quantiles; survival trees need a risk-set-aware criterion. The branches look similar because the important choice is hidden in the objective.</p>
 
@@ -474,6 +622,42 @@
 
       <p>Here \(R(T)\) is the training loss of the leaves and \(|T|\) is their number. At \(\alpha=0\), the biggest tree is attractive. As \(\alpha\) rises, a new leaf must earn its existence by reducing enough error. Cross-validation chooses the trade-off.</p>
 
+      <div class="equation-note">
+        <strong>What the pruning penalty actually charges.</strong>
+        <p>Suppose an eight-leaf tree has training loss \(0.18\), while a four-leaf subtree has loss \(0.23\). With \(\alpha=0.01\), their penalized scores are \(0.18+0.01(8)=0.26\) and \(0.23+0.01(4)=0.27\), so the larger tree narrowly survives. With \(\alpha=0.03\), the scores become \(0.42\) and \(0.35\), so the smaller tree wins. Raising \(\alpha\) is literally raising the rent per leaf.</p>
+      </div>
+
+      <figure id="tree-depth-curve" class="viz" tabindex="0" aria-label="Graph of training and validation error as decision-tree depth increases">
+        <svg viewBox="0 0 760 350" role="img" aria-labelledby="depth-title depth-desc">
+          <title id="depth-title">Training error keeps falling with tree depth while validation error eventually rises</title>
+          <desc id="depth-desc">A qualitative graph with model complexity on the horizontal axis and prediction error on the vertical axis. Training error falls continuously. Validation error falls, reaches a minimum at a medium-size pruned tree, and rises as deep trees memorize noise.</desc>
+
+          <rect x="90" y="50" width="275" height="235" fill="rgba(255,255,255,.18)"/>
+          <rect x="365" y="50" width="325" height="235" fill="rgba(0,0,0,.035)"/>
+          <text x="220" y="72" text-anchor="middle" font-size="12">underfit</text>
+          <text x="535" y="72" text-anchor="middle" font-size="12">memorizing noise</text>
+
+          <line x1="90" y1="285" x2="700" y2="285" stroke="#000" stroke-width="1.5"/>
+          <line x1="90" y1="295" x2="90" y2="45" stroke="#000" stroke-width="1.5"/>
+          <text x="395" y="328" text-anchor="middle" font-size="13">tree size / depth</text>
+          <text x="28" y="170" text-anchor="middle" font-size="13" transform="rotate(-90 28 170)">prediction error</text>
+          <text x="92" y="307" font-size="11">stump</text>
+          <text x="652" y="307" font-size="11">very deep</text>
+
+          <path d="M100 91 C210 151 355 229 680 270" fill="none" stroke="#0000ee" stroke-width="3"/>
+          <path d="M100 102 C205 174 285 225 365 235 C455 226 560 166 680 104" fill="none" stroke="#000" stroke-width="3"/>
+          <text x="585" y="254" font-size="12" fill="#0000ee">training error</text>
+          <text x="580" y="128" font-size="12">validation error</text>
+
+          <line x1="365" y1="82" x2="365" y2="285" stroke="#777" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <circle cx="365" cy="235" r="6" fill="#fff" stroke="#000" stroke-width="2"/>
+          <rect x="292" y="91" width="146" height="48" fill="rgba(255,255,255,.55)" stroke="#777"/>
+          <text x="365" y="111" text-anchor="middle" font-size="12" font-weight="bold">cross-validation</text>
+          <text x="365" y="128" text-anchor="middle" font-size="11">chooses around here</text>
+        </svg>
+        <figcaption class="viz-caption">The curves are schematic, but the decision is real. Training error cannot complain about extra splits made to fit the training set. Validation error can. Pruning searches along the nested sequence of subtrees and keeps the point before memorization starts charging interest.</figcaption>
+      </figure>
+
       <p>Pruning is one answer to instability: make one tree less ambitious. Ensembles take the more interesting answer: let trees remain unstable, then arrange their errors so they cancel.</p>
 
       <h2 id="bagging">Bag the unstable thing</h2>
@@ -486,6 +670,11 @@
         \operatorname{Var}(\bar T)
         =\rho\sigma^2+\frac{1-\rho}{B}\sigma^2.
       \]
+
+      <div class="equation-note">
+        <strong>Read the variance equation as a floor plus a part we can average away.</strong>
+        <p>The shared term, \(\rho\sigma^2\), survives no matter how many trees we add. The private term, \((1-\rho)\sigma^2/B\), is divided by the number of trees. With \(B=100\) and \(\rho=0.1\), the ensemble variance is \(0.109\sigma^2\). With the same hundred trees but \(\rho=0.6\), it is \(0.604\sigma^2\). Tree count barely helps if every tree keeps making the same mistake.</p>
+      </div>
 
       <p>The second term shrinks with more trees. The first does not. Once \(B\) is large, adding yet another nearly identical tree buys almost nothing. This equation is the soul of Random Forest: preserve trees that are individually useful while reducing \(\rho\), their shared mistakes.</p>
 
@@ -597,6 +786,11 @@
         w_i\leftarrow w_i\exp\bigl(-\alpha_m y_i h_m(x_i)\bigr).
       \]
 
+      <div class="equation-note">
+        <strong>AdaBoost's update in one line of numbers.</strong>
+        <p>If a stump has weighted error \(\varepsilon=0.2\), then \(\alpha=\tfrac12\log(0.8/0.2)=0.693\). A correct row is multiplied by \(e^{-0.693}=0.5\); a mistaken row is multiplied by \(e^{0.693}=2\). Before normalization, the mistake has become four times as important relative to the correct row. The exponential is not decoration. It is the mechanism that turns embarrassment into attention.</p>
+      </div>
+
       <p>Correctly classified rows have positive \(y_i h_m(x_i)\) and shrink in weight; mistakes grow. The final sign of \(\sum_m\alpha_m h_m(x)\) decides the class. More deeply, AdaBoost increases the classification margin<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Margin</strong> is the signed confidence \(yF(x)\). A positive margin means a correct prediction, and a large positive margin means the ensemble is correct with room to spare. Boosting often keeps improving test error after training error reaches zero because it continues widening margins.</span>: not just whether a row is correct, but how far its weighted vote lies from the decision boundary.</p>
 
       <p>The weakness is visible in the update. A mislabeled or pathological row can keep accumulating weight because the ensemble cannot satisfy it. Later learners contort themselves around that one impossible demand. Robust losses and regularization soften this behavior, but the lesson is general: focusing on mistakes is powerful only when mistakes contain signal.</p>
@@ -618,6 +812,15 @@
       \]
 
       <p>With squared error, \(L=(y-F)^2/2\), the negative gradient is simply \(y-F\), the ordinary residual. The next tree predicts what the ensemble still gets wrong. With logistic loss, pseudo-residuals encode a classification probability error. With a quantile loss, they become asymmetric signs. Same boosting machinery, different definition of “please repair this.”</p>
+
+      <div class="equation-note">
+        <strong>One boosting round by hand.</strong>
+        <p>Take three ordered targets \(y=(1,3,5)\). The best constant starting prediction is their mean, so \(F_0=(3,3,3)\), and the residuals are \(r=(-2,0,2)\). Suppose a stump separates the first row and predicts the regional residual means \(h_1=(-2,1,1)\). With learning rate \(\eta=0.5\),</p>
+        \[
+          F_1=F_0+0.5h_1=(2,3.5,3.5).
+        \]
+        <p>The squared-error objective falls from \(\tfrac12(4+0+4)=4\) to \(\tfrac12(1+0.25+2.25)=1.75\). The stump did not learn the targets. It learned one useful direction from the current predictions.</p>
+      </div>
 
       <figure class="viz" tabindex="0" aria-label="Three rounds of gradient boosting fit residual structure in sequence">
         <svg viewBox="0 0 760 430" role="img" aria-labelledby="boost-title boost-desc">
@@ -694,7 +897,42 @@
         w_j^*=-\frac{G_j}{H_j+\lambda}.
       \]
 
+      <div class="equation-note">
+        <strong>Where that leaf weight comes from.</strong>
+        <p>For one leaf, keep only the terms involving its weight \(w\):</p>
+        \[
+          q(w)=Gw+\frac12(H+\lambda)w^2.
+        \]
+        <p>Differentiate, set the slope to zero, and solve:</p>
+        \[
+          q'(w)=G+(H+\lambda)w=0
+          \quad\Longrightarrow\quad
+          w^*=-\frac{G}{H+\lambda}.
+        \]
+        <p>If \(G=-6\), \(H=4\), and \(\lambda=2\), the leaf contributes \(w^*=1\) before the learning rate is applied. Without regularization it would contribute \(1.5\). In this formula, \(\lambda\) is visibly a brake.</p>
+      </div>
+
       <p>The Hessian<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote"><strong>Hessian</strong> usually means the matrix of second derivatives. Here each training prediction is a scalar, so \(h_i\) is the corresponding second derivative of the loss. It tells the update how sharply the loss curves around the current prediction.</span> in the denominator makes this Newton-like: when the loss is sharply curved, the step is cautious. The \(\lambda\) term shrinks leaf weights; \(\gamma\) charges for adding a leaf. A candidate split is accepted only if the reduction in approximate loss pays those costs.</p>
+
+      <p>Substituting the best leaf weights back into the objective gives the score used to compare a parent leaf with two proposed children:</p>
+
+      \[
+        \operatorname{Gain}
+        =\frac12\left[
+          \frac{G_L^2}{H_L+\lambda}
+          +\frac{G_R^2}{H_R+\lambda}
+          -\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}
+        \right]-\gamma.
+      \]
+
+      <div class="equation-note">
+        <strong>A split has to pay for itself.</strong>
+        <p>Let \((G_L,H_L)=(-5,3)\), \((G_R,H_R)=(2,1)\), \(\lambda=1\), and \(\gamma=0.2\). The left, right, and unsplit parent scores inside the brackets are \(25/4=6.25\), \(4/2=2\), and \(9/5=1.8\). Therefore</p>
+        \[
+          \operatorname{Gain}=\frac12(6.25+2-1.8)-0.2=3.025.
+        \]
+        <p>The result is positive, so the split improves the approximation enough to cover the new-leaf charge. A negative result means that XGBoost leaves the node alone.</p>
+      </div>
 
       <p>The engineering matters as much as the derivation. Exact split search sorts every value, which is expensive at scale. Histogram boosters bin continuous values and accumulate gradients per bin. A threshold can then be evaluated over perhaps 255 bins instead of millions of distinct numbers. Missing values can learn a default branch. Sparse columns can skip absent entries. Parallel prefix sums and careful memory layout make an algorithm built from if-statements behave like serious systems software.</p>
 
@@ -705,6 +943,72 @@
       <p>CatBoost begins from the categorical-feature problem.<a href="#ref-9">[9]</a> Suppose we replace each category with the mean target for that category. If we compute the mean using all rows, each row's own label leaks into its feature. Rare categories can practically carry the answer. If we compute encodings on one fixed holdout, we waste data and create distribution mismatch.</p>
 
       <p>CatBoost permutes the data and computes an ordered target statistic<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left"><strong>Ordered target statistic.</strong> For a row at position \(i\) in a random permutation, encode its category using only earlier rows with that category, plus a prior. The row's label cannot predict itself because, in this artificial time, it has not happened yet.</span> for each row using only rows that came earlier in a random ordering. Its ordered boosting machinery applies the same instinct to residual construction, reducing a subtle prediction shift between training examples and unseen data. This is not simply “XGBoost but categories.” It is an algorithm built around leakage control.</p>
+
+      <p>For a category value \(x_i\), one simplified version of that statistic is</p>
+
+      \[
+        \operatorname{enc}_i
+        =\frac{ap+\sum_{j&lt;i}\mathbf 1\{x_j=x_i\}y_j}
+        {a+\sum_{j&lt;i}\mathbf 1\{x_j=x_i\}},
+      \]
+
+      <p>where \(p\) is a global prior and \(a\) controls how strongly we trust it. The restriction \(j&lt;i\) is the whole trick: a row may consult matching categories in its artificial past, never its own target or a future target.</p>
+
+      <figure id="catboost-ordering" class="viz" tabindex="0" aria-label="Diagram of CatBoost ordered target encoding along a random row order">
+        <svg viewBox="0 0 760 420" role="img" aria-labelledby="ordered-title ordered-desc">
+          <title id="ordered-title">CatBoost gives each row a past before encoding its category</title>
+          <desc id="ordered-desc">Five rows appear in a random order. Each card shows a red or blue category, its target, and the ordered encoding calculated from earlier matching categories plus a prior. A zoomed view of row four shows that it can use targets from earlier red rows one and three, but not its own target.</desc>
+          <defs>
+            <marker id="ordered-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+          </defs>
+
+          <text x="380" y="25" text-anchor="middle" font-size="16" font-weight="bold">a random permutation creates an artificial past</text>
+          <line x1="35" y1="174" x2="725" y2="174" stroke="#000" stroke-width="1.5" marker-end="url(#ordered-arrow)"/>
+          <text x="380" y="194" text-anchor="middle" font-size="11">earlier rows</text>
+
+          <g font-size="11" text-anchor="middle">
+            <g transform="translate(35 48)">
+              <rect width="118" height="106" fill="rgba(255,255,255,.3)" stroke="#000"/>
+              <text x="59" y="19" font-weight="bold">row 1</text><text x="59" y="40">category: red</text><text x="59" y="60">target: 1</text><text x="59" y="84" fill="#0000ee">encoding: 0.50</text>
+            </g>
+            <g transform="translate(178 48)">
+              <rect width="118" height="106" fill="rgba(255,255,255,.3)" stroke="#000"/>
+              <text x="59" y="19" font-weight="bold">row 2</text><text x="59" y="40">category: blue</text><text x="59" y="60">target: 0</text><text x="59" y="84" fill="#0000ee">encoding: 0.50</text>
+            </g>
+            <g transform="translate(321 48)">
+              <rect width="118" height="106" fill="rgba(255,255,255,.3)" stroke="#000"/>
+              <text x="59" y="19" font-weight="bold">row 3</text><text x="59" y="40">category: red</text><text x="59" y="60">target: 0</text><text x="59" y="84" fill="#0000ee">encoding: 0.75</text>
+            </g>
+            <g transform="translate(464 48)">
+              <rect width="118" height="106" fill="rgba(255,255,255,.3)" stroke="#0000ee" stroke-width="2.5"/>
+              <text x="59" y="19" font-weight="bold" fill="#0000ee">row 4</text><text x="59" y="40">category: red</text><text x="59" y="60">target: 1</text><text x="59" y="84" fill="#0000ee">encoding: 0.50</text>
+            </g>
+            <g transform="translate(607 48)">
+              <rect width="118" height="106" fill="rgba(255,255,255,.3)" stroke="#000"/>
+              <text x="59" y="19" font-weight="bold">row 5</text><text x="59" y="40">category: blue</text><text x="59" y="60">target: 1</text><text x="59" y="84" fill="#0000ee">encoding: 0.25</text>
+            </g>
+          </g>
+
+          <rect x="105" y="220" width="550" height="170" fill="rgba(255,255,255,.2)" stroke="#777"/>
+          <text x="380" y="245" text-anchor="middle" font-size="13" font-weight="bold">encoding row 4, with prior p = 0.5 and weight a = 1</text>
+
+          <rect x="150" y="268" width="118" height="48" fill="rgba(255,255,255,.35)" stroke="#000"/>
+          <text x="209" y="287" text-anchor="middle" font-size="11">past red row 1</text><text x="209" y="304" text-anchor="middle" font-size="11">target 1</text>
+          <rect x="321" y="268" width="118" height="48" fill="rgba(255,255,255,.35)" stroke="#000"/>
+          <text x="380" y="287" text-anchor="middle" font-size="11">past red row 3</text><text x="380" y="304" text-anchor="middle" font-size="11">target 0</text>
+          <rect x="492" y="268" width="118" height="48" fill="none" stroke="#777" stroke-dasharray="5 4"/>
+          <text x="551" y="287" text-anchor="middle" font-size="11">row 4's target 1</text><text x="551" y="304" text-anchor="middle" font-size="11">not allowed</text>
+          <line x1="498" y1="273" x2="604" y2="311" stroke="#777" stroke-width="2"/>
+          <line x1="604" y1="273" x2="498" y2="311" stroke="#777" stroke-width="2"/>
+
+          <line x1="209" y1="316" x2="330" y2="345" stroke="#000" marker-end="url(#ordered-arrow)"/>
+          <line x1="380" y1="316" x2="380" y2="342" stroke="#000" marker-end="url(#ordered-arrow)"/>
+          <text x="380" y="370" text-anchor="middle" font-size="14" fill="#0000ee">(1 + 0 + 0.5) / (2 + 1) = 0.50</text>
+        </svg>
+        <figcaption class="viz-caption">The displayed target is available for training the model, but it is locked out of its own category encoding. Each permutation creates a different artificial history, and CatBoost averages over that randomness instead of trusting one arbitrary row order.</figcaption>
+      </figure>
 
       <div class="table-wrap" tabindex="0">
         <table>
@@ -894,6 +1198,10 @@
           <li id="ref-10">L. Grinsztajn, E. Oyallon, and G. Varoquaux, <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/0378c7692da36807bdec87ab043cdadc-Abstract-Datasets_and_Benchmarks.html">“Why Do Tree-Based Models Still Outperform Deep Learning on Typical Tabular Data?”</a>, NeurIPS Datasets and Benchmarks, 2022.</li>
           <li id="ref-11">S. M. Lundberg et al., <a href="https://www.nature.com/articles/s42256-019-0138-9">“From Local Explanations to Global Understanding with Explainable AI for Trees”</a>, <em>Nature Machine Intelligence</em>, 2020.</li>
           <li id="ref-12">J. J. Rodriguez, L. I. Kuncheva, and C. J. Alonso, <a href="https://ieeexplore.ieee.org/document/1677518">“Rotation Forest: A New Classifier Ensemble Method”</a>, <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 2006; see also my <a href="rotation_forest.html">long-form implementation note</a>.</li>
+          <li id="ref-13">J. N. Morgan and J. A. Sonquist, <a href="https://doi.org/10.1080/01621459.1963.10500855">“Problems in the Analysis of Survey Data, and a Proposal”</a>, <em>Journal of the American Statistical Association</em>, 1963.</li>
+          <li id="ref-14">E. B. Hunt, J. Marin, and P. J. Stone, <a href="https://books.google.com/books/about/Experiments_in_Induction.html?id=-cLaAAAAMAAJ"><em>Experiments in Induction</em></a>, Academic Press, 1966.</li>
+          <li id="ref-15">J. R. Quinlan, <a href="https://link.springer.com/article/10.1007/BF00116251">“Induction of Decision Trees”</a>, <em>Machine Learning</em>, 1986.</li>
+          <li id="ref-16">Y. Freund and R. E. Schapire, <a href="https://link.springer.com/chapter/10.1007/3-540-59119-2_166">“A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting”</a>, EuroCOLT, 1995.</li>
         </ol>
       </section>
     </article>
