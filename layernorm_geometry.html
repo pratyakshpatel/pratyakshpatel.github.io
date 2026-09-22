@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A visual primer on the geometry of LayerNorm and RMSNorm: projections, hyperspheres, quotient spaces, attention expressivity, dead directions, nGPT, and spherical residual streams.">
+  <title>Every Transformer Lives on a Sphere</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    body.layernorm-page {
+      max-width: 80rem !important;
+      counter-reset: sidenote-counter;
+      overflow-x: hidden;
+    }
+
+    .norm-nav,
+    .article-frame,
+    .norm-footer {
+      width: 100%;
+      max-width: 50rem;
+      margin-right: auto !important;
+      margin-left: auto !important;
+    }
+
+    .article-frame {
+      overflow: visible;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .thesis {
+      margin: 1.8rem 0;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #777;
+      border-left: 5px solid #0000ee;
+      font-size: 1.04rem;
+    }
+
+    .essay-map {
+      margin: 1.7rem 0 2.2rem;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+    }
+
+    .essay-map strong {
+      display: block;
+      margin-bottom: 0.45rem;
+    }
+
+    .essay-map ol {
+      columns: 2;
+      column-gap: 2.5rem;
+      margin-bottom: 0;
+    }
+
+    .equation-note,
+    .caveat-note,
+    .research-note {
+      margin: 1.5rem 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #999;
+      border-left: 4px solid #000;
+    }
+
+    .research-note {
+      border-left-color: #0000ee;
+    }
+
+    .equation-note > :last-child,
+    .caveat-note > :last-child,
+    .research-note > :last-child {
+      margin-bottom: 0 !important;
+    }
+
+    .hero-equation {
+      margin: 2rem 0;
+      padding: 1.2rem 0.8rem;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.33);
+      border: 1px solid #777;
+      border-top: 4px solid #0000ee;
+      text-align: center;
+    }
+
+    .hero-equation .operator-line {
+      margin-top: 0.75rem;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .viz {
+      margin: 2rem 0 !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 700px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .timeline-viz svg {
+      min-width: 960px;
+    }
+
+    .timeline-viz {
+      width: min(1120px, calc(100vw - 2rem));
+      max-width: none;
+      margin-left: 50% !important;
+      transform: translateX(-50%);
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+    }
+
+    .viz:focus-visible,
+    .norm-lab:focus-within,
+    .table-wrap:focus-visible {
+      outline: 3px solid #0000ee;
+      outline-offset: 3px;
+    }
+
+    .norm-lab {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #777;
+    }
+
+    .norm-lab h3 {
+      margin-top: 0 !important;
+    }
+
+    .lab-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+
+    .mode-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .mode-switch button,
+    .reset-lab {
+      min-height: 2.25rem;
+      padding: 0.35rem 0.7rem;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid #000;
+      border-radius: 0;
+      color: #000;
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .mode-switch button[aria-pressed="true"] {
+      background: #0000ee;
+      color: #fff;
+    }
+
+    .canvas-shell {
+      position: relative;
+      border: 1px solid #999;
+      background: rgba(255, 255, 255, 0.16);
+      touch-action: none;
+    }
+
+    .canvas-shell canvas {
+      display: block;
+      width: 100%;
+      height: 440px;
+      cursor: grab;
+    }
+
+    .canvas-shell canvas:active {
+      cursor: grabbing;
+    }
+
+    .drag-hint {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.65rem;
+      margin: 0;
+      padding: 0.15rem 0.35rem;
+      background: rgba(216, 204, 178, 0.88);
+      border: 1px solid #999;
+      font-size: 0.7rem;
+      line-height: 1.3;
+      pointer-events: none;
+    }
+
+    .lab-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin: 0.9rem 0 0.7rem;
+    }
+
+    .lab-controls label {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.45rem;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    .lab-controls input[type="range"] {
+      min-width: 0;
+      accent-color: #0000ee;
+    }
+
+    .lab-controls output {
+      min-width: 2.2rem;
+      font-family: "Courier New", Courier, monospace;
+      text-align: right;
+    }
+
+    .lab-readout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45rem;
+      margin: 0.7rem 0 0 !important;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.76rem;
+      line-height: 1.45;
+    }
+
+    .lab-readout span {
+      padding: 0.35rem 0.45rem;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid #aaa;
+    }
+
+    .dimension-ladder {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      min-width: 720px;
+      border: 1px solid #777;
+    }
+
+    .dimension-card {
+      min-height: 218px;
+      padding: 0.8rem;
+      border-right: 1px solid #999;
+      text-align: center;
+    }
+
+    .dimension-card:last-child {
+      border-right: 0;
+    }
+
+    .dimension-card svg {
+      min-width: 0;
+      width: 100%;
+      height: 115px;
+    }
+
+    .dimension-card strong,
+    .dimension-card span {
+      display: block;
+    }
+
+    .dimension-card span {
+      margin-top: 0.3rem;
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .comparison-grid > div {
+      padding: 0.85rem;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px solid #888;
+    }
+
+    .comparison-grid h3 {
+      margin-top: 0 !important;
+    }
+
+    .comparison-grid p:last-child {
+      margin-bottom: 0 !important;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-wrap table {
+      min-width: 720px;
+    }
+
+    sup.sidenote-number {
+      counter-increment: sidenote-counter;
+      color: #0000ee;
+      font-size: 0.7em;
+      line-height: 0;
+    }
+
+    sup.sidenote-number::after {
+      content: counter(sidenote-counter);
+      padding: 0 0.08em;
+    }
+
+    span.sidenote {
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.25rem -15rem 0.9rem 1.2rem;
+      color: #222;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    span.sidenote.left {
+      float: left;
+      clear: left;
+      margin-right: 1.2rem;
+      margin-left: -15rem;
+      text-align: right;
+    }
+
+    span.sidenote::before {
+      content: counter(sidenote-counter) ". ";
+      color: #0000ee;
+      font-weight: 700;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 1320px) {
+      body.layernorm-page {
+        max-width: 50rem !important;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 0.45rem 0 0.85rem 1rem;
+        padding: 0.45rem 0.65rem;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 2px solid #777;
+        font-size: 0.74rem;
+        line-height: 1.4;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .essay-map ol {
+        columns: 1;
+      }
+
+      .canvas-shell canvas {
+        height: 360px;
+      }
+
+      .lab-controls,
+      .lab-readout,
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lab-controls label {
+        grid-template-columns: 1.5rem 1fr 2.5rem;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        margin-left: 0.55rem;
+        font-size: 0.72rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media print {
+      body.layernorm-page {
+        max-width: none !important;
+      }
+
+      .norm-lab {
+        break-inside: avoid;
+      }
+
+      .lab-controls,
+      .lab-toolbar,
+      .drag-hint {
+        display: none;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        width: auto;
+        margin: 0.4rem 0 0.8rem;
+        padding-left: 0.8rem;
+        border-left: 2px solid #777;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="layernorm-page">
+  <nav class="nav-links norm-nav" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article class="article-frame">
+      <h1>Every Transformer Lives on a Sphere</h1>
+      <div class="meta">22 September, 2026 &middot; LayerNorm, RMSNorm, and the geometry hiding in the residual stream</div>
+
+      <p>I first met normalization through Goodfellow, Bengio, and Courville's wonderfully clear treatment of it: standardize the activations a layer receives, then give the network a learned scale and shift so it can recover any useful range.<a href="#ref-13">[13]</a> The LayerNorm paper makes the next move feel almost trivial. Take BatchNorm's recipe and turn it ninety degrees: instead of comparing one feature across examples, compare all the features inside one example.<a href="#ref-1">[1]</a></p>
+
+      <p>That explanation is excellent. It is enough to implement LayerNorm and to understand why a sequence model would rather not make one sentence depend on whichever other sentences happened to share its batch. But I kept wanting to ask whether there was more hiding in the equation. Was LayerNorm only tidying up unruly numbers, or was it changing the kind of object a hidden state could be?</p>
+
+      <p>Then I drew it.</p>
+
+      <p>The statistical recipe turned into a geometric operation: delete one direction, forget one magnitude, and leave the token on the intersection of a plane and a sphere. The learned affine parameters may warp that surface afterwards, and a real implementation adds a small \(\epsilon\), but the central picture survives. A token entering LayerNorm with thousands of coordinates leaves with only a direction in a smaller space.</p>
+
+      <p>That picture connects a surprising decade of work. RMSNorm asks whether the deleted direction was worth deleting. A 2023 result argues that the geometry changes what attention can express. nGPT puts most of the Transformer on hyperspheres deliberately. Work from 2026 finds an exact dead direction created by LayerNorm and begins treating residual updates as movement on a manifold. Meanwhile, normalization-free Transformers ask whether the sphere was essential in the first place.</p>
+
+      <div class="thesis">
+        <strong>The story is not really about fixing a mean and variance. It is about deciding which directions a neural network is allowed to care about.</strong>
+      </div>
+
+      <p>The title is intentionally provocative.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Not literally every Transformer.</strong> Ordinary LayerNorm and RMSNorm have direct spherical interpretations before their learned affine maps. nGPT makes that constraint architectural. Dynamic Tanh and other normalization-free systems are the useful counterexamples that keep the title honest.</span> A Transformer using LayerNorm does not keep every hidden state permanently on one sphere, and a model using Dynamic Tanh need not visit a sphere at all. But spheres are now a remarkably good route through the history, mathematics, and current design of normalization.</p>
+
+      <nav class="essay-map" aria-label="Map of the essay">
+        <strong>The route through the sphere</strong>
+        <ol>
+          <li><a href="#basics">BatchNorm versus LayerNorm</a></li>
+          <li><a href="#timeline">A decade of normalization</a></li>
+          <li><a href="#equation">The familiar equation</a></li>
+          <li><a href="#projection">Mean as projection</a></li>
+          <li><a href="#sphere">Variance as radius</a></li>
+          <li><a href="#forgetting">What LayerNorm forgets</a></li>
+          <li><a href="#tangent">The tangent-space view</a></li>
+          <li><a href="#rmsnorm">RMSNorm keeps a direction</a></li>
+          <li><a href="#attention">Why attention may want it</a></li>
+          <li><a href="#evidence">The 90-degree mystery</a></li>
+          <li><a href="#dead-direction">An algebraic dead direction</a></li>
+          <li><a href="#designed-spheres">Transformers built on spheres</a></li>
+          <li><a href="#counterstory">The counter-story</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="basics">First, which numbers share a ruler?</h2>
+
+      <p>Normalization is easiest to understand before it becomes geometry. Imagine a small table of activations \(X\in\mathbb R^{B\times d}\). Each row is one example; each column is one learned feature. To <em>standardize</em> a group of numbers means to move its centre to zero and set its typical spread to one. The learned parameters \(\gamma\) and \(\beta\) can then stretch and shift the result. BatchNorm and LayerNorm mostly disagree about one question: <strong>which numbers belong to the group?</strong></p>
+
+      <figure class="viz" tabindex="0" aria-label="BatchNorm compares a feature down a batch while LayerNorm compares features across one example">
+        <svg viewBox="0 0 760 330" role="img" aria-labelledby="axis-title axis-desc">
+          <title id="axis-title">BatchNorm and LayerNorm choose perpendicular normalization axes</title>
+          <desc id="axis-desc">Two four-by-five activation tables. The BatchNorm table highlights one feature column across four examples. The LayerNorm table highlights all five features across one example row.</desc>
+          <defs>
+            <marker id="axis-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/>
+            </marker>
+          </defs>
+
+          <text x="184" y="30" text-anchor="middle" font-size="16" font-weight="bold">BatchNorm</text>
+          <text x="574" y="30" text-anchor="middle" font-size="16" font-weight="bold">LayerNorm</text>
+          <text x="184" y="51" text-anchor="middle" font-size="11">one feature, across examples</text>
+          <text x="574" y="51" text-anchor="middle" font-size="11">one example, across features</text>
+
+          <g transform="translate(65 78)">
+            <rect x="96" y="0" width="48" height="168" fill="rgba(0,0,238,.13)" stroke="#0000ee" stroke-width="2"/>
+            <g fill="rgba(255,255,255,.24)" stroke="#777">
+              <rect x="0" y="0" width="48" height="42"/><rect x="48" y="0" width="48" height="42"/><rect x="144" y="0" width="48" height="42"/><rect x="192" y="0" width="48" height="42"/>
+              <rect x="0" y="42" width="48" height="42"/><rect x="48" y="42" width="48" height="42"/><rect x="144" y="42" width="48" height="42"/><rect x="192" y="42" width="48" height="42"/>
+              <rect x="0" y="84" width="48" height="42"/><rect x="48" y="84" width="48" height="42"/><rect x="144" y="84" width="48" height="42"/><rect x="192" y="84" width="48" height="42"/>
+              <rect x="0" y="126" width="48" height="42"/><rect x="48" y="126" width="48" height="42"/><rect x="144" y="126" width="48" height="42"/><rect x="192" y="126" width="48" height="42"/>
+            </g>
+            <g fill="#000" font-size="10" text-anchor="middle">
+              <text x="24" y="-9">f₁</text><text x="72" y="-9">f₂</text><text x="120" y="-9" fill="#0000ee" font-weight="bold">f₃</text><text x="168" y="-9">f₄</text><text x="216" y="-9">f₅</text>
+              <text x="-18" y="25">e₁</text><text x="-18" y="67">e₂</text><text x="-18" y="109">e₃</text><text x="-18" y="151">e₄</text>
+              <text x="120" y="26">2</text><text x="120" y="68">7</text><text x="120" y="110">4</text><text x="120" y="152">9</text>
+            </g>
+            <line x1="120" y1="181" x2="120" y2="213" stroke="#0000ee" stroke-width="2" marker-end="url(#axis-arrow)"/>
+            <text x="120" y="232" text-anchor="middle" font-size="11" fill="#0000ee">one shared mean and variance</text>
+          </g>
+
+          <g transform="translate(455 78)">
+            <rect x="0" y="42" width="240" height="42" fill="rgba(0,0,238,.13)" stroke="#0000ee" stroke-width="2"/>
+            <g fill="rgba(255,255,255,.24)" stroke="#777">
+              <rect x="0" y="0" width="48" height="42"/><rect x="48" y="0" width="48" height="42"/><rect x="96" y="0" width="48" height="42"/><rect x="144" y="0" width="48" height="42"/><rect x="192" y="0" width="48" height="42"/>
+              <rect x="0" y="84" width="48" height="42"/><rect x="48" y="84" width="48" height="42"/><rect x="96" y="84" width="48" height="42"/><rect x="144" y="84" width="48" height="42"/><rect x="192" y="84" width="48" height="42"/>
+              <rect x="0" y="126" width="48" height="42"/><rect x="48" y="126" width="48" height="42"/><rect x="96" y="126" width="48" height="42"/><rect x="144" y="126" width="48" height="42"/><rect x="192" y="126" width="48" height="42"/>
+            </g>
+            <g fill="#000" font-size="10" text-anchor="middle">
+              <text x="24" y="-9">f₁</text><text x="72" y="-9">f₂</text><text x="120" y="-9">f₃</text><text x="168" y="-9">f₄</text><text x="216" y="-9">f₅</text>
+              <text x="-18" y="25">e₁</text><text x="-18" y="67" fill="#0000ee" font-weight="bold">e₂</text><text x="-18" y="109">e₃</text><text x="-18" y="151">e₄</text>
+              <text x="24" y="68">3</text><text x="72" y="68">−1</text><text x="120" y="68">4</text><text x="168" y="68">0</text><text x="216" y="68">6</text>
+            </g>
+            <line x1="120" y1="181" x2="120" y2="213" stroke="#0000ee" stroke-width="2" marker-end="url(#axis-arrow)"/>
+            <text x="120" y="232" text-anchor="middle" font-size="11" fill="#0000ee">one shared mean and variance</text>
+          </g>
+        </svg>
+        <figcaption class="viz-caption">The arithmetic is the same; the axis is different. BatchNorm uses the other examples to normalize a feature. LayerNorm uses the other features to normalize one example. In a language model, the “example” for this operation is normally one token vector, so each token gets its own statistics.<a href="#ref-14">[14]</a><a href="#ref-1">[1]</a></figcaption>
+      </figure>
+
+      <p>That axis choice has practical consequences. During training, BatchNorm's output for one example can change when the other examples in its minibatch change, and inference usually relies on accumulated population estimates. LayerNorm needs neither: it computes fresh statistics inside each token, so its rule is the same with a batch of one or a batch of one thousand.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>A convolutional footnote.</strong> In common CNN implementations, BatchNorm pools a channel over the batch and spatial locations, not merely down one tidy column. The small table isolates the essential distinction: BatchNorm shares statistics across examples; LayerNorm does not.</span></p>
+
+      <p>So far this is a story about bookkeeping axes. Now rotate the point of view. One row is not merely a list of feature values; it is a vector in a space. “Across the row” then becomes “along particular directions,” and standardization becomes geometry.</p>
+
+      <h2 id="timeline">How a statistical trick became a geometry</h2>
+
+      <p>The chronology matters because nobody began by announcing a manifold. The original 2016 LayerNorm paper moved normalization statistics from the batch to the features of one example.<a href="#ref-1">[1]</a> RMSNorm removed the mean subtraction in 2019.<a href="#ref-2">[2]</a> Only later did a sequence of papers make the implied geometry explicit, connect it to attention, and then turn it into an architectural principle.</p>
+
+      <figure class="viz timeline-viz" tabindex="0" aria-label="Scrollable timeline of normalization and hyperspherical Transformer research">
+        <svg viewBox="0 0 1120 500" role="img" aria-labelledby="norm-history-title norm-history-desc">
+          <title id="norm-history-title">From LayerNorm to explicitly spherical Transformers</title>
+          <desc id="norm-history-desc">A proportional timeline from 2016 to 2026 with three lanes: normalization operators, geometric explanations, and architectures. It includes LayerNorm in 2016, RMSNorm in 2019, attention expressivity in 2023, Geometry and Dynamics of LayerNorm in 2024, nGPT and Dynamic Tanh in 2025, then geometric comparison, algebraic dead directions, Training nGPT, and Sphere Retraction Normalizations in 2026.</desc>
+          <defs>
+            <marker id="timeline-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+            <filter id="timeline-paper" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="9" result="noise"/>
+              <feComposite in="noise" in2="SourceGraphic" operator="in" result="texture"/>
+              <feBlend in="SourceGraphic" in2="texture" mode="multiply"/>
+            </filter>
+          </defs>
+
+          <text x="24" y="37" font-size="15" font-weight="bold">the field slowly noticed the surface</text>
+          <text x="24" y="59" font-size="11">publication dates &middot; horizontal distance is proportional to time</text>
+          <line x1="120" y1="420" x2="1070" y2="420" stroke="#000" stroke-width="1.5" marker-end="url(#timeline-arrow)"/>
+
+          <g font-size="11" text-anchor="middle">
+            <g><line x1="130" y1="412" x2="130" y2="428" stroke="#000"/><text x="130" y="448">2016</text></g>
+            <g><line x1="400" y1="412" x2="400" y2="428" stroke="#000"/><text x="400" y="448">2019</text></g>
+            <g><line x1="760" y1="412" x2="760" y2="428" stroke="#000"/><text x="760" y="448">2023</text></g>
+            <g><line x1="850" y1="412" x2="850" y2="428" stroke="#000"/><text x="850" y="448">2024</text></g>
+            <g><line x1="940" y1="412" x2="940" y2="428" stroke="#000"/><text x="940" y="448">2025</text></g>
+            <g><line x1="1030" y1="412" x2="1030" y2="428" stroke="#000"/><text x="1030" y="448">2026</text></g>
+          </g>
+
+          <g font-size="11" font-weight="bold">
+            <text x="20" y="130">OPERATORS</text>
+            <text x="20" y="250">GEOMETRY</text>
+            <text x="20" y="365">ARCHITECTURE</text>
+          </g>
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="106" y1="145" x2="1080" y2="145"/>
+            <line x1="106" y1="265" x2="1080" y2="265"/>
+            <line x1="106" y1="380" x2="1080" y2="380"/>
+          </g>
+
+          <path d="M130 145 C245 78 315 212 400 145 S640 76 760 265 S865 315 940 380 S1000 244 1070 265" fill="none" stroke="#0000ee" stroke-width="2" stroke-dasharray="6 5" opacity="0.85"/>
+
+          <g font-size="11" text-anchor="middle">
+            <circle cx="130" cy="145" r="10" fill="#0000ee"/>
+            <line x1="130" y1="135" x2="130" y2="96" stroke="#0000ee"/>
+            <rect x="76" y="65" width="108" height="31" fill="rgba(255,255,255,.38)" stroke="#0000ee"/>
+            <text x="130" y="84" fill="#0000ee" font-weight="bold">LayerNorm</text>
+
+            <circle cx="400" cy="145" r="9" fill="#000"/>
+            <line x1="400" y1="154" x2="400" y2="188" stroke="#000"/>
+            <rect x="345" y="188" width="110" height="31" fill="rgba(255,255,255,.38)" stroke="#000"/>
+            <text x="400" y="207" font-weight="bold">RMSNorm</text>
+
+            <circle cx="760" cy="265" r="10" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <line x1="760" y1="255" x2="760" y2="210" stroke="#0000ee"/>
+            <rect x="696" y="169" width="128" height="41" fill="rgba(255,255,255,.38)" stroke="#0000ee"/>
+            <text x="760" y="187" fill="#0000ee" font-weight="bold">attention</text>
+            <text x="760" y="201" fill="#0000ee">expressivity</text>
+
+            <circle cx="850" cy="265" r="9" fill="#000"/>
+            <line x1="850" y1="274" x2="850" y2="307" stroke="#000"/>
+            <rect x="788" y="307" width="124" height="41" fill="rgba(255,255,255,.38)" stroke="#000"/>
+            <text x="850" y="325" font-weight="bold">geometry &amp;</text>
+            <text x="850" y="339">dynamics</text>
+
+            <circle cx="925" cy="380" r="10" fill="#0000ee"/>
+            <line x1="925" y1="370" x2="925" y2="326" stroke="#0000ee"/>
+            <rect x="889" y="295" width="72" height="31" fill="rgba(255,255,255,.38)" stroke="#0000ee"/>
+            <text x="925" y="314" fill="#0000ee" font-weight="bold">nGPT</text>
+
+            <circle cx="965" cy="145" r="9" fill="#000"/>
+            <line x1="965" y1="136" x2="965" y2="97" stroke="#000"/>
+            <rect x="924" y="66" width="82" height="31" fill="rgba(255,255,255,.38)" stroke="#000"/>
+            <text x="965" y="85" font-weight="bold">DyT</text>
+
+            <circle cx="1015" cy="265" r="10" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <line x1="1015" y1="255" x2="1015" y2="211" stroke="#0000ee"/>
+            <rect x="964" y="170" width="102" height="41" fill="rgba(255,255,255,.38)" stroke="#0000ee"/>
+            <text x="1015" y="188" fill="#0000ee" font-weight="bold">LN vs RMS</text>
+            <text x="1015" y="202" fill="#0000ee">Mar 2026</text>
+
+            <circle cx="1045" cy="265" r="7" fill="#000"/>
+            <line x1="1045" y1="274" x2="1045" y2="316" stroke="#000"/>
+            <rect x="992" y="316" width="106" height="41" fill="rgba(255,255,255,.38)" stroke="#000"/>
+            <text x="1045" y="334" font-weight="bold">dead direction</text>
+            <text x="1045" y="348">Jun 2026</text>
+
+            <circle cx="1070" cy="380" r="10" fill="#0000ee"/>
+            <line x1="1070" y1="370" x2="1070" y2="105" stroke="#0000ee" stroke-dasharray="3 3"/>
+            <rect x="1008" y="64" width="106" height="41" fill="rgba(255,255,255,.38)" stroke="#0000ee"/>
+            <text x="1061" y="82" fill="#0000ee" font-weight="bold">train + retract</text>
+            <text x="1061" y="96" fill="#0000ee">Aug 2026</text>
+          </g>
+
+          <g transform="translate(285 305)" opacity="0.22" filter="url(#timeline-paper)">
+            <circle cx="0" cy="0" r="58" fill="none" stroke="#000" stroke-width="2"/>
+            <ellipse cx="0" cy="0" rx="58" ry="18" fill="none" stroke="#000"/>
+            <ellipse cx="0" cy="0" rx="20" ry="58" fill="none" stroke="#000"/>
+          </g>
+          <text x="285" y="377" text-anchor="middle" font-size="10">statistics became a surface</text>
+        </svg>
+        <figcaption class="viz-caption">The progression is not a clean replacement chain. RMSNorm questioned centering before the geometric language became common; nGPT and Dynamic Tanh then pushed in opposite directions in the same year. By 2026, one branch was making the sphere more explicit while another kept asking how much normalization we needed at all.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a><a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-8">[8]</a><a href="#ref-9">[9]</a><a href="#ref-10">[10]</a></figcaption>
+      </figure>
+
+      <h2 id="equation">Start with the boring equation</h2>
+
+      <p>Take one token in a residual stream. Its hidden representation is a vector</p>
+
+      \[
+        x=
+        \begin{bmatrix}
+          x_1 &amp; x_2 &amp; \cdots &amp; x_d
+        \end{bmatrix}^{\!\top}
+        \in\mathbb R^d.
+      \]
+
+      <p>The residual stream is the model's running workspace. Each Transformer block reads the current vector, computes an attention or MLP update, and adds that update back. The same token representation therefore accumulates many layers of changes. Its coordinates are not human-labelled features; they are a learned basis in which the network stores whatever distinctions help prediction. Normalization sits at a consequential junction: it decides what version of that workspace the next sublayer is allowed to read.</p>
+
+      <p>The coordinates are features, not tokens.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Which axis is normalized?</strong> For the usual language-model case, LayerNorm treats the \(d\) features of each token separately from the other tokens and examples. BatchNorm instead estimates statistics using a batch dimension. This per-token independence is one reason LayerNorm fits variable-length sequence models so naturally.</span> Ordinary LayerNorm computes the mean and variance across those \(d\) coordinates:</p>
+
+      \[
+        \mu=\frac1d\sum_{i=1}^{d}x_i,
+        \qquad
+        \sigma^2=\frac1d\sum_{i=1}^{d}(x_i-\mu)^2.
+      \]
+
+      <p>Temporarily ignore numerical stabilisation and the learned scale and shift. The standardized output is</p>
+
+      \[
+        \operatorname{LN}_0(x)=\frac{x-\mu\mathbf1}{\sigma},
+        \qquad
+        \mathbf1=
+        \begin{bmatrix}1&amp;1&amp;\cdots&amp;1\end{bmatrix}^{\!\top}.
+      \]
+
+      <p>This is how I had always read the operation: coordinate-wise statistics. But the vector \(\mathbf1\) is a clue. Every coordinate of it moves together, which means it represents a very specific direction through the hidden space. Once we ask what subtracting \(\mu\mathbf1\) does along that direction, the equation stops looking statistical.</p>
+
+      <h2 id="projection">Subtracting the mean deletes a direction</h2>
+
+      <p>Normalize the all-ones vector:</p>
+
+      \[
+        u=\frac{\mathbf1}{\sqrt d},
+        \qquad u^\top u=1.
+      \]
+
+      <p>The component of \(x\) pointing along \(u\) is its orthogonal projection</p>
+
+      \[
+        \operatorname{proj}_u(x)=(u^\top x)u.
+      \]
+
+      <p>Now expand the dot product. Because \(u\) contains \(d\) copies of \(1/\sqrt d\),</p>
+
+      \[
+        u^\top x
+        =\frac1{\sqrt d}\sum_i x_i
+        =\sqrt d\,\mu.
+      \]
+
+      <p>Multiplying by \(u\) again gives</p>
+
+      \[
+        (u^\top x)u
+        =\sqrt d\,\mu\frac{\mathbf1}{\sqrt d}
+        =\mu\mathbf1.
+      \]
+
+      <p>So the unremarkable phrase <em>subtract the mean</em> is exactly the operation</p>
+
+      \[
+        x-\mu\mathbf1=x-\operatorname{proj}_u(x).
+      \]
+
+      <p>LayerNorm removes the part of the token that points along the uniform direction. It is not softly discouraged or learned away. Before \(\epsilon\) and the affine map enter, that component is annihilated by construction.</p>
+
+      <figure class="viz" tabindex="0" aria-label="A vector decomposed into its uniform component and its centered component">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="projection-title projection-desc">
+          <title id="projection-title">Mean subtraction is orthogonal projection</title>
+          <desc id="projection-desc">A three-dimensional vector x is decomposed into a component parallel to the uniform vector and a centered component lying on the plane whose coordinates sum to zero.</desc>
+          <defs>
+            <marker id="projection-black-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+            <marker id="projection-blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/>
+            </marker>
+            <pattern id="projection-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="#777" stroke-width="1" opacity="0.22"/>
+            </pattern>
+          </defs>
+
+          <polygon points="88,302 380,138 684,270 388,403" fill="url(#projection-hatch)" stroke="#777"/>
+          <text x="568" y="332" font-size="13">H = 1<tspan baseline-shift="super" font-size="9">⊥</tspan></text>
+          <text x="568" y="350" font-size="11">all coordinates sum to zero</text>
+
+          <circle cx="360" cy="300" r="4" fill="#000"/>
+          <text x="346" y="322" font-size="12">0</text>
+
+          <line x1="360" y1="300" x2="485" y2="106" stroke="#777" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#projection-black-arrow)"/>
+          <text x="493" y="102" font-size="13">u = 1/√d</text>
+
+          <line x1="360" y1="300" x2="277" y2="219" stroke="#0000ee" stroke-width="4" marker-end="url(#projection-blue-arrow)"/>
+          <text x="198" y="211" font-size="13" fill="#0000ee">Px = x − μ1</text>
+
+          <line x1="360" y1="300" x2="448" y2="163" stroke="#000" stroke-width="3" marker-end="url(#projection-black-arrow)"/>
+          <text x="451" y="155" font-size="13">μ1</text>
+
+          <line x1="360" y1="300" x2="365" y2="80" stroke="#000" stroke-width="3" marker-end="url(#projection-black-arrow)"/>
+          <text x="344" y="65" font-size="14" font-weight="bold">x</text>
+
+          <line x1="365" y1="80" x2="277" y2="219" stroke="#777" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="365" y1="80" x2="448" y2="163" stroke="#777" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <path d="M435 183 L452 194 L465 174" fill="none" stroke="#000" stroke-width="1.5"/>
+
+          <rect x="65" y="33" width="236" height="67" fill="rgba(255,255,255,.3)" stroke="#777"/>
+          <text x="82" y="57" font-size="12">one vector, two perpendicular parts</text>
+          <text x="82" y="82" font-size="14" font-weight="bold">x = μ1 + Px</text>
+        </svg>
+        <figcaption class="viz-caption">The diagonal direction \(u\) raises or lowers every feature together. Mean subtraction removes exactly that motion and drops the representation onto the hyperplane \(H=\{z:\mathbf1^\top z=0\}\).</figcaption>
+      </figure>
+
+      <p>The same operation can be written as a matrix:</p>
+
+      \[
+        P=I-\frac1d\mathbf1\mathbf1^\top,
+        \qquad Px=x-\mu\mathbf1.
+      \]
+
+      <p>The identities \(P^\top=P\) and \(P^2=P\) say that \(P\) is an orthogonal projector.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Why does \(P^2=P\) matter?</strong> Project once and the vector is already in the plane; projecting again changes nothing. Symmetry, \(P^\top=P\), says the projection is perpendicular rather than oblique. Together these are the algebraic fingerprints of an orthogonal projection.</span> Every centered vector obeys</p>
+
+      \[
+        \mathbf1^\top Px=0,
+      \]
+
+      <p>so it lives in the hyperplane \(H=\mathbf1^\perp\). The original space had \(d\) independent directions. The constraint that all coordinates sum to zero leaves \(d-1\).</p>
+
+      <p>There is an operational way to feel that lost direction. Add the same number to every coordinate:</p>
+
+      \[
+        x\longrightarrow x+c\mathbf1.
+      \]
+
+      <p>LayerNorm cannot see the move, because</p>
+
+      \[
+        P(x+c\mathbf1)=Px+cP\mathbf1=Px.
+      \]
+
+      <p>A common offset can be arbitrarily large and the standardized result will not notice. LayerNorm has declared that translation along \(\mathbf1\) is irrelevant.</p>
+
+      <h2 id="sphere">Dividing by standard deviation creates the sphere</h2>
+
+      <p>The denominator now becomes geometric too. The variance is the average squared length of the centered coordinates:</p>
+
+      \[
+        \sigma^2=\frac1d\|Px\|_2^2,
+        \qquad
+        \sigma=\frac{\|Px\|_2}{\sqrt d}.
+      \]
+
+      <p>Substitute that into LayerNorm:</p>
+
+      <div class="hero-equation">
+        \[
+          \boxed{
+          \operatorname{LN}_0(x)
+          =\sqrt d\frac{Px}{\|Px\|_2}}
+        \]
+        <div class="operator-line">project &rarr; keep only direction &rarr; set radius to √d</div>
+      </div>
+
+      <p>That single equation is the article. First project away the uniform component. Then divide by the remaining length, which keeps only orientation. Finally multiply by \(\sqrt d\), which chooses the radius. Every standardized output \(y\) therefore satisfies</p>
+
+      \[
+        \mathbf1^\top y=0,
+        \qquad
+        \|y\|_2^2=d.
+      \]
+
+      <p>One equation restricts \(y\) to a hyperplane. The other restricts it to a hypersphere. LayerNorm outputs lie where those two surfaces meet.<a href="#ref-3">[3]</a><a href="#ref-7">[7]</a></p>
+
+      <p>There is also a quick statistical check on the radius. “Unit variance” across coordinates means their average squared value is one after centering. Multiply that average by the \(d\) coordinates and the sum of squares is \(d\). The Euclidean length must therefore be \(\sqrt d\). The sphere is not an extra geometric claim laid on top of the statistics; it is the statistics read as a length constraint.</p>
+
+      <p>This is where dimension language is easy to muddle. The centered hyperplane has dimension \(d-1\). Fixing the radius removes one more continuous degree of freedom. The standardized outputs themselves form a sphere \(S^{d-2}\) of radius \(\sqrt d\), embedded inside that hyperplane.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Sphere notation.</strong> \(S^n\) names a surface of intrinsic dimension \(n\): \(S^1\) is a circle and \(S^2\) is the ordinary globe surface. The sphere \(S^{d-2}\) lives inside a \((d-1)\)-dimensional centered space, which itself sits inside \(\mathbb R^d\).</span></p>
+
+      <figure class="viz" tabindex="0" aria-label="Dimension ladder for LayerNorm outputs">
+        <div class="dimension-ladder" role="img" aria-label="In two input dimensions LayerNorm outputs form two points, in three dimensions a circle, in four dimensions an ordinary sphere, and in 4096 dimensions a 4094-dimensional sphere">
+          <div class="dimension-card">
+            <svg viewBox="0 0 150 115" aria-hidden="true">
+              <line x1="23" y1="88" x2="128" y2="23" stroke="#777" stroke-width="2"/>
+              <circle cx="42" cy="76" r="7" fill="#0000ee"/>
+              <circle cx="109" cy="35" r="7" fill="#0000ee"/>
+            </svg>
+            <strong>\(d=2\)</strong>
+            <span>a line meets a circle<br>\(S^0\): two points</span>
+          </div>
+          <div class="dimension-card">
+            <svg viewBox="0 0 150 115" aria-hidden="true">
+              <ellipse cx="75" cy="59" rx="54" ry="31" fill="none" stroke="#0000ee" stroke-width="3"/>
+              <line x1="20" y1="59" x2="130" y2="59" stroke="#aaa"/>
+              <line x1="75" y1="18" x2="75" y2="99" stroke="#aaa"/>
+            </svg>
+            <strong>\(d=3\)</strong>
+            <span>a plane meets a sphere<br>\(S^1\): a circle</span>
+          </div>
+          <div class="dimension-card">
+            <svg viewBox="0 0 150 115" aria-hidden="true">
+              <circle cx="75" cy="58" r="45" fill="rgba(0,0,238,.04)" stroke="#0000ee" stroke-width="2.5"/>
+              <ellipse cx="75" cy="58" rx="45" ry="14" fill="none" stroke="#777"/>
+              <path d="M75 13 C51 28 51 88 75 103 C99 88 99 28 75 13" fill="none" stroke="#aaa"/>
+            </svg>
+            <strong>\(d=4\)</strong>
+            <span>a 3D slice of \(S^3\)<br>\(S^2\): a sphere</span>
+          </div>
+          <div class="dimension-card">
+            <svg viewBox="0 0 150 115" aria-hidden="true">
+              <g fill="none" stroke="#0000ee" opacity="0.8">
+                <ellipse cx="75" cy="58" rx="56" ry="17"/>
+                <ellipse cx="75" cy="58" rx="44" ry="44" transform="rotate(28 75 58)"/>
+                <ellipse cx="75" cy="58" rx="44" ry="44" transform="rotate(-28 75 58)"/>
+                <ellipse cx="75" cy="58" rx="18" ry="53"/>
+              </g>
+              <circle cx="75" cy="58" r="4" fill="#000"/>
+            </svg>
+            <strong>\(d=4096\)</strong>
+            <span>the same rule, unseen<br>\(S^{4094}\)</span>
+          </div>
+        </div>
+        <figcaption class="viz-caption">The low-dimensional cases are not analogies; they are the same construction where we can still draw it. In \(d=2\), every nonconstant vector collapses to either \((1,-1)\) or \((-1,1)\). A 4,096-wide residual stream has vastly more room, but LayerNorm still removes exactly two continuous degrees of freedom.</figcaption>
+      </figure>
+
+      <h3>The two-dimensional shock</h3>
+
+      <p>The first rung is worth doing by hand because it makes the information loss impossible to ignore. Let \(x=(a,b)\). Its mean is \((a+b)/2\), so centering gives</p>
+
+      \[
+        x-\mu\mathbf1
+        =\frac{a-b}{2}(1,-1).
+      \]
+
+      <p>No matter where \(x\) began, its centered version points along the same diagonal line. Its standard deviation is \(|a-b|/2\), so dividing leaves only the sign:</p>
+
+      \[
+        \operatorname{LN}_0(a,b)
+        =
+        \begin{cases}
+          (1,-1), &amp; a&gt;b,\\
+          (-1,1), &amp; a&lt;b.
+        \end{cases}
+      \]
+
+      <p>Every nonconstant point in the entire plane becomes one of two answers. The degenerate case \(a=b\) has zero variance, which is exactly why implementations need \(\epsilon\). Real Transformers use far more than two dimensions, so this is not a warning that all useful information vanishes. It is a clean demonstration of what the operator keeps: not coordinate level, not length, only which centered direction survived.</p>
+
+      <section class="norm-lab" aria-labelledby="norm-lab-title">
+        <h3 id="norm-lab-title">Normalization laboratory</h3>
+        <p>Move the three coordinates, switch the operator, and drag the drawing to rotate it. The black arrow is the input direction, the grey arrow is the centered component, and the blue arrow is the normalized output.</p>
+        <div class="lab-toolbar">
+          <div class="mode-switch" role="group" aria-label="Normalization method">
+            <button type="button" data-norm-mode="layer" aria-pressed="true">LayerNorm</button>
+            <button type="button" data-norm-mode="rms" aria-pressed="false">RMSNorm</button>
+          </div>
+          <button class="reset-lab" id="reset-norm-lab" type="button">Reset view and vector</button>
+        </div>
+        <div class="canvas-shell">
+          <canvas id="norm-canvas" width="760" height="440" tabindex="0" aria-label="Interactive three-dimensional view of LayerNorm and RMSNorm. Drag to rotate; use the sliders below to change the vector."></canvas>
+          <p class="drag-hint" aria-hidden="true">drag to rotate</p>
+        </div>
+        <div class="lab-controls">
+          <label for="coord-x"><span>\(x_1\)</span><input id="coord-x" type="range" min="-4" max="4" step="0.1" value="3"><output for="coord-x">3.0</output></label>
+          <label for="coord-y"><span>\(x_2\)</span><input id="coord-y" type="range" min="-4" max="4" step="0.1" value="1"><output for="coord-y">1.0</output></label>
+          <label for="coord-z"><span>\(x_3\)</span><input id="coord-z" type="range" min="-4" max="4" step="0.1" value="-2"><output for="coord-z">−2.0</output></label>
+        </div>
+        <p class="lab-readout" id="norm-readout" aria-live="polite">
+          <span id="readout-mean">mean = 0.667</span>
+          <span id="readout-norm">output norm = √3</span>
+          <span id="readout-sum">output sum = 0</span>
+        </p>
+        <div class="viz-caption">In LayerNorm mode the shaded sheet is \(\mathbf1^\perp\), and its blue great circle is the \(d=3\) output space. RMSNorm removes the sheet: it keeps the original direction and lands anywhere on the full \(S^2\).</div>
+      </section>
+
+      <h2 id="forgetting">LayerNorm does not merely normalize. It forgets.</h2>
+
+      <p>There is a more complete way to describe what disappeared. Let</p>
+
+      \[
+        x'=ax+b\mathbf1,
+        \qquad a&gt;0.
+      \]
+
+      <p>Projecting removes the common offset and keeps the positive scaling:</p>
+
+      \[
+        Px'=aPx.
+      \]
+
+      <p>Normalizing then removes that scaling:</p>
+
+      \[
+        \sqrt d\frac{aPx}{\|aPx\|}
+        =\sqrt d\frac{Px}{\|Px\|}.
+      \]
+
+      <p>Therefore</p>
+
+      \[
+        \boxed{
+        \operatorname{LN}_0(ax+b\mathbf1)
+        =\operatorname{LN}_0(x)}
+        \qquad(a&gt;0).
+      \]
+
+      <p>An entire two-parameter family of vectors becomes one point. LayerNorm ignores common offset and overall positive scale; it retains only the direction of the centered vector. The word <em>normalization</em> sounds like one vector being cleaned up. The operation is more accurately collapsing an equivalence class.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Many vectors collapsing to one LayerNorm output">
+        <svg viewBox="0 0 760 380" role="img" aria-labelledby="quotient-title quotient-desc">
+          <title id="quotient-title">LayerNorm collapses an equivalence class</title>
+          <desc id="quotient-desc">Several differently offset and scaled vectors pass through a projection and radial normalization funnel and arrive at the same point on a circle.</desc>
+          <defs>
+            <marker id="quotient-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+            <marker id="quotient-blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/>
+            </marker>
+          </defs>
+
+          <g transform="translate(74 55)" font-size="12">
+            <line x1="20" y1="235" x2="112" y2="145" stroke="#000" stroke-width="3" marker-end="url(#quotient-arrow)"/>
+            <text x="49" y="259">x</text>
+            <line x1="20" y1="235" x2="153" y2="105" stroke="#777" stroke-width="3" marker-end="url(#quotient-arrow)"/>
+            <text x="111" y="87">2x + 3·1</text>
+            <line x1="20" y1="235" x2="194" y2="65" stroke="#aaa" stroke-width="3" marker-end="url(#quotient-arrow)"/>
+            <text x="159" y="44">5x − 7·1</text>
+            <path d="M39 216 L65 258 M64 192 L90 234 M89 168 L115 210 M114 143 L140 185 M139 119 L165 161" stroke="#0000ee" opacity="0.45"/>
+            <text x="19" y="296" font-size="11">one offset-scale family</text>
+          </g>
+
+          <path d="M322 76 C382 122 382 258 322 304 L451 252 C476 218 476 162 451 128 Z" fill="rgba(255,255,255,.26)" stroke="#777"/>
+          <text x="386" y="183" text-anchor="middle" font-size="12" font-weight="bold">project</text>
+          <text x="386" y="200" text-anchor="middle" font-size="12">then normalize</text>
+
+          <line x1="451" y1="190" x2="536" y2="190" stroke="#0000ee" stroke-width="3" marker-end="url(#quotient-blue-arrow)"/>
+          <circle cx="632" cy="190" r="83" fill="none" stroke="#777" stroke-width="2"/>
+          <ellipse cx="632" cy="190" rx="83" ry="25" fill="none" stroke="#aaa"/>
+          <circle cx="704" cy="148" r="8" fill="#0000ee"/>
+          <line x1="632" y1="190" x2="704" y2="148" stroke="#0000ee" stroke-width="3" marker-end="url(#quotient-blue-arrow)"/>
+          <text x="619" y="303" text-anchor="middle" font-size="12">one surviving direction</text>
+          <text x="704" y="132" text-anchor="middle" font-size="12" fill="#0000ee">[x]</text>
+        </svg>
+        <figcaption class="viz-caption">The notation \([x]\) means “the class represented by \(x\).” Every \(ax+b\mathbf1\) with \(a&gt;0\) reaches the same standardized output. LayerNorm is therefore a concrete quotient map: many points in \(\mathbb R^d\) are declared equivalent and represented by one point on the sphere.</figcaption>
+      </figure>
+
+      <p>Abstract algebra gives that collapse a name. Define \(x\sim y\) when \(y=ax+b\mathbf1\) for \(a&gt;0\). LayerNorm maps the quotient—original vectors modulo those two nuisance transformations—to the sphere \(S^{d-2}\). We did not add abstraction for decoration. The quotient tells us exactly what information no later calculation can reconstruct from the standardized vector alone.</p>
+
+      <p>This is the mirror image of the idea in my essay <a href="rope_group_theory.html"><em>Your LLM Does Group Theory Every Time It Reads a Sentence</em></a>. RoPE takes a symmetry—translation by an integer number of token positions—and <em>represents</em> it as a rotation, preserving the action so attention can see relative position. LayerNorm takes two transformations—uniform translation and positive rescaling—and <em>quotients them away</em>, declaring that attention and the MLP should not see them. RoPE remembers a group action; LayerNorm deliberately forgets one. Both become much less mysterious once the Transformer's arithmetic is read as geometry.</p>
+
+      <p>Negative scaling is the small twist. If \(a&lt;0\), the output flips:</p>
+
+      \[
+        \operatorname{LN}_0(-x)=-\operatorname{LN}_0(x).
+      \]
+
+      <p>Opposite directions remain antipodal points rather than becoming identical. That is why the surviving space is a sphere, not real projective space.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Projective space, very briefly.</strong> Real projective space identifies a line through the origin, so \(v\) and \(-v\) represent the same point. LayerNorm preserves that sign. It forgets positive radius but still distinguishes the two orientations of the line.</span></p>
+
+      <div class="caveat-note">
+        <strong>The exact sphere has two caveats.</strong>
+        <p>Real implementations use \(\epsilon\):</p>
+        \[
+          y=\frac{Px}{\sqrt{\|Px\|^2/d+\epsilon}},
+          \qquad
+          \|y\|=\sqrt d\sqrt{\frac{\operatorname{Var}(x)}{\operatorname{Var}(x)+\epsilon}}.
+        \]
+        <p>So the radius is slightly below \(\sqrt d\), approaching it whenever the variance dominates \(\epsilon\). PyTorch currently defaults to \(10^{-5}\).<a href="#ref-11">[11]</a> Then the learned map \(z=\gamma\odot y+\beta\) can stretch different coordinates unequally and translate the result. The <em>standardized</em> vector lies on the sphere; learned per-coordinate scaling generally warps that sphere into an affine, hyperellipsoidal surface.<a href="#ref-4">[4]</a></p>
+      </div>
+
+      <h2 id="tangent">The derivative keeps only tangent motion</h2>
+
+      <p>The forward map says which points survive. Its Jacobian says which tiny movements survive. Let</p>
+
+      \[
+        z=Px,
+        \qquad
+        u_z=\frac{z}{\|z\|},
+        \qquad
+        y=\sqrt d\,u_z.
+      \]
+
+      <p>Ignoring \(\epsilon\), differentiating gives</p>
+
+      \[
+        J_{\mathrm{LN}}
+        =\frac{\sqrt d}{\|z\|}
+        \left(I-u_zu_z^\top\right)P.
+      \]
+
+      <p>This looks denser than the forward equation but contains the same story twice. The projector \(P\) kills motion along \(\mathbf1\). The projector \(I-u_zu_z^\top\) kills motion in the current radial direction. What remains is motion tangent to the sphere.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Tangent space of a LayerNorm output">
+        <svg viewBox="0 0 760 410" role="img" aria-labelledby="tangent-title tangent-desc">
+          <title id="tangent-title">LayerNorm preserves tangent motion and deletes two local directions</title>
+          <desc id="tangent-desc">At a point y on a sphere, a translucent tangent plane contains the directions that survive. The radial direction and the uniform direction are crossed out.</desc>
+          <defs>
+            <marker id="tangent-black-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+            <marker id="tangent-blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/>
+            </marker>
+          </defs>
+
+          <circle cx="340" cy="216" r="134" fill="rgba(255,255,255,.12)" stroke="#777" stroke-width="2"/>
+          <ellipse cx="340" cy="216" rx="134" ry="40" fill="none" stroke="#aaa"/>
+          <path d="M340 82 C283 126 283 306 340 350 C397 306 397 126 340 82" fill="none" stroke="#bbb"/>
+
+          <polygon points="367,71 638,178 516,333 244,225" fill="rgba(0,0,238,.07)" stroke="#0000ee" stroke-width="1.5"/>
+          <circle cx="441" cy="194" r="7" fill="#0000ee"/>
+          <text x="453" y="184" font-size="13" fill="#0000ee">y</text>
+
+          <line x1="340" y1="216" x2="441" y2="194" stroke="#000" stroke-width="3" marker-end="url(#tangent-black-arrow)"/>
+          <text x="375" y="184" font-size="12">radial</text>
+          <line x1="390" y1="174" x2="409" y2="196" stroke="#000" stroke-width="3"/>
+          <line x1="409" y1="174" x2="390" y2="196" stroke="#000" stroke-width="3"/>
+
+          <line x1="441" y1="194" x2="560" y2="241" stroke="#0000ee" stroke-width="3" marker-end="url(#tangent-blue-arrow)"/>
+          <line x1="441" y1="194" x2="375" y2="279" stroke="#0000ee" stroke-width="3" marker-end="url(#tangent-blue-arrow)"/>
+          <text x="565" y="251" font-size="12" fill="#0000ee">surviving tangent motion</text>
+
+          <line x1="441" y1="194" x2="490" y2="70" stroke="#777" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#tangent-black-arrow)"/>
+          <text x="500" y="67" font-size="12">uniform direction</text>
+          <line x1="467" y1="111" x2="486" y2="133" stroke="#000" stroke-width="3"/>
+          <line x1="486" y1="111" x2="467" y2="133" stroke="#000" stroke-width="3"/>
+
+          <rect x="43" y="42" width="222" height="70" fill="rgba(255,255,255,.3)" stroke="#777"/>
+          <text x="60" y="66" font-size="13" font-weight="bold">local degrees of freedom</text>
+          <text x="60" y="89" font-size="12">d coordinates − uniform − radius</text>
+          <text x="60" y="104" font-size="12" fill="#0000ee">= d − 2 tangent directions</text>
+        </svg>
+        <figcaption class="viz-caption">The tangent space is \(T_y=\{v:v^\top\mathbf1=0,\ v^\top y=0\}\). A tiny perturbation can matter only if it is perpendicular to both the discarded uniform direction and the current radius. The Jacobian has rank at most \(d-2\).</figcaption>
+      </figure>
+
+      <p>This is the differential-geometric version of the quotient. LayerNorm removes two local directions, leaving \(d-2\) directions along which the token can move. The prefactor \(\sqrt d/\|z\|\) rescales those tangent movements, so the operation also changes gradient magnitudes; geometry does not replace the usual optimization story, it sharpens it.</p>
+
+      <h2 id="rmsnorm">RMSNorm keeps the direction LayerNorm deletes</h2>
+
+      <p>RMSNorm begins with the root mean square</p>
+
+      \[
+        \operatorname{RMS}(x)
+        =\sqrt{\frac1d\sum_i x_i^2}
+        =\frac{\|x\|}{\sqrt d}.
+      \]
+
+      <p>Again ignoring \(\epsilon\) and the learned scale,</p>
+
+      \[
+        \operatorname{RMSNorm}_0(x)
+        =\sqrt d\frac{x}{\|x\|}.
+      \]
+
+      <p>Put the equations beside each other and the architectural difference becomes one letter:</p>
+
+      <div class="comparison-grid">
+        <div>
+          <h3>LayerNorm</h3>
+          \[
+            \operatorname{LN}_0(x)
+            =\sqrt d\frac{Px}{\|Px\|}
+          \]
+          <p>\(\mathbb R^d\to\mathbf1^\perp\to S^{d-2}\)</p>
+          <p>forgets offset and positive scale</p>
+        </div>
+        <div>
+          <h3>RMSNorm</h3>
+          \[
+            \operatorname{RMSNorm}_0(x)
+            =\sqrt d\frac{x}{\|x\|}
+          \]
+          <p>\(\mathbb R^d\to S^{d-1}\)</p>
+          <p>forgets positive scale only</p>
+        </div>
+      </div>
+
+      <p>RMSNorm does not slice the sphere with the zero-mean plane. It lands on the full \(S^{d-1}\), keeping the uniform component if one exists. Its 2019 paper described the same distinction in statistical language: retain rescaling invariance, hypothesize that re-centering invariance is dispensable, and remove the mean computation.<a href="#ref-2">[2]</a> The interactive lab above lets you see the difference. In RMSNorm mode, the black and blue arrows always point the same way. In LayerNorm mode, projection usually rotates the direction before fixing its radius.</p>
+
+      <p>Neither operator is simply “more spherical.” Both forget radius. LayerNorm additionally chooses one privileged axis and removes it. That asymmetry is exactly what later work found interesting.</p>
+
+      <h2 id="attention">Why might attention want this geometry?</h2>
+
+      <p>Brody, Alon, and Yahav argued in 2023 that LayerNorm contributes to attention's expressivity, not only its numerical stability.<a href="#ref-3">[3]</a> Their two geometric mechanisms are unusually clean.</p>
+
+      <p>First, standardized keys obey \(\mathbf1^\top k_i=0\). A query parallel to \(\mathbf1\) therefore gives every key the same score:</p>
+
+      \[
+        q=c\mathbf1
+        \quad\Longrightarrow\quad
+        q^\top k_i=c\mathbf1^\top k_i=0.
+      \]
+
+      <p>Equal logits become equal softmax weights. Projection gives attention a cheap route to uniform averaging—a useful primitive for tasks such as counting a majority.</p>
+
+      <p>Second, suppose one key is a strict convex combination of others, \(k_n=\sum_{i&lt;n}\lambda_i k_i\), with nonnegative \(\lambda_i\) summing to one. For every query,</p>
+
+      \[
+        q^\top k_n=\sum_{i&lt;n}\lambda_i q^\top k_i.
+      \]
+
+      <p>Its score is an average of other scores, so it cannot be strictly largest. The key is <em>unselectable</em>. Distinct vectors with the same norm cannot be strict interior convex combinations of one another: such a combination falls inside the sphere. Equal-radius scaling therefore keeps every normalized key on the boundary and potentially able to win.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Two ways LayerNorm geometry can help attention">
+        <svg viewBox="0 0 760 430" role="img" aria-labelledby="attention-geometry-title attention-geometry-desc">
+          <title id="attention-geometry-title">Uniform attention and selectable keys</title>
+          <desc id="attention-geometry-desc">The left panel shows keys in a plane and a query perpendicular to the plane, giving equal dot products. The right panel compares an interior key that cannot maximize a linear score with equal-norm keys on a circle that can all be exposed by a supporting line.</desc>
+          <defs>
+            <marker id="attention-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/>
+            </marker>
+          </defs>
+          <line x1="380" y1="30" x2="380" y2="395" stroke="#999"/>
+
+          <text x="190" y="42" text-anchor="middle" font-size="14" font-weight="bold">one query, equal scores</text>
+          <polygon points="55,280 192,171 336,248 193,351" fill="rgba(255,255,255,.28)" stroke="#777"/>
+          <g fill="#000"><circle cx="116" cy="269" r="6"/><circle cx="193" cy="227" r="6"/><circle cx="276" cy="260" r="6"/><circle cx="212" cy="303" r="6"/></g>
+          <g font-size="11"><text x="105" y="290">k₁</text><text x="183" y="216">k₂</text><text x="282" y="279">k₃</text></g>
+          <line x1="193" y1="266" x2="193" y2="91" stroke="#0000ee" stroke-width="4" marker-end="url(#attention-arrow)"/>
+          <text x="208" y="98" font-size="12" fill="#0000ee">q ∥ 1</text>
+          <text x="190" y="376" text-anchor="middle" font-size="12">qᵀk₁ = qᵀk₂ = qᵀk₃ = 0</text>
+
+          <text x="570" y="42" text-anchor="middle" font-size="14" font-weight="bold">which key can ever win?</text>
+          <g transform="translate(0 8)">
+            <polygon points="426,180 548,95 654,187 599,305 451,292" fill="rgba(255,255,255,.2)" stroke="#000"/>
+            <g fill="#000"><circle cx="426" cy="180" r="6"/><circle cx="548" cy="95" r="6"/><circle cx="654" cy="187" r="6"/><circle cx="599" cy="305" r="6"/><circle cx="451" cy="292" r="6"/></g>
+            <circle cx="545" cy="213" r="7" fill="#0000ee"/>
+            <text x="557" y="217" font-size="11" fill="#0000ee">inside: cannot win</text>
+            <line x1="646" y1="104" x2="697" y2="163" stroke="#777" stroke-dasharray="4 3"/>
+            <text x="668" y="92" text-anchor="middle" font-size="10">supporting line</text>
+
+            <circle cx="570" cy="200" r="100" fill="none" stroke="#0000ee" stroke-width="2" opacity="0.75"/>
+            <circle cx="654" cy="146" r="7" fill="#0000ee"/>
+            <text x="677" y="137" font-size="11" fill="#0000ee">on sphere: exposed</text>
+          </g>
+          <text x="570" y="391" text-anchor="middle" font-size="12">linear scores reach maxima on the hull</text>
+        </svg>
+        <figcaption class="viz-caption">The left panel uses projection; the right uses equal radius. These are expressivity arguments in normalized key space, not a claim that every real head exploits them equally. The original experiments found the benefit most clearly in smaller models and synthetic majority tasks.<a href="#ref-3">[3]</a></figcaption>
+      </figure>
+
+      <h2 id="evidence">The 90-degree mystery</h2>
+
+      <p>The 2026 EACL study by Gupta and colleagues asked whether models actually carry much information along \(\mathbf1\). They passed one million Wikipedia tokens through seven decoder-only LLMs, capturing representations around every normalization layer. Five used LayerNorm—GPT-2 XL, GPT-Neo 1.3B, Pythia 1.4B, GPT-J 6B, and Pythia 6.9B—and two used RMSNorm—Llama-2 7B and Llama-3 8B.<a href="#ref-7">[7]</a></p>
+
+      <p>The diagnostic was just the angle \(\theta=\angle(h,\mathbf1)\). For four of the five LayerNorm models, hidden states were already close to \(90^\circ\) before mean subtraction; GPT-2 XL was the exception. More surprisingly, both Llama models stayed close to orthogonal even though RMSNorm never explicitly removes that component. Controlled models from 70M to 1B parameters, trained with either operator on OpenWebText, developed the same broad pattern during training.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Schematic summary of hidden-state angles with the uniform vector">
+        <svg viewBox="0 0 760 350" role="img" aria-labelledby="angle-title angle-desc">
+          <title id="angle-title">Most tested models occupy a narrow corridor around ninety degrees</title>
+          <desc id="angle-desc">A schematic strip plot places six models near a ninety-degree reference corridor, with GPT-2 XL marked as the reported exception. LayerNorm and RMSNorm models are distinguished by filled and open points.</desc>
+          <rect x="110" y="117" width="590" height="76" fill="rgba(0,0,238,.07)"/>
+          <line x1="110" y1="155" x2="700" y2="155" stroke="#0000ee" stroke-width="2" stroke-dasharray="6 4"/>
+          <text x="704" y="159" font-size="11" fill="#0000ee">90°</text>
+          <line x1="110" y1="55" x2="110" y2="266" stroke="#000"/>
+          <line x1="110" y1="266" x2="700" y2="266" stroke="#000"/>
+          <g font-size="10" text-anchor="end"><text x="100" y="60">larger uniform</text><text x="100" y="73">component</text><text x="100" y="159">orthogonal</text></g>
+          <g font-size="10" text-anchor="middle">
+            <text x="160" y="288">GPT-2 XL</text><text x="245" y="288">GPT-Neo</text><text x="330" y="288">Pythia 1.4</text><text x="415" y="288">GPT-J</text><text x="500" y="288">Pythia 6.9</text><text x="585" y="288">Llama-2</text><text x="670" y="288">Llama-3</text>
+          </g>
+          <g fill="#000">
+            <circle cx="160" cy="82" r="7"/>
+            <circle cx="245" cy="151" r="7"/>
+            <circle cx="330" cy="158" r="7"/>
+            <circle cx="415" cy="152" r="7"/>
+            <circle cx="500" cy="157" r="7"/>
+          </g>
+          <g fill="rgba(216,204,178,.9)" stroke="#0000ee" stroke-width="3">
+            <circle cx="585" cy="154" r="8"/>
+            <circle cx="670" cy="156" r="8"/>
+          </g>
+          <path d="M143 73 L160 55 L177 73" fill="none" stroke="#000"/>
+          <text x="160" y="39" text-anchor="middle" font-size="11" font-weight="bold">reported exception</text>
+          <g font-size="10"><circle cx="236" cy="326" r="5" fill="#000"/><text x="247" y="330">LayerNorm</text><circle cx="344" cy="326" r="6" fill="rgba(216,204,178,.9)" stroke="#0000ee" stroke-width="2"/><text x="356" y="330">RMSNorm</text></g>
+        </svg>
+        <figcaption class="viz-caption">A schematic of the reported pattern, not digitized measurements: point height distinguishes the exception from the near-\(90^\circ\) corridor but should not be read as a raw value. Near-orthogonality is also common for unrelated vectors in high dimensions, so the careful conclusion is empirical: in these models, mean subtraction often had little uniform component left to remove.<a href="#ref-7">[7]</a></figcaption>
+      </figure>
+
+      <p>That last qualification matters.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>High-dimensional surprise.</strong> Two random isotropic vectors in large dimension are usually close to \(90^\circ\). The interesting observation is not that ninety degrees can occur, but that it persists across layers, checkpoints, operators, and controlled training—and that RMSNorm models do not drift into the direction LayerNorm would have removed.</span> The experiment is evidence that explicit centering is often redundant in the tested regimes, not proof that means never matter in every architecture or distribution.</p>
+
+      <h2 id="dead-direction">The missing direction leaves an algebraic fingerprint</h2>
+
+      <p>Projection does not merely make a nice picture. Before the affine map, every output satisfies \(\mathbf1^\top y=0\). Its centered covariance \(C=\operatorname{Cov}(y)\) must therefore obey</p>
+
+      \[
+        C\mathbf1=0.
+      \]
+
+      <p>The uniform vector is an exact kernel direction: variance along it is zero. Restore the learned scaling \(D_\gamma=\operatorname{diag}(\gamma)\) and shift \(\beta\):</p>
+
+      \[
+        z=D_\gamma y+\beta,
+        \qquad
+        \operatorname{Cov}(z)=D_\gamma C D_\gamma.
+      \]
+
+      <p>The constant shift disappears from covariance. Now choose \(v=D_\gamma^{-1}\mathbf1\). Then</p>
+
+      \[
+        \operatorname{Cov}(z)v
+        =D_\gamma C\mathbf1=0.
+      \]
+
+      <p>So the affine map moves the dead direction from \(\mathbf1\) to the normalized inverse-scale vector</p>
+
+      \[
+        \boxed{v^\star=\frac{\gamma^{-1}}{\|\gamma^{-1}\|}}.
+      \]
+
+      <p>Shirodkar and Narayanan tested this 2026 prediction on 14 pretrained Transformers from 160M to 35B parameters. The predicted vector aligned with the measured bottom singular direction on all nine LayerNorm models; five RMSNorm models lacked the corresponding universal kernel.<a href="#ref-8">[8]</a> “Subtract the mean” had become a parameter-readable singular direction in billion-parameter networks.</p>
+
+      <div class="research-note">
+        <strong>What is dead here?</strong>
+        <p>Not a neuron, and not necessarily a useless model. A covariance kernel is a direction with no centered activation variation at that location. The striking part is that architecture alone predicts it. Training may create additional low-variance directions, but this one is already written into LayerNorm's projector.</p>
+      </div>
+
+      <h2 id="designed-spheres">Then researchers made the metaphor literal</h2>
+
+      <p>Once hidden states have fixed norm, Euclidean addition becomes suspicious. The update \(h_{\ell+1}=h_\ell+\Delta h\) generally leaves the sphere. A manifold-aware update instead begins with a tangent vector \(v_\ell\in T_{h_\ell}S^{d-1}\) and returns through a retraction:</p>
+
+      \[
+        h_{\ell+1}=R_{h_\ell}(v_\ell).
+      \]
+
+      <p>nGPT, published at ICLR 2025, normalizes embeddings, hidden states, and vectors inside attention and MLP blocks onto unit hyperspheres. The authors describe each layer as moving the token's representation across the surface and reported reaching equivalent accuracy in 4–20 times fewer optimization steps in their experiments.<a href="#ref-5">[5]</a> A 2026 training recipe then scaled the idea to hybrid Mamba-2/Transformer mixture-of-experts models up to 14B total parameters; its 14B comparison reached the same validation loss with roughly half as many training tokens.<a href="#ref-9">[9]</a></p>
+
+      <figure class="viz" tabindex="0" aria-label="Euclidean and manifold-aware residual updates on a sphere">
+        <svg viewBox="0 0 760 400" role="img" aria-labelledby="retraction-title retraction-desc">
+          <title id="retraction-title">A residual update can leave the sphere or retract back to it</title>
+          <desc id="retraction-desc">A point on a sphere has a tangent update. Straight Euclidean addition ends outside the sphere, while a curved retraction maps the update to another point on the surface.</desc>
+          <defs>
+            <marker id="retraction-black-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#000"/></marker>
+            <marker id="retraction-blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/></marker>
+          </defs>
+          <circle cx="355" cy="216" r="137" fill="rgba(255,255,255,.13)" stroke="#777" stroke-width="2"/>
+          <ellipse cx="355" cy="216" rx="137" ry="42" fill="none" stroke="#aaa"/>
+          <path d="M355 79 C296 124 296 308 355 353 C414 308 414 124 355 79" fill="none" stroke="#bbb"/>
+          <circle cx="449" cy="116" r="7" fill="#000"/>
+          <text x="424" y="98" font-size="12">h<tspan baseline-shift="sub" font-size="9">ℓ</tspan></text>
+          <line x1="449" y1="116" x2="620" y2="165" stroke="#000" stroke-width="3" marker-end="url(#retraction-black-arrow)"/>
+          <text x="538" y="125" font-size="12">tangent update v<tspan baseline-shift="sub" font-size="9">ℓ</tspan></text>
+          <circle cx="620" cy="165" r="7" fill="#000"/>
+          <text x="635" y="169" font-size="12">h + v leaves</text>
+          <path d="M449 116 Q518 105 565 238" fill="none" stroke="#0000ee" stroke-width="4" marker-end="url(#retraction-blue-arrow)"/>
+          <circle cx="565" cy="238" r="7" fill="#0000ee"/>
+          <text x="577" y="258" font-size="12" fill="#0000ee">R<tspan baseline-shift="sub" font-size="9">h</tspan>(v) returns</text>
+          <line x1="449" y1="116" x2="529" y2="36" stroke="#777" stroke-dasharray="5 4"/>
+          <path d="M470 96 L483 109 L494 96" fill="none" stroke="#000"/>
+          <rect x="56" y="63" width="195" height="86" fill="rgba(255,255,255,.3)" stroke="#777"/>
+          <text x="72" y="87" font-size="13" font-weight="bold">same local proposal</text>
+          <text x="72" y="110" font-size="12">straight line: off-manifold</text>
+          <text x="72" y="131" font-size="12" fill="#0000ee">retraction: back on-sphere</text>
+          <text x="355" y="382" text-anchor="middle" font-size="12">the design choice becomes: how should update length become rotation angle?</text>
+        </svg>
+        <figcaption class="viz-caption">Sphere Retraction Normalizations, posted in August 2026, places Euclidean residual connections, geodesic updates, metric projection, and Cayley retractions in one angular framework. Different retractions mainly choose how tangent-update magnitude becomes an angle on the sphere.<a href="#ref-10">[10]</a></figcaption>
+      </figure>
+
+      <h2 id="counterstory">Perhaps the sphere is not the essential part</h2>
+
+      <p>A good geometric story can become too satisfying. Dynamic Tanh is the necessary interruption. The CVPR 2025 paper <em>Transformers without Normalization</em> replaced sample-wise statistics with the pointwise operation</p>
+
+      \[
+        \operatorname{DyT}(x)=\gamma\odot\tanh(\alpha x)+\beta.
+      \]
+
+      <p>No mean, no variance, no spherical projection. Yet the authors reported matching or exceeding normalized counterparts across language, vision, diffusion, and speech settings. Their starting observation was that trained normalization layers often produce tanh-like input-output curves.<a href="#ref-6">[6]</a> Later normalization-free work such as Derf continued the argument with other bounded pointwise functions.<a href="#ref-12">[12]</a></p>
+
+      <p>That leaves two plausible readings. Hyperspherical constraints may provide a particularly useful package of invariances and optimization geometry. Or the larger benefit may be controlled activation scale and well-shaped gradients, with the sphere only one way to obtain them. Current evidence supports both as productive design directions, not one final verdict.</p>
+
+      <h2>The direction was the representation</h2>
+
+      <p>I began with an equation that seemed to standardize coordinates. It ended by changing the ontology of a hidden state. An input vector was not preserved as a shorter or cleaner version of itself. Its uniform component was removed, its positive radius was forgotten, and the equivalence class that remained was represented by a point on a sphere.</p>
+
+      <p>That single change of viewpoint explains the dimension count, the tangent-space Jacobian, the contrast with RMSNorm, a route to uniform attention, the convex-hull result, and an exact covariance kernel. It also explains why hyperspherical Transformers do not feel like an arbitrary new metaphor. They make explicit a geometry that normalization had been quietly imposing for years.</p>
+
+      <p>But Dynamic Tanh keeps the ending open. Maybe the sphere is the mechanism. Maybe it is an especially elegant scaffold. Either way, “subtract the mean and divide by the standard deviation” is no longer a sufficient mental model.</p>
+
+      <p><strong>Normalization chooses what can be forgotten. Geometry tells us what is left.</strong></p>
+
+      <section class="references" aria-labelledby="references-title">
+        <h2 id="references-title">References and links</h2>
+        <ol>
+          <li id="ref-1">J. L. Ba, J. R. Kiros, and G. E. Hinton, <a href="https://arxiv.org/abs/1607.06450">“Layer Normalization,”</a> 2016.</li>
+          <li id="ref-2">B. Zhang and R. Sennrich, <a href="https://proceedings.neurips.cc/paper/2019/hash/1e8a19426224ca89e83cef47f1e7f53b-Abstract.html">“Root Mean Square Layer Normalization,”</a> NeurIPS 2019.</li>
+          <li id="ref-3">S. Brody, U. Alon, and E. Yahav, <a href="https://aclanthology.org/2023.findings-acl.895/">“On the Expressivity Role of LayerNorm in Transformers' Attention,”</a> Findings of ACL 2023.</li>
+          <li id="ref-4">P. M. Riechers, <a href="https://arxiv.org/abs/2405.04134">“Geometry and Dynamics of LayerNorm,”</a> 2024.</li>
+          <li id="ref-5">I. Loshchilov, C.-P. Hsieh, S. Sun, and B. Ginsburg, <a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/b7c12689a89e98a61bcaa65285a41b7c-Abstract-Conference.html">“nGPT: Normalized Transformer with Representation Learning on the Hypersphere,”</a> ICLR 2025.</li>
+          <li id="ref-6">J. Zhu, X. Chen, K. He, Y. LeCun, and Z. Liu, <a href="https://openaccess.thecvf.com/content/CVPR2025/html/Zhu_Transformers_without_Normalization_CVPR_2025_paper.html">“Transformers without Normalization,”</a> CVPR 2025.</li>
+          <li id="ref-7">A. Gupta, A. Ozdemir, C. Gong, and G. Anumanchipalli, <a href="https://aclanthology.org/2026.findings-eacl.20/">“Geometric Interpretation of Layer Normalization and a Comparative Analysis with RMSNorm,”</a> Findings of EACL 2026.</li>
+          <li id="ref-8">T. P. Shirodkar and P. J. Narayanan, <a href="https://arxiv.org/abs/2606.19491">“Algebraic Dead Directions in LayerNorm Transformers: A Forward-Pass-Only Diagnostic at LLM Scale,”</a> 2026.</li>
+          <li id="ref-9">I. Loshchilov and B. Ginsburg, <a href="https://arxiv.org/abs/2608.01284">“Training nGPT,”</a> 2026.</li>
+          <li id="ref-10">J. Zhang, C.-F. Su, Y.-J. Huang, and M.-T. Sun, <a href="https://arxiv.org/abs/2608.02668">“Sphere Retraction Normalizations,”</a> 2026.</li>
+          <li id="ref-11"><a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.modules.normalization.LayerNorm.html">PyTorch LayerNorm documentation</a>, including the \(\epsilon\) and element-wise affine conventions.</li>
+          <li id="ref-12">M. Chen, T. Lu, J. Zhu, M. Sun, and Z. Liu, <a href="https://arxiv.org/abs/2512.10938">“Stronger Normalization-Free Transformers,”</a> 2025.</li>
+          <li id="ref-13">I. Goodfellow, Y. Bengio, and A. Courville, <a href="https://www.deeplearningbook.org/contents/optimization.html"><em>Deep Learning</em>, Chapter 8: “Optimization for Training Deep Models,”</a> MIT Press, 2016.</li>
+          <li id="ref-14">S. Ioffe and C. Szegedy, <a href="https://proceedings.mlr.press/v37/ioffe15.html">“Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift,”</a> ICML 2015.</li>
+        </ol>
+      </section>
+    </article>
+  </main>
+
+  <footer class="norm-footer">
+    &copy; 2026 Pratyaksh Patel. You may use, share, and adapt with credit.
+  </footer>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('norm-canvas');
+      if (!canvas) return;
+
+      const context = canvas.getContext('2d');
+      const sliders = [
+        document.getElementById('coord-x'),
+        document.getElementById('coord-y'),
+        document.getElementById('coord-z')
+      ];
+      const outputs = sliders.map(slider => slider.nextElementSibling);
+      const modeButtons = Array.from(document.querySelectorAll('[data-norm-mode]'));
+      const resetButton = document.getElementById('reset-norm-lab');
+      const meanReadout = document.getElementById('readout-mean');
+      const normReadout = document.getElementById('readout-norm');
+      const sumReadout = document.getElementById('readout-sum');
+
+      const ink = '#000000';
+      const blue = '#0000ee';
+      const grey = '#777777';
+      const paper = 'rgba(216, 204, 178, 0.92)';
+      const sqrtThree = Math.sqrt(3);
+      const uniform = [1 / sqrtThree, 1 / sqrtThree, 1 / sqrtThree];
+      const basisOne = [1 / Math.sqrt(2), -1 / Math.sqrt(2), 0];
+      const basisTwo = [1 / Math.sqrt(6), 1 / Math.sqrt(6), -2 / Math.sqrt(6)];
+
+      let mode = 'layer';
+      let yaw = -0.62;
+      let pitch = 0.38;
+      let dragging = false;
+      let lastPointer = {x: 0, y: 0};
+      let viewWidth = 760;
+      let viewHeight = 440;
+
+      function add(a, b) {
+        return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+      }
+
+      function multiply(vector, scalar) {
+        return [vector[0] * scalar, vector[1] * scalar, vector[2] * scalar];
+      }
+
+      function length(vector) {
+        return Math.hypot(vector[0], vector[1], vector[2]);
+      }
+
+      function unit(vector) {
+        const magnitude = length(vector);
+        return magnitude < 1e-8 ? null : multiply(vector, 1 / magnitude);
+      }
+
+      function rotate(vector) {
+        const cosineYaw = Math.cos(yaw);
+        const sineYaw = Math.sin(yaw);
+        const cosinePitch = Math.cos(pitch);
+        const sinePitch = Math.sin(pitch);
+        const x = cosineYaw * vector[0] + sineYaw * vector[2];
+        const zAfterYaw = -sineYaw * vector[0] + cosineYaw * vector[2];
+        const y = cosinePitch * vector[1] - sinePitch * zAfterYaw;
+        const z = sinePitch * vector[1] + cosinePitch * zAfterYaw;
+        return [x, y, z];
+      }
+
+      function project(vector) {
+        const rotated = rotate(vector);
+        const drawingScale = Math.min(viewWidth * 0.25, viewHeight * 0.34);
+        return {
+          x: viewWidth * 0.5 + rotated[0] * drawingScale,
+          y: viewHeight * 0.53 - rotated[1] * drawingScale,
+          z: rotated[2]
+        };
+      }
+
+      function strokePath(points, color, width, dash) {
+        context.beginPath();
+        points.forEach((point, index) => {
+          const screen = project(point);
+          if (index === 0) context.moveTo(screen.x, screen.y);
+          else context.lineTo(screen.x, screen.y);
+        });
+        context.strokeStyle = color;
+        context.lineWidth = width;
+        context.setLineDash(dash || []);
+        context.stroke();
+        context.setLineDash([]);
+      }
+
+      function drawArrow(vector, color, width, label, labelOffset) {
+        const start = project([0, 0, 0]);
+        const end = project(vector);
+        const angle = Math.atan2(end.y - start.y, end.x - start.x);
+        const head = 9 + width;
+
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.lineTo(end.x, end.y);
+        context.strokeStyle = color;
+        context.lineWidth = width;
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(end.x, end.y);
+        context.lineTo(end.x - head * Math.cos(angle - Math.PI / 7), end.y - head * Math.sin(angle - Math.PI / 7));
+        context.lineTo(end.x - head * Math.cos(angle + Math.PI / 7), end.y - head * Math.sin(angle + Math.PI / 7));
+        context.closePath();
+        context.fillStyle = color;
+        context.fill();
+
+        if (label) drawLabel(label, end.x + labelOffset[0], end.y + labelOffset[1], color);
+      }
+
+      function drawLabel(label, x, y, color) {
+        context.font = '12px Verdana, Geneva, sans-serif';
+        const metrics = context.measureText(label);
+        context.fillStyle = paper;
+        context.fillRect(x - 4, y - 13, metrics.width + 8, 18);
+        context.fillStyle = color;
+        context.fillText(label, x, y);
+      }
+
+      function drawSphereGrid() {
+        context.save();
+        context.globalAlpha = 0.58;
+
+        [-60, -30, 0, 30, 60].forEach(latitudeDegrees => {
+          const latitude = latitudeDegrees * Math.PI / 180;
+          const points = [];
+          for (let step = 0; step <= 96; step += 1) {
+            const longitude = step / 96 * Math.PI * 2;
+            points.push([
+              Math.cos(latitude) * Math.cos(longitude),
+              Math.sin(latitude),
+              Math.cos(latitude) * Math.sin(longitude)
+            ]);
+          }
+          strokePath(points, latitudeDegrees === 0 ? '#888888' : '#bbbbbb', latitudeDegrees === 0 ? 1.25 : 0.8);
+        });
+
+        for (let meridian = 0; meridian < 8; meridian += 1) {
+          const longitude = meridian / 8 * Math.PI;
+          const points = [];
+          for (let step = 0; step <= 72; step += 1) {
+            const latitude = -Math.PI / 2 + step / 72 * Math.PI;
+            points.push([
+              Math.cos(latitude) * Math.cos(longitude),
+              Math.sin(latitude),
+              Math.cos(latitude) * Math.sin(longitude)
+            ]);
+          }
+          strokePath(points, '#b3b3b3', 0.8);
+        }
+
+        context.restore();
+      }
+
+      function drawPlane() {
+        const radius = 1.35;
+        const corners = [
+          add(multiply(basisOne, radius), multiply(basisTwo, radius)),
+          add(multiply(basisOne, -radius), multiply(basisTwo, radius)),
+          add(multiply(basisOne, -radius), multiply(basisTwo, -radius)),
+          add(multiply(basisOne, radius), multiply(basisTwo, -radius))
+        ].map(project);
+
+        context.beginPath();
+        corners.forEach((corner, index) => {
+          if (index === 0) context.moveTo(corner.x, corner.y);
+          else context.lineTo(corner.x, corner.y);
+        });
+        context.closePath();
+        context.fillStyle = 'rgba(0, 0, 238, 0.055)';
+        context.fill();
+        context.strokeStyle = 'rgba(0, 0, 238, 0.45)';
+        context.lineWidth = 1;
+        context.stroke();
+
+        const intersection = [];
+        for (let step = 0; step <= 120; step += 1) {
+          const angle = step / 120 * Math.PI * 2;
+          intersection.push(add(multiply(basisOne, Math.cos(angle)), multiply(basisTwo, Math.sin(angle))));
+        }
+        strokePath(intersection, blue, 2.6);
+      }
+
+      function drawUniformAxis() {
+        const negative = project(multiply(uniform, -1.5));
+        const positive = project(multiply(uniform, 1.5));
+        context.beginPath();
+        context.moveTo(negative.x, negative.y);
+        context.lineTo(positive.x, positive.y);
+        context.strokeStyle = grey;
+        context.lineWidth = 1.5;
+        context.setLineDash([6, 5]);
+        context.stroke();
+        context.setLineDash([]);
+        drawLabel('uniform axis 1', positive.x + 8, positive.y - 6, grey);
+      }
+
+      function currentVector() {
+        return sliders.map(slider => Number(slider.value));
+      }
+
+      function formatted(number, digits) {
+        const safe = Math.abs(number) < 0.0005 ? 0 : number;
+        return safe.toFixed(digits).replace('-', '−');
+      }
+
+      function updateReadout(vector, centered, normalizedOutput) {
+        const mean = (vector[0] + vector[1] + vector[2]) / 3;
+        if (!normalizedOutput) {
+          meanReadout.textContent = mode === 'layer' ? 'mean = ' + formatted(mean, 3) : 'RMS = 0';
+          normReadout.textContent = 'output undefined';
+          sumReadout.textContent = mode === 'layer' ? 'all coordinates equal' : 'zero vector';
+          return;
+        }
+
+        const output = multiply(normalizedOutput, sqrtThree);
+        const outputSum = output[0] + output[1] + output[2];
+        if (mode === 'layer') {
+          meanReadout.textContent = 'mean = ' + formatted(mean, 3);
+          normReadout.textContent = 'output norm = √3';
+          sumReadout.textContent = 'output sum = ' + formatted(outputSum, 3);
+        } else {
+          meanReadout.textContent = 'RMS = ' + formatted(length(vector) / sqrtThree, 3);
+          normReadout.textContent = 'output norm = √3';
+          sumReadout.textContent = 'direction retained';
+        }
+      }
+
+      function draw() {
+        context.clearRect(0, 0, viewWidth, viewHeight);
+
+        if (mode === 'layer') drawPlane();
+        drawSphereGrid();
+        if (mode === 'layer') drawUniformAxis();
+
+        const vector = currentVector();
+        const vectorLength = length(vector);
+        const mean = (vector[0] + vector[1] + vector[2]) / 3;
+        const centered = [vector[0] - mean, vector[1] - mean, vector[2] - mean];
+        const centeredDirection = unit(centered);
+        const vectorDirection = unit(vector);
+        const outputDirection = mode === 'layer' ? centeredDirection : vectorDirection;
+
+        if (vectorDirection) {
+          const inputDisplayLength = Math.min(1.48, 0.52 + vectorLength * 0.15);
+          drawArrow(multiply(vectorDirection, inputDisplayLength), ink, 2.7, 'input x', [10, -9]);
+        }
+
+        if (mode === 'layer' && centeredDirection) {
+          drawArrow(multiply(centeredDirection, 0.72), grey, 2.2, 'centered Px', [-92, 19]);
+        }
+
+        if (outputDirection) {
+          drawArrow(outputDirection, blue, 4, mode === 'layer' ? 'LN₀(x)' : 'RMSNorm₀(x)', [10, 18]);
+          const endpoint = project(outputDirection);
+          context.beginPath();
+          context.arc(endpoint.x, endpoint.y, 5.5, 0, Math.PI * 2);
+          context.fillStyle = blue;
+          context.fill();
+        }
+
+        const origin = project([0, 0, 0]);
+        context.beginPath();
+        context.arc(origin.x, origin.y, 3.5, 0, Math.PI * 2);
+        context.fillStyle = ink;
+        context.fill();
+
+        context.font = '11px Verdana, Geneva, sans-serif';
+        context.fillStyle = ink;
+        context.fillText(mode === 'layer' ? 'plane: x₁ + x₂ + x₃ = 0' : 'full sphere: no centering plane', 14, viewHeight - 16);
+        updateReadout(vector, centered, outputDirection);
+      }
+
+      function resizeCanvas() {
+        const rectangle = canvas.getBoundingClientRect();
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        viewWidth = Math.max(300, rectangle.width);
+        viewHeight = Math.max(340, rectangle.height);
+        canvas.width = Math.round(viewWidth * pixelRatio);
+        canvas.height = Math.round(viewHeight * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        draw();
+      }
+
+      sliders.forEach((slider, index) => {
+        slider.addEventListener('input', function () {
+          outputs[index].textContent = formatted(Number(slider.value), 1);
+          draw();
+        });
+      });
+
+      modeButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          mode = button.dataset.normMode;
+          modeButtons.forEach(candidate => candidate.setAttribute('aria-pressed', String(candidate === button)));
+          draw();
+        });
+      });
+
+      resetButton.addEventListener('click', function () {
+        [3, 1, -2].forEach((value, index) => {
+          sliders[index].value = value;
+          outputs[index].textContent = formatted(value, 1);
+        });
+        mode = 'layer';
+        yaw = -0.62;
+        pitch = 0.38;
+        modeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.normMode === mode)));
+        draw();
+      });
+
+      canvas.addEventListener('pointerdown', function (event) {
+        dragging = true;
+        lastPointer = {x: event.clientX, y: event.clientY};
+        canvas.setPointerCapture(event.pointerId);
+      });
+
+      canvas.addEventListener('pointermove', function (event) {
+        if (!dragging) return;
+        const deltaX = event.clientX - lastPointer.x;
+        const deltaY = event.clientY - lastPointer.y;
+        yaw += deltaX * 0.011;
+        pitch = Math.max(-1.35, Math.min(1.35, pitch + deltaY * 0.011));
+        lastPointer = {x: event.clientX, y: event.clientY};
+        draw();
+      });
+
+      function endDrag(event) {
+        dragging = false;
+        if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      }
+
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+
+      canvas.addEventListener('keydown', function (event) {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+        event.preventDefault();
+        if (event.key === 'ArrowLeft') yaw -= 0.09;
+        if (event.key === 'ArrowRight') yaw += 0.09;
+        if (event.key === 'ArrowUp') pitch = Math.max(-1.35, pitch - 0.09);
+        if (event.key === 'ArrowDown') pitch = Math.min(1.35, pitch + 0.09);
+        draw();
+      });
+
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(resizeCanvas).observe(canvas);
+      } else {
+        window.addEventListener('resize', resizeCanvas);
+      }
+      resizeCanvas();
+    }());
+  </script>
+</body>
+</html>
