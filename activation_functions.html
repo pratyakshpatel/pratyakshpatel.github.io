@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A visual and mathematical dissection of activation functions: their anatomy, gradients, curvature, signal statistics, geometry, and the ideas behind sigmoid, tanh, ReLU, GELU, SiLU, Mish, and SwiGLU.">
+  <title>The Tiny Functions Eating Your Job</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-69CER33QN8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-69CER33QN8');
+  </script>
+  <style>
+    body.activation-page {
+      max-width: 80rem !important;
+      counter-reset: sidenote-counter;
+      overflow-x: hidden;
+    }
+
+    .activation-nav,
+    .article-frame,
+    .activation-footer {
+      width: 100%;
+      max-width: 50rem;
+      margin-right: auto !important;
+      margin-left: auto !important;
+    }
+
+    .article-frame { overflow: visible; }
+    .lede { font-size: 1.08rem; }
+
+    .thesis,
+    .equation-note,
+    .caveat-note,
+    .choice-note {
+      margin: 1.5rem 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #888;
+      border-left: 4px solid #000;
+    }
+
+    .thesis { border-left-color: #0000ee; font-size: 1.04rem; }
+    .thesis > :last-child,
+    .equation-note > :last-child,
+    .caveat-note > :last-child,
+    .choice-note > :last-child { margin-bottom: 0 !important; }
+
+    .essay-map {
+      margin: 1.8rem 0 2.2rem;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+    }
+
+    .essay-map strong { display: block; margin-bottom: 0.45rem; }
+    .essay-map ol { columns: 2; column-gap: 2.4rem; margin-bottom: 0; }
+
+    .tweet-shot {
+      max-width: 34rem;
+      margin: 1.5rem auto 2rem;
+      padding: 1.05rem 1.15rem;
+      background: #fff;
+      border: 1px solid #cfd9de;
+      border-radius: 12px;
+      color: #0f1419;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .tweet-shot a { color: inherit !important; text-decoration: none !important; }
+    .tweet-head { display: flex; align-items: center; gap: 0.65rem; }
+    .tweet-avatar {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 50%;
+      background: #0f1419;
+      color: #fff;
+      font-weight: 700;
+    }
+    .tweet-name, .tweet-handle { display: block; line-height: 1.25; }
+    .tweet-name { font-weight: 700; }
+    .tweet-handle, .tweet-date { color: #536471; font-size: 0.88rem; }
+    .tweet-mark { margin-left: auto; font-size: 1.25rem; font-weight: 700; }
+    .tweet-copy { margin: 1rem 0 0.8rem !important; font-size: 1.18rem; line-height: 1.45; }
+
+    .anatomy-lab,
+    .function-lab {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #777;
+    }
+
+    .anatomy-lab h3,
+    .function-lab h3 { margin-top: 0 !important; }
+
+    .lab-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .mode-switch,
+    .function-switch { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+    .mode-switch button,
+    .function-switch button,
+    .reset-view {
+      min-height: 2.15rem;
+      padding: 0.32rem 0.62rem;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid #000;
+      border-radius: 0;
+      color: #000;
+      font: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .mode-switch button[aria-pressed="true"],
+    .function-switch button[aria-pressed="true"] { background: #0000ee; color: #fff; }
+
+    .skeleton-shell,
+    .function-shell {
+      position: relative;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid #999;
+    }
+
+    .skeleton-shell canvas,
+    .function-shell canvas {
+      display: block;
+      width: 100%;
+      height: 520px;
+      touch-action: none;
+    }
+
+    .skeleton-shell canvas { cursor: grab; }
+    .skeleton-shell canvas:active { cursor: grabbing; }
+    .drag-hint {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.55rem;
+      margin: 0;
+      padding: 0.18rem 0.35rem;
+      background: rgba(216, 204, 178, 0.9);
+      border: 1px solid #999;
+      font-size: 0.68rem;
+      line-height: 1.25;
+      pointer-events: none;
+    }
+
+    .part-readout {
+      min-height: 6.5rem;
+      margin-top: 0.8rem;
+      padding: 0.75rem 0.85rem;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+    }
+
+    .part-readout strong { display: block; margin-bottom: 0.28rem; }
+    .part-readout p { margin-bottom: 0 !important; font-size: 0.86rem; }
+
+    .function-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.8rem;
+    }
+
+    .function-controls label {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .function-controls input { min-width: 0; accent-color: #0000ee; }
+    .function-controls output { min-width: 3rem; font-family: "Courier New", monospace; text-align: right; }
+    .function-readout {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      font-family: "Courier New", monospace;
+      font-size: 0.73rem;
+    }
+
+    .function-readout span {
+      padding: 0.4rem;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid #aaa;
+    }
+
+    .viz {
+      margin: 2rem 0 !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .viz svg { display: block; width: 100%; min-width: 700px; height: auto; }
+    .viz-caption { margin-top: 0.65rem; }
+
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin: 1.4rem 0;
+    }
+
+    .formula-card {
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px solid #888;
+    }
+
+    .formula-card h3 { margin-top: 0 !important; }
+    .formula-card p:last-child { margin-bottom: 0 !important; }
+
+    .table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap table { min-width: 780px; }
+
+    sup.sidenote-number {
+      counter-increment: sidenote-counter;
+      color: #0000ee;
+      font-size: 0.7em;
+      line-height: 0;
+    }
+
+    sup.sidenote-number::after { content: counter(sidenote-counter); padding: 0 0.08em; }
+
+    span.sidenote {
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.25rem -15rem 0.9rem 1.2rem;
+      color: #222;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    span.sidenote.left {
+      float: left;
+      clear: left;
+      margin-right: 1.2rem;
+      margin-left: -15rem;
+      text-align: right;
+    }
+
+    span.sidenote::before {
+      content: counter(sidenote-counter) ". ";
+      color: #0000ee;
+      font-weight: 700;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li { margin-bottom: 0.72rem; }
+
+    @media (max-width: 1320px) {
+      body.activation-page { max-width: 50rem !important; }
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 0.45rem 0 0.85rem 1rem;
+        padding: 0.45rem 0.65rem;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 2px solid #777;
+        font-size: 0.74rem;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .essay-map ol { columns: 1; }
+      .skeleton-shell canvas { height: 440px; }
+      .function-shell canvas { height: 390px; }
+      .function-controls,
+      .function-readout,
+      .formula-grid { grid-template-columns: 1fr; }
+      span.sidenote,
+      span.sidenote.left { margin-left: 0.55rem; font-size: 0.72rem; }
+    }
+
+    @media print {
+      body.activation-page { max-width: none !important; }
+      .mode-switch, .reset-view, .drag-hint, .function-controls { display: none; }
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        width: auto;
+        margin: 0.4rem 0 0.8rem;
+        padding-left: 0.8rem;
+        border-left: 2px solid #777;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="activation-page">
+  <nav class="nav-links activation-nav" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article class="article-frame">
+      <h1>The Tiny Functions Eating Your Job</h1>
+      <div class="meta">9 October, 2026 &middot; The anatomy, gradients, and geometry of activation functions</div>
+
+      <p class="lede">I got inspired from <a href="https://x.com/vickvey/status/2100510764109119858?s=20">Vivek's tweet</a> and thought, lemme write this.</p>
+
+      <figure class="tweet-shot">
+        <a href="https://x.com/vickvey/status/2100510764109119858?s=20" aria-label="Open Vivek Kumar's tweet on X">
+          <div class="tweet-head">
+            <span class="tweet-avatar" aria-hidden="true">V</span>
+            <span><span class="tweet-name">Vivek Kumar</span><span class="tweet-handle">@vickvey</span></span>
+            <span class="tweet-mark" aria-hidden="true">𝕏</span>
+          </div>
+          <p class="tweet-copy">Its the activation functions who are eating your jobs.</p>
+          <span class="tweet-date">17 September 2026</span>
+        </a>
+        <figcaption class="viz-caption">The entire tweet. Click the card to open the original.</figcaption>
+      </figure>
+
+      <p>It is a very funny amount of blame to place on functions that are usually one line of code. A neuron collects some numbers, multiplies them by weights, adds them, and then sends the result through something like \(\max(0,z)\) or \(z\Phi(z)\). The matrix multiplication may contain millions of learned numbers. The activation function contains none. Yet remove that tiny function and a hundred layers can collapse into one linear map. Change its shape and the same architecture can become easy to train, slow to train, sparse, smooth, unstable, or unexpectedly good at preserving a signal.</p>
+
+      <p>I have already written about <a href="nonlinearity_in_nns.html">why a network needs nonlinearity</a>. This essay asks the question underneath that answer: once we agree to bend the line, <em>which bend should we choose?</em> ReLU chops the negative half away. Sigmoid compresses the whole real line into a probability-shaped interval. GELU and SiLU let a small negative signal leak through, then become almost linear on the positive side. A sine never settles down at all.</p>
+
+      <p>The differences look cosmetic on a plot. They are not. An activation has an anatomy, and every part of that anatomy enters training.</p>
+
+      <div class="thesis">
+        <strong>An activation function is a tiny rule with two simultaneous jobs: it edits the signal moving forward and edits the gradient moving backward. Its value decides what the next layer sees; its derivative decides what the previous layer learns.</strong>
+      </div>
+
+      <nav class="essay-map" aria-label="Map of the essay">
+        <strong>The route through the body</strong>
+        <ol>
+          <li><a href="#neuron">Where the function lives</a></li>
+          <li><a href="#skeleton">The seven-part skeleton</a></li>
+          <li><a href="#brain">Adding the brain</a></li>
+          <li><a href="#step">The first switch</a></li>
+          <li><a href="#sigmoid">Sigmoid</a></li>
+          <li><a href="#tanh">Tanh</a></li>
+          <li><a href="#relu">ReLU</a></li>
+          <li><a href="#relu-family">The ReLU family</a></li>
+          <li><a href="#softplus">Softplus</a></li>
+          <li><a href="#soft-gates">GELU, SiLU, and Mish</a></li>
+          <li><a href="#geometry">The geometry of a crowd</a></li>
+          <li><a href="#gates">Softmax and SwiGLU</a></li>
+          <li><a href="#choice">Choosing one</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="neuron">First, where does an activation function live?</h2>
+
+      <p>Take one neuron. It receives a vector \(x\), keeps a vector of learned weights \(w\), and owns a learned bias \(b\). It first computes</p>
+
+      <div class="equation-note">
+        \[
+        z=w^{\top}x+b, \qquad a=\phi(z).
+        \]
+      </div>
+
+      <p>The first number, \(z\), is the <em>pre-activation</em>: the weighted evidence collected before the neuron decides what to pass on. The second number, \(a\), is the activation. The symbol \(\phi\) is the rule between them. If \(\phi(z)=z\), the neuron simply forwards its weighted sum. If \(\phi(z)=\max(0,z)\), negative evidence becomes exactly zero. If \(\phi(z)=1/(1+e^{-z})\), every possible input is squeezed between zero and one.</p>
+
+      <p>That sounds like a scalar detail because it is applied one number at a time. Across a hidden layer, however, the same rule acts on every coordinate:</p>
+
+      \[
+      h_{\ell}=\phi(W_{\ell}h_{\ell-1}+b_{\ell}).
+      \]
+
+      <p>The matrix \(W_{\ell}\) mixes information. The activation \(\phi\) decides which parts of that mixture survive and in what form. The next matrix mixes the edited result. A deep network is this alternation repeated: mix, bend, mix, bend.</p>
+
+      <p>“Nonlinear” only means the graph is not one straight line. It does not tell us whether the graph is bounded, whether it has a sharp corner, whether it kills negative values, whether it is smooth enough to differentiate twice, or whether it makes large inputs indistinguishable. Those details are the skeleton.</p>
+
+      <h2 id="skeleton">The skeleton of an activation function</h2>
+
+      <p>I wanted a way to inspect any activation before learning its name, so I gave it seven bones. This is an actual rotatable skeleton because the metaphor became too literal to stop. Drag it, use the arrow keys, and click a labelled part. Then switch on the brain.</p>
+
+      <section class="anatomy-lab" aria-labelledby="anatomy-title">
+        <div class="lab-toolbar">
+          <h3 id="anatomy-title">Interactive 3D activation anatomy</h3>
+          <div class="mode-switch" aria-label="Skeleton display mode">
+            <button type="button" data-anatomy-mode="skeleton" aria-pressed="true">Skeleton</button>
+            <button type="button" data-anatomy-mode="brain" aria-pressed="false">Add the brain</button>
+            <button class="reset-view" type="button">Reset view</button>
+          </div>
+        </div>
+        <div class="skeleton-shell">
+          <canvas id="skeleton-canvas" tabindex="0" role="img" aria-label="Rotatable three-dimensional skeleton whose body parts label the mathematical anatomy of an activation function"></canvas>
+          <p class="drag-hint">drag to rotate · click a label · arrow keys work too</p>
+        </div>
+        <div class="part-readout" aria-live="polite">
+          <strong id="part-title">Spine — the curve φ(z)</strong>
+          <p id="part-copy">The graph itself is the backbone. It maps one pre-activation \(z\) to one output. Every other property describes how this curve behaves.</p>
+        </div>
+        <p class="viz-caption">The labels stay attached as the body turns. In brain mode, blue carries values forward and red carries gradients backward.</p>
+      </section>
+
+      <p><strong>The shoulders are the domain.</strong> The domain is the set of inputs the function accepts. Most hidden activations accept every real number, written \(\mathbb R\). A pre-activation of \(-10^6\), \(0\), or \(3.7\) is all legal. The interesting question is what the function does with each one.</p>
+
+      <p><strong>The skull is the range.</strong> The range is the set of outputs that can leave. Sigmoid has range \((0,1)\); it can approach zero or one forever but never reach them at a finite input. Tanh has range \((-1,1)\). ReLU has range \([0,\infty)\), so it can produce an exact zero and arbitrarily large positive values. Range is not decoration. It determines whether a neuron can represent a negative signal, whether outputs are bounded, and whether the next layer receives a permanent positive offset.</p>
+
+      <p><strong>The spine is the curve.</strong> This is \(\phi(z)\) itself: the forward rule. A straight spine gives a linear activation. A kink, an S-curve, a soft gate, or a periodic wave changes the function class of the whole network.</p>
+
+      <p><strong>The elbows are the slope.</strong> The derivative \(\phi'(z)\) measures how much the output changes when the input moves a tiny amount.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>A derivative, without ceremony.</strong> If increasing \(z\) by \(0.001\) increases \(\phi(z)\) by roughly \(0.0007\), the local slope is about \(0.7\). Backpropagation repeatedly multiplies by these local slopes.</span> A slope of one passes a small change through unchanged. A slope near zero makes the neuron locally deaf. A negative slope reverses the direction of the change.</p>
+
+      <p><strong>The knees are curvature.</strong> The second derivative \(\phi''(z)\) measures how the slope itself changes. Zero curvature means locally straight. Positive curvature bends upward; negative curvature bends downward. Curvature matters because it changes how abruptly learning dynamics vary as a neuron moves through its input space. ReLU has zero second derivative away from its single kink. GELU spreads curvature across a whole neighbourhood.</p>
+
+      <p><strong>The feet are the limits.</strong> We ask what happens as \(z\to\infty\) and \(z\to-\infty\). If the curve approaches a flat ceiling or floor, it <em>saturates</em>.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Saturation.</strong> A function saturates when increasingly extreme inputs produce almost the same output. The slope then approaches zero, so the forward signal is bounded but the backward signal weakens.</span> Sigmoid saturates at both ends. ReLU saturates on its entire negative half but stays linear on the positive half. SiLU approaches zero from below on the left and behaves like the identity on the right.</p>
+
+      <p><strong>The hands are the parameters.</strong> Some activations contain knobs. Leaky ReLU has a negative slope \(\alpha\). PReLU learns that slope. Softplus has a sharpness \(\beta\). Swish can use \(z\sigma(\beta z)\). A parameter lets the curve adapt, but it also adds another quantity whose initialization and gradients need care.</p>
+
+      <h2 id="brain">Now add the brain</h2>
+
+      <p>The skeleton describes one function at one input. The brain is what happens when millions of copies communicate through a network. I define that brain through four questions.</p>
+
+      <p><strong>What information moves forward?</strong> The value \(\phi(z)\) becomes data for the next layer. ReLU makes the representation sparse because every negative input becomes exactly zero. Tanh preserves sign but compresses magnitude. GELU reduces small negative values rather than amputating them.</p>
+
+      <p><strong>What credit moves backward?</strong> If a loss \(L\) depends on \(a=\phi(z)\), the chain rule gives</p>
+
+      \[
+      \frac{\partial L}{\partial z}
+      =\frac{\partial L}{\partial a}\,\phi'(z).
+      \]
+
+      <p>The gradient arriving from later layers is multiplied by the activation's slope. Through \(D\) scalar layers, the activation contribution looks like \(\prod_{\ell=1}^{D}\phi'(z_\ell)\); the weight matrices contribute their own factors too. If twenty sigmoid units all sit at zero and the intervening scalar weights equal one, the product is \((1/4)^{20}\approx9.1\times10^{-13}\). That is not a metaphor for a small gradient. It is nearly a trillionth of the original signal.</p>
+
+      <p><strong>What statistics survive?</strong> A layer receives a distribution of inputs, not one number. The activation changes its mean and spread. Feed a symmetric bell-shaped distribution through ReLU and half the values become zero while the other half remain positive. The result is no longer centred at zero. Initialization schemes compensate for this transformation so that signals do not shrink or explode with depth.</p>
+
+      <p><strong>What geometry does a population create?</strong> Two similar inputs produce correlated pre-activations across neurons. The activation changes that correlation. In a sufficiently wide random layer, the choice of \(\phi\) becomes an exact rule for how angles and similarities are warped. We will return to that after meeting the individual functions.</p>
+
+      <h2 id="step">The first activation was a switch</h2>
+
+      <p>The cleanest ancestor is the binary step:</p>
+
+      \[
+      H(z)=
+      \begin{cases}
+      1,&z\ge 0,\\
+      0,&z<0.
+      \end{cases}
+      \]
+
+      <p>A weighted sum crosses a threshold and the unit fires. This is the logic behind the perceptron associated with Rosenblatt's early neural model.<a href="#ref-2">[2]</a> Its range contains one bit. Its decision boundary is the plane \(w^{\top}x+b=0\). On one side the answer is zero; on the other it is one.</p>
+
+      <p>The step has a fatal relationship with ordinary backpropagation. Its derivative is zero everywhere except at the jump, where the derivative does not exist. Move the weights a tiny amount without crossing the threshold and the output does not change at all. A gradient therefore sees no direction to move. The historical perceptron used its own mistake-driven update rule; it did not train a deep stack by differentiating through the step.</p>
+
+      <p>This creates the first design tension. A hard decision is useful in the forward pass, but a smooth response is useful in the backward pass. Sigmoid was the soft switch.</p>
+
+      <h2 id="sigmoid">Sigmoid: a probability-shaped gate</h2>
+
+      <p>The logistic sigmoid is</p>
+
+      \[
+      \sigma(z)=\frac{1}{1+e^{-z}}.
+      \]
+
+      <p>It turns the entire real line into \((0,1)\). At \(z=0\), the output is \(1/2\). Negating the input complements the output:</p>
+
+      \[
+      \sigma(-z)=1-\sigma(z).
+      \]
+
+      <p>This is why sigmoid feels like a soft yes-or-no gate. Large positive evidence approaches one, large negative evidence approaches zero, and zero evidence lands exactly in the middle. If \(z\) is a log-odds value, \(\sigma(z)\) converts it into a probability.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Odds and log-odds.</strong> A probability \(p\) has odds \(p/(1-p)\). Taking the logarithm gives the log-odds. Solving \(z=\log(p/(1-p))\) for \(p\) produces \(p=\sigma(z)\).</span></p>
+
+      <p>Its derivative contains the function itself:</p>
+
+      \[
+      \sigma'(z)=\sigma(z)\bigl(1-\sigma(z)\bigr).
+      \]
+
+      <p>Let \(p=\sigma(z)\). Since \(0&lt;p&lt;1\), the derivative is \(p(1-p)\), a downward-facing quadratic with its maximum at \(p=1/2\). Therefore</p>
+
+      \[
+      0<\sigma'(z)\le \frac14.
+      \]
+
+      <p>The best possible slope is only \(0.25\), and it occurs at the origin. At \(z=5\), the derivative is about \(0.00665\). At \(z=10\), it is about \(0.0000454\). A confident sigmoid is also a stubborn sigmoid: once it sits near zero or one, a gradient has little power to change the evidence that put it there.</p>
+
+      <p>There is a second problem. If the input distribution is symmetric around zero, then \(\mathbb E[\sigma(Z)]=1/2\). The next layer receives positive-centred values. Here \(\mathbb E\) means the average we would obtain across repeated draws. This offset can push later sigmoids toward saturation; Glorot and Bengio connected that behaviour to the plateaus seen in deep sigmoid networks.<a href="#ref-3">[3]</a></p>
+
+      <p>Sigmoid did not become useless. It moved to jobs where \((0,1)\) is the point: binary output probabilities and learned gates in LSTMs, GRUs, and gated blocks. A hidden feature may need to preserve magnitude; a gate only needs to decide how much of another feature should pass.</p>
+
+      <h2 id="tanh">Tanh: sigmoid, recentered and sharpened</h2>
+
+      <p>The hyperbolic tangent looks like sigmoid moved down and stretched:</p>
+
+      \[
+      \tanh(z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}=2\sigma(2z)-1.
+      \]
+
+      <p>That identity is more than visual trivia. It proves that tanh has range \((-1,1)\), crosses the origin, and changes sign when its input changes sign: \(\tanh(-z)=-\tanh(z)\). A function with that last property is called <em>odd</em>. For any input distribution symmetric around zero, an odd activation has zero mean. Tanh therefore removes sigmoid's built-in \(1/2\) offset.</p>
+
+      <p>Its derivative is</p>
+
+      \[
+      \frac{d}{dz}\tanh(z)=1-\tanh^2(z).
+      \]
+
+      <p>The maximum slope is one at the origin, four times sigmoid's maximum. Near zero, tanh behaves almost like the identity: \(\tanh(z)\approx z\). That gives small signals a clean path. Large signals still saturate at \(\pm 1\), so the vanishing-gradient problem remains in both tails.</p>
+
+      <p>Tanh is still natural when sign and bounded state matter. Recurrent networks traditionally used it for candidate states because a memory update can be positive or negative without becoming unbounded. It is also a useful output when the target itself lives in a known interval. The important distinction is between choosing a bounded range because the task needs one and imposing it on every hidden layer merely because the curve looks tidy.</p>
+
+      <h2 id="relu">ReLU: half a line changed deep learning</h2>
+
+      <p>The rectified linear unit is almost aggressively simple:</p>
+
+      \[
+      \operatorname{ReLU}(z)=\max(0,z)=\frac{z+|z|}{2}.
+      \]
+
+      <p>Its derivative is zero for \(z&lt;0\) and one for \(z&gt;0\). At exactly zero the two slopes disagree, so the derivative is undefined. Software chooses a conventional value, commonly zero, and training continues. A continuous input distribution hits exactly zero with probability zero, so the single ambiguous point is rarely the practical problem people imagine.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>“Almost everywhere.”</strong> Mathematicians use this phrase when exceptions occupy zero volume. ReLU is differentiable almost everywhere because one exceptional point has no length on the real line.</span></p>
+
+      <p>ReLU's positive half does not saturate. A positive signal sees slope one no matter how large it becomes. That created a much cleaner gradient path than sigmoid or tanh and helped deep supervised networks train without layer-wise pretraining.<a href="#ref-4">[4]</a></p>
+
+      <p>ReLU is also <em>positively homogeneous</em>:</p>
+
+      \[
+      \operatorname{ReLU}(cz)=c\operatorname{ReLU}(z)\qquad(c\ge0).
+      \]
+
+      <p>This means positive scaling commutes with the activation. Multiply the incoming weights of a ReLU neuron by \(c\) and divide its outgoing weights by \(c\); the whole network can compute exactly the same function. That symmetry helps explain why parameter size and function size are not the same thing in ReLU networks.</p>
+
+      <p>Its second derivative is zero everywhere except the kink. Yet a ReLU network is globally nonlinear. Each neuron introduces a boundary \(w^{\top}x+b=0\). On any region where the active and inactive neurons stay fixed, the network is affine. Cross a boundary and a different affine map takes over. The nonlinearity lives in how many linear regions are stitched together, not in continuous curvature inside each region.</p>
+
+      <h3>A Gaussian goes in; half a Gaussian comes out</h3>
+
+      <p>Let \(Z\sim\mathcal N(0,1)\), meaning \(Z\) follows a standard bell curve with mean zero and variance one. Set \(Y=\operatorname{ReLU}(Z)\). Symmetry immediately tells us that half the probability becomes exactly zero. The surviving positive half gives</p>
+
+      \[
+      \mathbb E[Y]=\frac{1}{\sqrt{2\pi}},\qquad
+      \mathbb E[Y^2]=\frac12,qquad
+      \operatorname{Var}(Y)=\frac{\pi-1}{2\pi}.
+      \]
+
+      <p>The second moment \(\mathbb E[Y^2]\) is the average squared size. It halves after ReLU. That fact leads to He initialization. If a pre-activation sums \(n\) independent inputs of equal second moment, choosing weight variance roughly \(2/n\) compensates for the half that ReLU removes.<a href="#ref-5">[5]</a><sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Second moment versus variance.</strong> Variance subtracts the squared mean: \(\operatorname{Var}(Y)=\mathbb E[Y^2]-\mathbb E[Y]^2\). Initialization derivations often track the second moment because weighted sums with zero-mean weights become especially simple.</span></p>
+
+      <p>The same hard zero creates ReLU's famous failure mode. If a neuron's pre-activation becomes negative for every training example, its output and local derivative are always zero. No gradient reaches its incoming weights through that route. The unit is “dead.” A large learning rate or badly placed bias can push a neuron into this state.</p>
+
+      <h2 id="relu-family">The negative half fights back</h2>
+
+      <p>Many ReLU variants are answers to one question: must negative evidence become exactly zero?</p>
+
+      <div class="formula-grid">
+        <section class="formula-card">
+          <h3>Leaky ReLU and PReLU</h3>
+          \[
+          \phi(z)=\begin{cases}z,&z\ge0,\\ \alpha z,&z<0.\end{cases}
+          \]
+          <p>A fixed small \(\alpha>0\) keeps a gradient alive on the negative side. PReLU makes \(\alpha\) learnable. For a standard Gaussian input, \(\mathbb E[\phi(Z)^2]=(1+\alpha^2)/2\), giving the initialization factor \(2/((1+\alpha^2)n)\).<a href="#ref-5">[5]</a></p>
+        </section>
+        <section class="formula-card">
+          <h3>ELU</h3>
+          \[
+          \phi(z)=\begin{cases}z,&z\ge0,\\ \alpha(e^z-1),&z<0.\end{cases}
+          \]
+          <p>The negative branch bends toward \(-\alpha\). It permits negative outputs while damping extreme negative noise. When \(\alpha=1\), the slopes meet at the origin, so the join is smooth to first order.<a href="#ref-6">[6]</a></p>
+        </section>
+        <section class="formula-card">
+          <h3>SELU</h3>
+          \[
+          \operatorname{SELU}(z)=\lambda\begin{cases}z,&z\ge0,\\ \alpha(e^z-1),&z<0.\end{cases}
+          \]
+          <p>With \(\alpha\approx1.6733\) and \(\lambda\approx1.0507\), the mean-and-variance map has a stable point near \((0,1)\) under specific assumptions. Repeated layers pull nearby statistics back toward zero mean and unit variance.<a href="#ref-7">[7]</a></p>
+        </section>
+        <section class="formula-card">
+          <h3>ReLU6</h3>
+          \[
+          \operatorname{ReLU6}(z)=\min(6,\max(0,z)).
+          \]
+          <p>This clips both tails: zero below, linear in the middle, six above. The bounded range is friendly to low-precision arithmetic, although the upper plateau reintroduces a zero-gradient region.</p>
+        </section>
+      </div>
+
+      <p>SELU's “self-normalizing” name needs its assumptions attached.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>A fixed point.</strong> A transformation has a fixed point when applying it leaves a value unchanged. Here the transformation takes one layer's mean and variance to the next layer's mean and variance. Stability means nearby values move back toward the fixed point.</span> The proof uses a particular initialization, independent activations, sufficiently wide feed-forward layers, and alpha dropout rather than ordinary dropout. SELU inserted casually into an architecture with normalization, residual paths, or another initialization does not inherit a magical guarantee.</p>
+
+      <h2 id="softplus">Softplus: a ReLU with no corner</h2>
+
+      <p>Softplus replaces the hard maximum with a smooth one:</p>
+
+      \[
+      \operatorname{softplus}_{\beta}(z)=\frac{1}{\beta}\log(1+e^{\beta z}).
+      \]
+
+      <p>The parameter \(\beta>0\) controls sharpness. As \(\beta\to\infty\), Softplus approaches ReLU. The approximation error is exact and pleasantly small:</p>
+
+      \[
+      \operatorname{softplus}_{\beta}(z)-\operatorname{ReLU}(z)
+      =\frac{1}{\beta}\log(1+e^{-\beta|z|})
+      \le\frac{\log2}{\beta}.
+      \]
+
+      <p>The largest gap occurs at the origin. Softplus always sits slightly above ReLU and never outputs an exact zero. Its first two derivatives are</p>
+
+      \[
+      \phi'(z)=\sigma(\beta z),\qquad
+      \phi''(z)=\beta\sigma(\beta z)\bigl(1-\sigma(\beta z)\bigr).
+      \]
+
+      <p>Sigmoid, which struggled as a hidden activation, returns as Softplus's derivative. This is a lovely recurring pattern: an old activation can remain useful as the gate controlling the slope of a newer one. Softplus is also the two-number log-sum-exp, a smooth approximation to \(\max(0,z)\).</p>
+
+      <h2 id="soft-gates">GELU, SiLU, and Mish: the soft gates</h2>
+
+      <p>ReLU makes a deterministic decision: keep \(z\) if it is positive, otherwise replace it with zero. Modern smooth activations make that decision gradual. Small negative inputs are reduced rather than erased; large positive inputs pass almost unchanged.</p>
+
+      <h3>GELU: weight by a Gaussian probability</h3>
+
+      <p>The Gaussian error linear unit is</p>
+
+      \[
+      \operatorname{GELU}(z)=z\Phi(z),
+      \]
+
+      <p>where \(\Phi(z)\) is the probability that a standard normal random variable is at most \(z\). At \(z=0\), the gate \(\Phi(z)\) is \(1/2\). For a large positive input it approaches one; for a large negative input it approaches zero. GELU weights the input by how probable it is under a Gaussian threshold instead of using ReLU's hard sign test.<a href="#ref-8">[8]</a></p>
+
+      <p>If \(\varphi(z)=e^{-z^2/2}/\sqrt{2\pi}\) is the standard normal density, then</p>
+
+      \[
+      \operatorname{GELU}'(z)=\Phi(z)+z\varphi(z),
+      \qquad
+      \operatorname{GELU}''(z)=\varphi(z)(2-z^2).
+      \]
+
+      <p>The curvature changes sign at \(z=\pm\sqrt2\). GELU is also slightly non-monotonic: around \(z\approx-0.752\), it reaches a small minimum of about \(-0.170\), then rises toward zero as \(z\to-\infty\). More negative input can therefore produce a less negative output in the far left tail. That sounds strange only if an activation is expected to preserve ordering. Neural networks do not require that.</p>
+
+      <h3>SiLU or Swish: let sigmoid gate its own input</h3>
+
+      <p>The sigmoid linear unit is</p>
+
+      \[
+      \operatorname{SiLU}(z)=z\sigma(z).
+      \]
+
+      <p>The name Swish is often used for the wider family \(z\sigma(\beta z)\), which was rediscovered through an automated search over activation formulas.<a href="#ref-9">[9]</a> Its derivative is</p>
+
+      \[
+      \operatorname{SiLU}'(z)
+      =\sigma(z)+z\sigma(z)(1-\sigma(z)).
+      \]
+
+      <p>SiLU reaches its minimum near \(z=-1.278\), with value about \(-0.278\). Like GELU, it can have a negative local slope and a positive slope slightly above one. The two curves are remarkably close because the logistic CDF \(\sigma(1.702z)\) approximates the Gaussian CDF \(\Phi(z)\). This gives the useful approximation</p>
+
+      \[
+      \operatorname{GELU}(z)\approx z\sigma(1.702z).
+      \]
+
+      <p>They arrived through different stories—Gaussian weighting and searched self-gating—but much of their shape is the same story told with two probability distributions.</p>
+
+      <h3>Mish: gate with tanh of Softplus</h3>
+
+      <p>Mish nests two familiar smooth functions:</p>
+
+      \[
+      \operatorname{Mish}(z)=z\tanh(\log(1+e^z)).
+      \]
+
+      <p>Let \(u=\operatorname{softplus}(z)\) and \(t=\tanh(u)\). Then the derivative is still readable:</p>
+
+      \[
+      \operatorname{Mish}'(z)=t+z\sigma(z)(1-t^2).
+      \]
+
+      <p>Mish approaches zero from below on the far left and the identity on the far right. Its minimum is about \(-0.309\). The construction is smooth everywhere, but smoothness alone does not prove better optimization or generalization. Mish, GELU, and SiLU make empirical bets about whether a gentle negative basin and a soft transition are useful for a particular architecture.<a href="#ref-10">[10]</a></p>
+
+      <section class="function-lab" aria-labelledby="function-title">
+        <div class="lab-toolbar">
+          <h3 id="function-title">Activation microscope</h3>
+          <div class="function-switch" aria-label="Choose an activation function">
+            <button type="button" data-function="sigmoid" aria-pressed="true">sigmoid</button>
+            <button type="button" data-function="tanh" aria-pressed="false">tanh</button>
+            <button type="button" data-function="relu" aria-pressed="false">ReLU</button>
+            <button type="button" data-function="leaky" aria-pressed="false">leaky</button>
+            <button type="button" data-function="softplus" aria-pressed="false">Softplus</button>
+            <button type="button" data-function="gelu" aria-pressed="false">GELU</button>
+            <button type="button" data-function="silu" aria-pressed="false">SiLU</button>
+            <button type="button" data-function="mish" aria-pressed="false">Mish</button>
+          </div>
+        </div>
+        <div class="function-shell">
+          <canvas id="function-canvas" role="img" aria-label="Plot of the selected activation, its first derivative, and a movable input probe"></canvas>
+        </div>
+        <div class="function-controls">
+          <label><span>input</span><input id="input-probe" type="range" min="-5" max="5" step="0.01" value="0"><output id="input-output">0.00</output></label>
+          <label><span>depth</span><input id="depth-probe" type="range" min="1" max="40" step="1" value="12"><output id="depth-output">12</output></label>
+        </div>
+        <div class="function-readout" aria-live="polite">
+          <span id="value-readout">φ(z) = 0.5000</span>
+          <span id="slope-readout">φ′(z) = 0.2500</span>
+          <span id="curve-readout">φ″(z) = 0.0000</span>
+          <span id="chain-readout">|φ′|ᴰ = 5.96e−8</span>
+        </div>
+        <p class="viz-caption">Black is the activation, blue is its first derivative, and the vertical probe follows the input slider. The depth readout multiplies the local slope repeatedly while pretending every intervening weight equals one; it isolates the activation's contribution rather than simulating a whole network.</p>
+      </section>
+
+      <h2 id="geometry">One activation becomes a geometry in a crowd</h2>
+
+      <p>So far we have followed one scalar. A wide layer reveals a stranger fact: the activation decides how the network measures similarity.</p>
+
+      <p>Take two unit-length input vectors \(x\) and \(x'\), separated by an angle \(\theta\). Draw a random Gaussian weight vector \(w\), and form two pre-activations \(u=w^{\top}x\) and \(v=w^{\top}x'\). Their correlation is \(\cos\theta\). After ReLU, the expected product has a closed form:</p>
+
+      \[
+      \mathbb E[\operatorname{ReLU}(u)\operatorname{ReLU}(v)]
+      =\frac{\sin\theta+(\pi-\theta)\cos\theta}{2\pi}.
+      \]
+
+      <p>This is the first-order arc-cosine kernel.<a href="#ref-13">[13]</a> A kernel is simply a rule that returns a similarity between two inputs. An infinitely wide random ReLU layer computes this particular rule. The one-dimensional kink has become high-dimensional geometry.</p>
+
+      <figure class="viz" aria-labelledby="kernel-caption">
+        <svg viewBox="0 0 760 330" role="img" aria-labelledby="kernel-title kernel-desc">
+          <title id="kernel-title">How ReLU transforms angular similarity</title>
+          <desc id="kernel-desc">Three pairs of vectors at zero, ninety, and one hundred eighty degrees, with their cosine similarity and normalized ReLU similarity.</desc>
+          <defs>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/></marker>
+            <marker id="arrow-black" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#111"/></marker>
+          </defs>
+          <rect x="1" y="1" width="758" height="328" fill="rgba(255,255,255,.12)" stroke="#888"/>
+          <text x="380" y="28" text-anchor="middle" font-family="Verdana" font-size="15" font-weight="700">same length, different angle</text>
+          <g transform="translate(125 164)">
+            <line x1="0" y1="0" x2="75" y2="-55" stroke="#111" stroke-width="3" marker-end="url(#arrow-black)"/>
+            <line x1="0" y1="0" x2="75" y2="-55" stroke="#0000ee" stroke-width="2" marker-end="url(#arrow-blue)" transform="rotate(5)"/>
+            <text x="0" y="92" text-anchor="middle" font-family="Verdana" font-size="12">θ = 0</text>
+            <text x="0" y="112" text-anchor="middle" font-family="Verdana" font-size="11">cosine: 1 · ReLU: 1</text>
+          </g>
+          <g transform="translate(380 164)">
+            <line x1="0" y1="0" x2="80" y2="0" stroke="#111" stroke-width="3" marker-end="url(#arrow-black)"/>
+            <line x1="0" y1="0" x2="0" y2="-80" stroke="#0000ee" stroke-width="3" marker-end="url(#arrow-blue)"/>
+            <path d="M32 0 A32 32 0 0 0 0 -32" fill="none" stroke="#777"/>
+            <text x="0" y="92" text-anchor="middle" font-family="Verdana" font-size="12">θ = π/2</text>
+            <text x="0" y="112" text-anchor="middle" font-family="Verdana" font-size="11">cosine: 0 · ReLU: 1/π</text>
+          </g>
+          <g transform="translate(635 164)">
+            <line x1="0" y1="0" x2="82" y2="0" stroke="#111" stroke-width="3" marker-end="url(#arrow-black)"/>
+            <line x1="0" y1="0" x2="-82" y2="0" stroke="#0000ee" stroke-width="3" marker-end="url(#arrow-blue)"/>
+            <text x="0" y="92" text-anchor="middle" font-family="Verdana" font-size="12">θ = π</text>
+            <text x="0" y="112" text-anchor="middle" font-family="Verdana" font-size="11">cosine: −1 · ReLU: 0</text>
+          </g>
+          <text x="380" y="310" text-anchor="middle" font-family="Verdana" font-size="11">normalized ReLU similarity = [sin θ + (π − θ) cos θ] / π</text>
+        </svg>
+        <figcaption id="kernel-caption" class="viz-caption">Orthogonal inputs have cosine similarity zero, yet their normalized similarity after a wide random ReLU layer is \(1/\pi\). Rectification makes both representations nonnegative, giving them a shared positive baseline.</figcaption>
+      </figure>
+
+      <p>Stacking random layers repeatedly applies a correlation map of this kind. Depending on the weight scale, bias scale, and activation, two distinct signals can become indistinguishable, remain usefully separated, or diverge chaotically. Mean-field analyses call the narrow trainable boundary the “edge of chaos”: correlations propagate without collapsing too quickly and gradients avoid immediate explosion or disappearance.<a href="#ref-14">[14]</a> This is the brain at population scale. The shape of one neuron decides how information travels through depth.</p>
+
+      <p>Other activations build other geometries. A sine activation, \(\phi(z)=\sin(\omega z)\), is periodic and has derivative \(\omega\cos(\omega z)\). It can express fine spatial frequencies that ReLU networks learn less naturally, which is why SIREN networks use it for continuous representations of images, audio, and physical fields.<a href="#ref-15">[15]</a> There is no universally best curve because different curves make different structures cheap.</p>
+
+      <h2 id="gates">Some “activations” act on more than one number</h2>
+
+      <p>Most functions above are pointwise: each coordinate is transformed independently. Two important modern cases break that simple picture.</p>
+
+      <h3>Softmax is a conversation among coordinates</h3>
+
+      <p>For a vector \(z\in\mathbb R^K\), softmax produces</p>
+
+      \[
+      p_i=\frac{e^{z_i}}{\sum_{j=1}^{K}e^{z_j}}.
+      \]
+
+      <p>Every output is positive and the outputs sum to one, so \(p\) lies on the probability simplex. Increasing one logit changes every probability because they share a denominator. Its derivative is therefore a matrix, called a Jacobian:</p>
+
+      \[
+      \frac{\partial p_i}{\partial z_j}=p_i(\delta_{ij}-p_j),
+      \qquad
+      J=\operatorname{diag}(p)-pp^{\top}.
+      \]
+
+      <p>A Jacobian is the vector version of a derivative: entry \((i,j)\) tells us how output \(i\) responds to input \(j\). The matrix obeys \(J\mathbf1=0\). Adding the same constant to every logit changes nothing, because the shared factor cancels. Softmax deliberately forgets one direction: the all-coordinates-together direction.</p>
+
+      <h3>SwiGLU gives the activation learned context</h3>
+
+      <p>A gated linear unit forms two learned projections. One carries content; the other decides how much content passes. A common Transformer variant is</p>
+
+      \[
+      \operatorname{SwiGLU}(x)
+      =\bigl(xW_1\bigr)\odot\operatorname{SiLU}(xW_2),
+      \]
+
+      <p>followed by another projection. The symbol \(\odot\) means coordinate-by-coordinate multiplication. Unlike \(\operatorname{SiLU}(z)\), which lets a scalar gate itself, SwiGLU learns a separate gate from the whole input vector. The activation has grown a small decision-making circuit. GLU variants have improved Transformer feed-forward blocks in controlled comparisons and now appear across large language models.<a href="#ref-11">[11]</a><a href="#ref-12">[12]</a></p>
+
+      <h2 id="choice">So which activation should I use?</h2>
+
+      <p>The output layer should follow the meaning of the prediction. Binary probability suggests a sigmoid, usually fused numerically with binary cross-entropy. Mutually exclusive classes suggest softmax, usually fused with multiclass cross-entropy. An unrestricted regression target suggests the identity. A strictly positive quantity can use Softplus. A bounded physical control may justify tanh.</p>
+
+      <p>For hidden layers, the architecture matters more than a universal ranking. ReLU remains a strong, cheap baseline for convolutional networks and ordinary MLPs. Leaky ReLU is a simple response when dead units are visible. GELU is conventional in many Transformers. SiLU is common in modern vision and language systems. SwiGLU is more than a pointwise replacement and changes parameter counts, so comparisons should adjust hidden width rather than dropping it into a ReLU block unchanged.</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table>
+          <thead>
+            <tr><th>Function</th><th>Range</th><th>What happens on the left?</th><th>Maximum-slope story</th><th>Natural job</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sigmoid</td><td>\((0,1)\)</td><td>Saturates at 0</td><td>At most \(1/4\)</td><td>Binary output, gate</td></tr>
+            <tr><td>Tanh</td><td>\((-1,1)\)</td><td>Saturates at −1</td><td>At most \(1\)</td><td>Bounded signed state</td></tr>
+            <tr><td>ReLU</td><td>\([0,\infty)\)</td><td>Exactly zero</td><td>0 or 1</td><td>Cheap hidden baseline</td></tr>
+            <tr><td>Leaky/PReLU</td><td>\(\mathbb R\)</td><td>Linear slope \(\alpha\)</td><td>\(\max(1,|\alpha|)\)</td><td>Avoid dead negative side</td></tr>
+            <tr><td>ELU/SELU</td><td>Bounded below</td><td>Exponential saturation</td><td>Linear on right</td><td>Negative mean correction; special self-normalizing recipe</td></tr>
+            <tr><td>Softplus</td><td>\((0,\infty)\)</td><td>Approaches 0 smoothly</td><td>Below 1</td><td>Positive smooth output</td></tr>
+            <tr><td>GELU</td><td>About \([-0.17,\infty)\)</td><td>Approaches 0 from below</td><td>Can slightly exceed 1</td><td>Transformer hidden layer</td></tr>
+            <tr><td>SiLU</td><td>About \([-0.278,\infty)\)</td><td>Approaches 0 from below</td><td>Can slightly exceed 1</td><td>Modern hidden layer and gate</td></tr>
+            <tr><td>Mish</td><td>About \([-0.309,\infty)\)</td><td>Approaches 0 from below</td><td>Smooth, non-monotonic</td><td>Empirical alternative</td></tr>
+            <tr><td>Sine</td><td>\([-1,1]\)</td><td>Keeps oscillating</td><td>Set by frequency \(\omega\)</td><td>Continuous signals and derivatives</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Three checks matter more than memorising that table. First, inspect the distribution of pre-activations: a beautiful central slope is irrelevant if every neuron lives in a saturated tail. Second, inspect activation and gradient statistics by layer: means, second moments, dead fractions, and gradient norms reveal whether the chosen function and initialization cooperate. Third, compare under a fixed compute and parameter budget. A slightly better curve in one paper is evidence from one training system, not a law of nature.</p>
+
+      <h2>What this dissection does not say</h2>
+
+      <p>It does not say smooth functions are automatically better. ReLU's corner is compatible with gradient training, and its piecewise-linear structure is often a computational gift. Smoothness becomes essential only when the application needs smooth higher derivatives, as some physics-informed or implicit-representation problems do.</p>
+
+      <p>It does not say sigmoid always causes vanishing gradients or ReLU always prevents them. The full Jacobian contains weight matrices, normalization, residual connections, attention, and the loss. A ReLU network with badly scaled weights can explode or die; a carefully designed gated recurrent network can use sigmoids successfully for thousands of steps.</p>
+
+      <p>It does not say universal approximation chooses the winner. Under standard assumptions, a broad class of non-polynomial activations can approximate continuous functions with enough width.<a href="#ref-16">[16]</a> Existence is a weak promise. It does not tell us how many neurons are required, whether gradient descent can find them, how stable the computation is, or how well the result generalizes.</p>
+
+      <p>And it does not say the activation works alone. Initialization is chosen partly around the activation. Normalization changes the inputs it sees. Residual connections create alternative gradient paths. Gating changes the block. Hardware changes the cost. The right unit of comparison is usually a training recipe, not a curve floating by itself.</p>
+
+      <h2>The smallest part was shaping the whole machine</h2>
+
+      <p>I began with Vivek blaming activation functions for eating jobs. The serious version of the joke is surprisingly defensible.</p>
+
+      <p>A neural network stores most of its learned information in matrices, but the activation decides what those matrices are allowed to build together. Its range controls what can be represented in one coordinate. Its slope controls what can learn. Its curvature controls how that learning changes across input space. Its tails decide whether extreme evidence is preserved, clipped, or forgotten. Repeated across width, it defines a similarity geometry. Repeated across depth, it helps decide whether signals remain distinct and whether gradients survive the trip home.</p>
+
+      <p>The historical movement now looks less like a list of fashionable names. The step function made a decision but offered calculus nothing. Sigmoid softened the decision but compressed gradients everywhere. Tanh recentered the signal. ReLU removed the positive ceiling and accepted a hard kink. Leaky ReLU, ELU, and SELU renegotiated the negative half. Softplus rounded the kink. GELU and SiLU turned the hard gate into a probability-shaped weighting. SwiGLU gave the gate its own learned view of the input.</p>
+
+      <p>Every new function noticed one habit of the previous one and changed the anatomy.</p>
+
+      <p>So the activation is not the decorative squiggle between two large matrix multiplications. It is the joint that lets the skeleton move and the nervous system that tells the earlier layers what hurt. The matrices contain the strength. The activation decides how the body uses it.</p>
+
+      <section class="references" aria-labelledby="references-title">
+        <h2 id="references-title">References and links</h2>
+        <ol>
+          <li id="ref-1">Vivek Kumar, <a href="https://x.com/vickvey/status/2100510764109119858?s=20">“Its the activation functions who are eating your jobs.”</a>, X, 17 September 2026.</li>
+          <li id="ref-2">F. Rosenblatt, <a href="https://pubmed.ncbi.nlm.nih.gov/13602029/">“The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain”</a>, Psychological Review, 1958.</li>
+          <li id="ref-3">X. Glorot and Y. Bengio, <a href="https://proceedings.mlr.press/v9/glorot10a.html">“Understanding the Difficulty of Training Deep Feedforward Neural Networks”</a>, AISTATS, 2010.</li>
+          <li id="ref-4">X. Glorot, A. Bordes, and Y. Bengio, <a href="https://proceedings.mlr.press/v15/glorot11a.html">“Deep Sparse Rectifier Neural Networks”</a>, AISTATS, 2011.</li>
+          <li id="ref-5">K. He, X. Zhang, S. Ren, and J. Sun, <a href="https://arxiv.org/abs/1502.01852">“Delving Deep into Rectifiers”</a>, ICCV, 2015.</li>
+          <li id="ref-6">D.-A. Clevert, T. Unterthiner, and S. Hochreiter, <a href="https://arxiv.org/abs/1511.07289">“Fast and Accurate Deep Network Learning by Exponential Linear Units”</a>, ICLR, 2016.</li>
+          <li id="ref-7">G. Klambauer, T. Unterthiner, A. Mayr, and S. Hochreiter, <a href="https://arxiv.org/abs/1706.02515">“Self-Normalizing Neural Networks”</a>, NeurIPS, 2017.</li>
+          <li id="ref-8">D. Hendrycks and K. Gimpel, <a href="https://arxiv.org/abs/1606.08415">“Gaussian Error Linear Units”</a>, 2016.</li>
+          <li id="ref-9">P. Ramachandran, B. Zoph, and Q. V. Le, <a href="https://arxiv.org/abs/1710.05941">“Searching for Activation Functions”</a>, 2017.</li>
+          <li id="ref-10">D. Misra, <a href="https://arxiv.org/abs/1908.08681">“Mish: A Self Regularized Non-Monotonic Activation Function”</a>, 2019.</li>
+          <li id="ref-11">Y. N. Dauphin, A. Fan, M. Auli, and D. Grangier, <a href="https://proceedings.mlr.press/v70/dauphin17a.html">“Language Modeling with Gated Convolutional Networks”</a>, ICML, 2017.</li>
+          <li id="ref-12">N. Shazeer, <a href="https://arxiv.org/abs/2002.05202">“GLU Variants Improve Transformer”</a>, 2020.</li>
+          <li id="ref-13">Y. Cho and L. K. Saul, <a href="https://proceedings.neurips.cc/paper/2009/hash/5751ec3e9a4feab575962e78e006250d-Abstract.html">“Kernel Methods for Deep Learning”</a>, NeurIPS, 2009.</li>
+          <li id="ref-14">S. S. Schoenholz, J. Gilmer, S. Ganguli, and J. Sohl-Dickstein, <a href="https://arxiv.org/abs/1611.01232">“Deep Information Propagation”</a>, ICLR, 2017.</li>
+          <li id="ref-15">V. Sitzmann et al., <a href="https://arxiv.org/abs/2006.09661">“Implicit Neural Representations with Periodic Activation Functions”</a>, NeurIPS, 2020.</li>
+          <li id="ref-16">M. Leshno, V. Y. Lin, A. Pinkus, and S. Schocken, <a href="https://doi.org/10.1016/S0893-6080(05)80131-5">“Multilayer Feedforward Networks with a Nonpolynomial Activation Function Can Approximate Any Function”</a>, Neural Networks, 1993.</li>
+          <li>My earlier companion essay: <a href="nonlinearity_in_nns.html">A Stack of Straight Lines Is Still a Straight Line</a>.</li>
+        </ol>
+      </section>
+    </article>
+  </main>
+
+  <footer class="activation-footer">
+    &copy; 2026 Pratyaksh Patel
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const canvas = document.getElementById('skeleton-canvas');
+      const context = canvas.getContext('2d');
+      const modeButtons = Array.from(document.querySelectorAll('[data-anatomy-mode]'));
+      const resetButton = document.querySelector('.reset-view');
+      const title = document.getElementById('part-title');
+      const copy = document.getElementById('part-copy');
+      const paper = '#d8ccb2';
+      const ink = '#111111';
+      const blue = '#0000ee';
+      const red = '#b11b1b';
+      let width = 760;
+      let height = 520;
+      let yaw = -0.35;
+      let pitch = 0.08;
+      let dragging = false;
+      let pointerMoved = false;
+      let lastPointer = {x: 0, y: 0};
+      let mode = 'skeleton';
+      let selected = 'spine';
+      let hitTargets = [];
+
+      const points = {
+        brain: [0, 2.83, 0], skull: [0, 2.7, 0], neck: [0, 2.22, 0],
+        shoulderL: [-0.82, 1.95, 0], shoulderR: [0.82, 1.95, 0],
+        elbowL: [-1.18, 1.18, 0.12], elbowR: [1.18, 1.18, 0.12],
+        handL: [-1.38, 0.35, 0.02], handR: [1.38, 0.35, 0.02],
+        chest: [0, 1.55, 0], waist: [0, 0.55, 0],
+        hipL: [-0.47, 0.38, 0], hipR: [0.47, 0.38, 0],
+        kneeL: [-0.55, -0.9, 0.1], kneeR: [0.55, -0.9, 0.1],
+        footL: [-0.72, -2.05, 0.3], footR: [0.72, -2.05, 0.3]
+      };
+
+      const parts = {
+        skull: ['Skull — the output range', 'The range is the set of values that can leave the function. Bounded, signed, nonnegative, or unrestricted outputs create different representations.'],
+        shoulders: ['Shoulders — the input domain', 'The domain is the set of pre-activations the function accepts. Hidden activations usually accept every real number.'],
+        spine: ['Spine — the curve φ(z)', 'The graph itself is the backbone. It maps one pre-activation z to one output. Every other property describes how this curve behaves.'],
+        elbows: ['Elbows — the slope φ′(z)', 'The first derivative controls local sensitivity and multiplies the gradient during backpropagation.'],
+        knees: ['Knees — the curvature φ″(z)', 'The second derivative says how quickly the slope bends. It distinguishes a hard piecewise-linear joint from a smooth transition.'],
+        hands: ['Hands — learnable or fixed parameters', 'A slope α, temperature, or sharpness β changes the body of the function. Some activations learn these values with the network.'],
+        feet: ['Feet — tails and limiting behaviour', 'The limits as z moves far left or right reveal saturation, clipping, unbounded growth, or periodic behaviour.'],
+        brain: ['Brain — signal and credit assignment', 'Blue shows values travelling forward. Red shows gradients travelling backward. The same activation edits both streams, once through φ and once through φ′.']
+      };
+
+      const bones = [
+        ['neck', 'chest'], ['chest', 'waist'], ['shoulderL', 'shoulderR'],
+        ['shoulderL', 'elbowL'], ['elbowL', 'handL'], ['shoulderR', 'elbowR'], ['elbowR', 'handR'],
+        ['waist', 'hipL'], ['waist', 'hipR'], ['hipL', 'hipR'],
+        ['hipL', 'kneeL'], ['kneeL', 'footL'], ['hipR', 'kneeR'], ['kneeR', 'footR']
+      ];
+
+      const labels = [
+        ['skull', 'range', 'skull', 72, 35], ['shoulders', 'domain', 'shoulderL', -88, -8],
+        ['spine', 'curve φ(z)', 'chest', 70, 4], ['elbows', 'slope φ′(z)', 'elbowR', 70, 2],
+        ['hands', 'parameters', 'handL', -102, 5], ['knees', 'curvature φ″(z)', 'kneeR', 72, 2],
+        ['feet', 'limits', 'footL', -78, 10]
+      ];
+
+      function rotate(point) {
+        const cy = Math.cos(yaw), sy = Math.sin(yaw);
+        const cp = Math.cos(pitch), sp = Math.sin(pitch);
+        const x1 = point[0] * cy + point[2] * sy;
+        const z1 = -point[0] * sy + point[2] * cy;
+        const y2 = point[1] * cp - z1 * sp;
+        const z2 = point[1] * sp + z1 * cp;
+        return [x1, y2, z2];
+      }
+
+      function project(point) {
+        const p = rotate(point);
+        const perspective = 5.8 / (5.8 - p[2]);
+        const scale = Math.min(width / 5.4, height / 6.4) * perspective;
+        return {x: width * 0.5 + p[0] * scale, y: height * 0.52 - p[1] * scale, z: p[2], scale: perspective};
+      }
+
+      function line(a, b, color, lineWidth) {
+        const p = project(points[a]);
+        const q = project(points[b]);
+        context.beginPath();
+        context.moveTo(p.x, p.y);
+        context.lineTo(q.x, q.y);
+        context.strokeStyle = color;
+        context.lineWidth = lineWidth * (p.scale + q.scale) / 2;
+        context.lineCap = 'round';
+        context.stroke();
+      }
+
+      function joint(name, radius, fill) {
+        const p = project(points[name]);
+        context.beginPath();
+        context.arc(p.x, p.y, radius * p.scale, 0, Math.PI * 2);
+        context.fillStyle = fill;
+        context.fill();
+        context.strokeStyle = ink;
+        context.lineWidth = 1;
+        context.stroke();
+      }
+
+      function rib(y, spread, depth) {
+        const leftFront = project([-spread, y, depth]);
+        const rightFront = project([spread, y, depth]);
+        const leftBack = project([-spread * 0.9, y, -depth]);
+        const rightBack = project([spread * 0.9, y, -depth]);
+        context.beginPath();
+        context.moveTo(leftFront.x, leftFront.y);
+        context.bezierCurveTo(leftBack.x, leftBack.y - 7, rightBack.x, rightBack.y - 7, rightFront.x, rightFront.y);
+        context.strokeStyle = '#555';
+        context.lineWidth = 1.4;
+        context.stroke();
+      }
+
+      function drawSkull() {
+        const p = project(points.skull);
+        context.save();
+        context.translate(p.x, p.y);
+        context.scale(p.scale, p.scale);
+        context.beginPath();
+        context.ellipse(0, 0, 31, 38, 0, 0, Math.PI * 2);
+        context.fillStyle = mode === 'brain' ? 'rgba(0,0,238,.1)' : paper;
+        context.fill();
+        context.strokeStyle = selected === 'skull' ? blue : ink;
+        context.lineWidth = selected === 'skull' ? 3 : 2;
+        context.stroke();
+        context.beginPath();
+        context.arc(-10, -5, 5, 0, Math.PI * 2);
+        context.arc(10, -5, 5, 0, Math.PI * 2);
+        context.strokeStyle = ink;
+        context.lineWidth = 1.5;
+        context.stroke();
+        context.beginPath();
+        context.moveTo(-13, 19); context.lineTo(13, 19);
+        context.stroke();
+        if (mode === 'brain') {
+          context.beginPath();
+          context.arc(0, -7, 20, 0, Math.PI * 2);
+          context.fillStyle = 'rgba(0,0,238,.25)';
+          context.fill();
+          context.strokeStyle = blue;
+          context.setLineDash([3, 3]);
+          context.stroke();
+          context.setLineDash([]);
+        }
+        context.restore();
+      }
+
+      function drawLabel(part, text, anchorName, offsetX, offsetY) {
+        const anchor = project(points[anchorName]);
+        const x = anchor.x + offsetX;
+        const y = anchor.y + offsetY;
+        context.font = '12px Verdana, Geneva, sans-serif';
+        const metrics = context.measureText(text);
+        const boxX = offsetX < 0 ? x - metrics.width - 12 : x;
+        const textX = boxX + 6;
+        context.beginPath();
+        context.moveTo(anchor.x, anchor.y);
+        context.lineTo(offsetX < 0 ? boxX + metrics.width + 12 : boxX, y - 4);
+        context.strokeStyle = selected === part ? blue : '#777';
+        context.lineWidth = selected === part ? 2 : 1;
+        context.stroke();
+        context.fillStyle = selected === part ? 'rgba(0,0,238,.1)' : 'rgba(216,204,178,.92)';
+        context.fillRect(boxX, y - 18, metrics.width + 12, 24);
+        context.strokeStyle = selected === part ? blue : '#999';
+        context.strokeRect(boxX, y - 18, metrics.width + 12, 24);
+        context.fillStyle = ink;
+        context.fillText(text, textX, y - 1);
+        hitTargets.push({part, x: boxX, y: y - 18, width: metrics.width + 12, height: 24});
+      }
+
+      function drawBrainFlow() {
+        const path = ['brain', 'neck', 'chest', 'waist', 'kneeR', 'footR'];
+        for (let i = 0; i < path.length - 1; i += 1) line(path[i], path[i + 1], blue, 4.5);
+        for (let i = path.length - 1; i > 0; i -= 1) line(path[i], path[i - 1], red, 2.4);
+        const brain = project(points.brain);
+        context.font = '11px Verdana';
+        context.fillStyle = blue;
+        context.fillText('forward value φ(z)', brain.x + 46, brain.y + 18);
+        context.fillStyle = red;
+        context.fillText('backward credit φ′(z)', brain.x + 46, brain.y + 36);
+        hitTargets.push({part: 'brain', x: brain.x - 30, y: brain.y - 34, width: 60, height: 68});
+      }
+
+      function draw() {
+        context.clearRect(0, 0, width, height);
+        hitTargets = [];
+        context.fillStyle = 'rgba(255,255,255,.04)';
+        context.fillRect(0, 0, width, height);
+
+        bones.forEach(bone => line(bone[0], bone[1], '#303030', selected === 'spine' && bone[0] === 'chest' ? 5 : 3.2));
+        line('neck', 'shoulderL', '#303030', 2.8);
+        line('neck', 'shoulderR', '#303030', 2.8);
+        [1.7, 1.48, 1.26, 1.04, 0.83].forEach((y, index) => rib(y, 0.58 - index * 0.045, 0.22));
+        ['shoulderL','shoulderR','elbowL','elbowR','handL','handR','hipL','hipR','kneeL','kneeR','footL','footR'].forEach(name => joint(name, name.includes('hand') || name.includes('foot') ? 5 : 7, paper));
+        drawSkull();
+        if (mode === 'brain') drawBrainFlow();
+        labels.forEach(label => drawLabel.apply(null, label));
+        context.font = '11px Verdana';
+        context.fillStyle = '#555';
+        context.fillText('3D wireframe · perspective changes as you rotate', 12, height - 14);
+      }
+
+      function choosePart(part) {
+        selected = part;
+        title.textContent = parts[part][0];
+        copy.textContent = parts[part][1];
+        draw();
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(300, rect.width);
+        height = Math.max(400, rect.height);
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        draw();
+      }
+
+      modeButtons.forEach(button => button.addEventListener('click', function () {
+        mode = button.dataset.anatomyMode;
+        modeButtons.forEach(candidate => candidate.setAttribute('aria-pressed', String(candidate === button)));
+        if (mode === 'brain') choosePart('brain'); else choosePart('spine');
+      }));
+
+      resetButton.addEventListener('click', function () { yaw = -0.35; pitch = 0.08; draw(); });
+      canvas.addEventListener('pointerdown', function (event) {
+        dragging = true; pointerMoved = false; lastPointer = {x: event.clientX, y: event.clientY}; canvas.setPointerCapture(event.pointerId);
+      });
+      canvas.addEventListener('pointermove', function (event) {
+        if (!dragging) return;
+        if (Math.abs(event.clientX - lastPointer.x) + Math.abs(event.clientY - lastPointer.y) > 3) pointerMoved = true;
+        yaw += (event.clientX - lastPointer.x) * 0.011;
+        pitch = Math.max(-1.05, Math.min(1.05, pitch + (event.clientY - lastPointer.y) * 0.009));
+        lastPointer = {x: event.clientX, y: event.clientY}; draw();
+      });
+      function stopDrag(event) { dragging = false; if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId); }
+      canvas.addEventListener('pointerup', stopDrag);
+      canvas.addEventListener('pointercancel', stopDrag);
+      canvas.addEventListener('click', function (event) {
+        if (pointerMoved) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left, y = event.clientY - rect.top;
+        const hit = hitTargets.slice().reverse().find(target => x >= target.x && x <= target.x + target.width && y >= target.y && y <= target.y + target.height);
+        if (hit) choosePart(hit.part);
+      });
+      canvas.addEventListener('keydown', function (event) {
+        if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
+        event.preventDefault();
+        if (event.key === 'ArrowLeft') yaw -= 0.09;
+        if (event.key === 'ArrowRight') yaw += 0.09;
+        if (event.key === 'ArrowUp') pitch = Math.max(-1.05, pitch - 0.09);
+        if (event.key === 'ArrowDown') pitch = Math.min(1.05, pitch + 0.09);
+        draw();
+      });
+      if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas); else window.addEventListener('resize', resize);
+      resize();
+    }());
+
+    (function () {
+      'use strict';
+      const canvas = document.getElementById('function-canvas');
+      const context = canvas.getContext('2d');
+      const buttons = Array.from(document.querySelectorAll('[data-function]'));
+      const input = document.getElementById('input-probe');
+      const depth = document.getElementById('depth-probe');
+      const inputOutput = document.getElementById('input-output');
+      const depthOutput = document.getElementById('depth-output');
+      const valueReadout = document.getElementById('value-readout');
+      const slopeReadout = document.getElementById('slope-readout');
+      const curveReadout = document.getElementById('curve-readout');
+      const chainReadout = document.getElementById('chain-readout');
+      let selected = 'sigmoid', width = 760, height = 420;
+
+      function sigmoid(x) { return x >= 0 ? 1 / (1 + Math.exp(-x)) : Math.exp(x) / (1 + Math.exp(x)); }
+      function normalDensity(x) { return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI); }
+      function erf(x) {
+        const sign = x < 0 ? -1 : 1, a = Math.abs(x);
+        const t = 1 / (1 + 0.3275911 * a);
+        const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-a * a);
+        return sign * y;
+      }
+      function normalCdf(x) { return 0.5 * (1 + erf(x / Math.sqrt(2))); }
+      const fns = {
+        sigmoid: {
+          value: x => sigmoid(x),
+          slope: x => sigmoid(x) * (1 - sigmoid(x)),
+          curve: x => sigmoid(x) * (1 - sigmoid(x)) * (1 - 2 * sigmoid(x))
+        },
+        tanh: {
+          value: x => Math.tanh(x),
+          slope: x => 1 - Math.tanh(x) ** 2,
+          curve: x => -2 * Math.tanh(x) * (1 - Math.tanh(x) ** 2)
+        },
+        relu: {
+          value: x => Math.max(0, x), slope: x => x > 0 ? 1 : 0, curve: () => 0
+        },
+        leaky: {
+          value: x => x >= 0 ? x : 0.1 * x, slope: x => x > 0 ? 1 : 0.1, curve: () => 0
+        },
+        softplus: {
+          value: x => x > 20 ? x : Math.log1p(Math.exp(x)),
+          slope: x => sigmoid(x), curve: x => sigmoid(x) * (1 - sigmoid(x))
+        },
+        gelu: {
+          value: x => x * normalCdf(x),
+          slope: x => normalCdf(x) + x * normalDensity(x),
+          curve: x => normalDensity(x) * (2 - x * x)
+        },
+        silu: {
+          value: x => x * sigmoid(x),
+          slope: x => sigmoid(x) + x * sigmoid(x) * (1 - sigmoid(x)),
+          curve: x => sigmoid(x) * (1 - sigmoid(x)) * (2 + x * (1 - 2 * sigmoid(x)))
+        },
+        mish: {
+          value: x => x * Math.tanh(x > 20 ? x : Math.log1p(Math.exp(x))),
+          slope: x => {
+            const u = x > 20 ? x : Math.log1p(Math.exp(x)), t = Math.tanh(u);
+            return t + x * sigmoid(x) * (1 - t * t);
+          },
+          curve: x => {
+            const h = 0.0005;
+            const u = x + h, d = x - h;
+            const slopeAt = q => { const s = q > 20 ? q : Math.log1p(Math.exp(q)), t = Math.tanh(s); return t + q * sigmoid(q) * (1 - t * t); };
+            return (slopeAt(u) - slopeAt(d)) / (2 * h);
+          }
+        }
+      };
+
+      function sx(x) { return 48 + (x + 5) / 10 * (width - 72); }
+      function sy(y) { return height * 0.54 - y / 6 * (height - 68); }
+      function format(value, digits) {
+        if (!Number.isFinite(value)) return 'undefined';
+        const safe = Math.abs(value) < Math.pow(10, -digits) / 2 ? 0 : value;
+        return safe.toFixed(digits).replace('-', '−');
+      }
+      function scientific(value) {
+        if (value === 0) return '0';
+        if (!Number.isFinite(value)) return '∞';
+        return value.toExponential(2).replace('e-', 'e−').replace('e+', 'e+');
+      }
+      function path(fn, color, lineWidth, dash) {
+        context.beginPath();
+        let begun = false;
+        for (let i = 0; i <= 420; i += 1) {
+          const x = -5 + i / 420 * 10, y = fn(x);
+          if (!Number.isFinite(y) || Math.abs(y) > 20) { begun = false; continue; }
+          if (!begun) { context.moveTo(sx(x), sy(y)); begun = true; } else context.lineTo(sx(x), sy(y));
+        }
+        context.strokeStyle = color; context.lineWidth = lineWidth; context.setLineDash(dash || []); context.stroke(); context.setLineDash([]);
+      }
+      function draw() {
+        context.clearRect(0, 0, width, height);
+        context.fillStyle = 'rgba(255,255,255,.04)'; context.fillRect(0, 0, width, height);
+        context.strokeStyle = '#aaa'; context.lineWidth = 1;
+        [-4,-2,0,2,4].forEach(x => { context.beginPath(); context.moveTo(sx(x), 14); context.lineTo(sx(x), height - 28); context.stroke(); });
+        [-4,-2,0,2,4].forEach(y => { context.beginPath(); context.moveTo(38, sy(y)); context.lineTo(width - 14, sy(y)); context.stroke(); });
+        context.strokeStyle = '#111'; context.lineWidth = 1.5;
+        context.beginPath(); context.moveTo(38, sy(0)); context.lineTo(width - 14, sy(0)); context.stroke();
+        context.beginPath(); context.moveTo(sx(0), 14); context.lineTo(sx(0), height - 28); context.stroke();
+        context.font = '11px Verdana'; context.fillStyle = '#555';
+        [-4,-2,0,2,4].forEach(x => context.fillText(String(x), sx(x) - 4, sy(0) + 16));
+        path(fns[selected].value, '#111', 3);
+        path(fns[selected].slope, '#0000ee', 2, [7, 4]);
+        const z = Number(input.value), value = fns[selected].value(z), slope = fns[selected].slope(z), curve = fns[selected].curve(z);
+        context.strokeStyle = '#b11b1b'; context.lineWidth = 1.5; context.setLineDash([4, 4]);
+        context.beginPath(); context.moveTo(sx(z), 14); context.lineTo(sx(z), height - 28); context.stroke(); context.setLineDash([]);
+        context.beginPath(); context.arc(sx(z), sy(value), 5, 0, Math.PI * 2); context.fillStyle = '#111'; context.fill();
+        context.beginPath(); context.arc(sx(z), sy(slope), 4.5, 0, Math.PI * 2); context.fillStyle = '#0000ee'; context.fill();
+        context.fillStyle = '#111'; context.fillText('φ(z)', width - 55, 25);
+        context.fillStyle = '#0000ee'; context.fillText('φ′(z)', width - 55, 43);
+        valueReadout.textContent = 'φ(z) = ' + format(value, 4);
+        slopeReadout.textContent = 'φ′(z) = ' + format(slope, 4);
+        curveReadout.textContent = 'φ″(z) = ' + format(curve, 4);
+        chainReadout.textContent = '|φ′|ᴰ = ' + scientific(Math.pow(Math.abs(slope), Number(depth.value)));
+      }
+      function resize() {
+        const rect = canvas.getBoundingClientRect(), ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(300, rect.width); height = Math.max(360, rect.height);
+        canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0); draw();
+      }
+      buttons.forEach(button => button.addEventListener('click', function () {
+        selected = button.dataset.function;
+        buttons.forEach(candidate => candidate.setAttribute('aria-pressed', String(candidate === button)));
+        draw();
+      }));
+      input.addEventListener('input', function () { inputOutput.textContent = format(Number(input.value), 2); draw(); });
+      depth.addEventListener('input', function () { depthOutput.textContent = depth.value; draw(); });
+      if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas); else window.addEventListener('resize', resize);
+      resize();
+    }());
+
+    window.addEventListener('load', function () {
+      if (!window.location.hash) return;
+      window.setTimeout(function () {
+        const target = document.querySelector(window.location.hash);
+        if (target) target.scrollIntoView();
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
