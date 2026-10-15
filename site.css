@@ -1,11 +1,9 @@
 :root {
-  color-scheme: dark;
-  --paper: #000;
-  --paper-panel: #121212;
-  --text: #f5f5f5;
-  --link: #70cb8a;
+  color-scheme: light;
+  --paper: #d8ccb2;
+  --paper-panel: rgba(255, 255, 255, 0.3);
   background-color: var(--paper);
-  color: var(--text);
+  color: #000;
   font-synthesis: none;
 }
 
@@ -16,20 +14,24 @@
 }
 
 html {
-  background: #1a1a1a;
-  color: var(--text);
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)' opacity='.16'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg, rgba(67, 49, 25, 0.035) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 6px);
+  background-size: 180px 180px, auto, auto;
+  color: #000;
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   width: auto;
-  max-width: none !important;
-  min-height: calc(100vh - 10px);
-  margin: 5px !important;
-  padding: 2rem 1.25rem 8rem !important;
-  background: var(--paper) !important;
-  color: var(--text) !important;
+  max-width: 50rem !important;
+  margin: 0 auto !important;
+  padding: 2rem 1.25rem 3rem !important;
+  background: transparent !important;
+  color: #000 !important;
   font-family: Verdana, Geneva, Tahoma, sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.65 !important;
@@ -48,7 +50,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--text) !important;
+  color: #000 !important;
   font-family: inherit !important;
   font-style: normal;
   font-weight: 700;
@@ -59,7 +61,7 @@ h6 {
 
 h1 {
   margin: 0 0 1.5rem !important;
-  font-size: 2rem !important;
+  font-size: 1.65rem !important;
 }
 
 h2 {
@@ -88,7 +90,7 @@ p {
 a,
 a:link,
 a:visited {
-  color: var(--link) !important;
+  color: #0000ee !important;
   text-decoration: underline !important;
   text-decoration-thickness: 1px !important;
   text-underline-offset: 0.12em;
@@ -96,15 +98,15 @@ a:visited {
 
 a:hover,
 a:active {
-  color: #a0e7b4 !important;
-  background: transparent !important;
+  color: #0000ee !important;
+  background: #ffffcc !important;
   font-size: inherit !important;
   text-decoration: underline !important;
 }
 
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid var(--link);
+  outline: 2px solid #000;
   outline-offset: 3px;
 }
 
@@ -126,7 +128,7 @@ section,
   gap: 1.25rem;
   margin: 0 0 2.5rem !important;
   padding: 0 0 0.65rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #aaa;
   font-size: 0.9rem;
 }
 
@@ -141,7 +143,7 @@ section,
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  color: var(--link) !important;
+  color: #0000ee !important;
   font-size: inherit !important;
   font-weight: 400 !important;
   text-decoration: underline !important;
@@ -163,8 +165,8 @@ blockquote {
   margin: 1.5rem 0;
   padding: 0 0 0 1rem;
   background: transparent;
-  border-left: 3px solid var(--link);
-  color: var(--text);
+  border-left: 3px solid #000;
+  color: #000;
   font-style: italic;
 }
 
@@ -172,7 +174,7 @@ hr {
   height: 0;
   margin: 2rem 0;
   border: 0;
-  border-top: 1px solid #333;
+  border-top: 1px solid #aaa;
 }
 
 img,
@@ -195,7 +197,7 @@ figure {
 figcaption,
 .viz-caption,
 .tool-caption {
-  color: var(--text) !important;
+  color: #000 !important;
   font-size: 0.88rem !important;
   line-height: 1.5;
   text-align: left !important;
@@ -211,16 +213,16 @@ figcaption,
   margin: 1.5rem 0 !important;
   padding: 0.9rem !important;
   background: var(--paper-panel) !important;
-  border: 1px solid #444 !important;
+  border: 1px solid #999 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  color: var(--text) !important;
+  color: #000 !important;
 }
 
 .note,
 .note-box,
 .result-box {
-  border-left: 4px solid var(--link) !important;
+  border-left: 4px solid #000 !important;
 }
 
 .meta,
@@ -230,7 +232,7 @@ figcaption,
 .tool-hint,
 .experience-meta,
 .experience-date {
-  color: var(--text) !important;
+  color: #000 !important;
 }
 
 .meta,
@@ -247,7 +249,7 @@ table {
   margin: 1.5rem 0 !important;
   border-collapse: collapse;
   background: var(--paper-panel) !important;
-  color: var(--text) !important;
+  color: #000 !important;
   font-size: 0.9rem;
 }
 
@@ -256,7 +258,7 @@ td {
   padding: 0.45rem 0.6rem !important;
   background: transparent !important;
   border: 1px solid #777 !important;
-  color: var(--text) !important;
+  color: #000 !important;
   text-align: left;
   vertical-align: top;
 }
@@ -272,7 +274,7 @@ code {
   padding: 0 !important;
   background: transparent !important;
   border-radius: 0 !important;
-  color: var(--text) !important;
+  color: #000 !important;
 }
 
 pre {
@@ -283,7 +285,7 @@ pre {
   background: var(--paper-panel) !important;
   border: 1px solid #999 !important;
   border-radius: 0 !important;
-  color: var(--text) !important;
+  color: #000 !important;
   font-size: 0.82rem !important;
   line-height: 1.45 !important;
   white-space: pre;
@@ -294,11 +296,11 @@ pre code {
 }
 
 footer {
-  margin-top: 1.25rem !important;
-  padding: 0 !important;
-  border-top: 0 !important;
-  color: var(--text) !important;
-  font-size: 1rem !important;
+  margin-top: 3rem !important;
+  padding: 1rem 0 0 !important;
+  border-top: 1px solid #aaa !important;
+  color: #000 !important;
+  font-size: 0.82rem !important;
   text-align: left !important;
 }
 
@@ -306,8 +308,8 @@ footer {
   display: block !important;
   width: 96px !important;
   height: 96px !important;
-  margin: 0 0 1.75rem !important;
-  border: 1px solid #555 !important;
+  margin: 0 0 1rem !important;
+  border: 1px solid #000 !important;
   border-radius: 0 !important;
   object-fit: cover;
 }
@@ -317,25 +319,25 @@ footer {
 }
 
 .center-text h1 {
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 0.2rem !important;
 }
 
 .center-text .subtitle {
-  margin: 0 0 1rem !important;
-  font-size: 1rem !important;
+  margin: 0 0 0.7rem !important;
+  font-size: 0.92rem !important;
   font-variant: normal !important;
 }
 
 .abstract {
   max-width: none !important;
-  margin: 3rem 0 0 !important;
+  margin: 2.6rem 0 0 !important;
   text-align: left !important;
 }
 
 .abstract strong {
   display: block;
-  margin-bottom: 1rem !important;
-  font-size: 1.25rem;
+  margin-bottom: 0.65rem !important;
+  font-size: 1.2rem;
 }
 
 .abstract p {
@@ -347,28 +349,28 @@ footer {
   background: transparent !important;
   border: 0 !important;
   border-radius: 0 !important;
-  color: var(--link) !important;
+  color: #0000ee !important;
   font: inherit !important;
   text-decoration: underline;
   text-underline-offset: 0.12em;
 }
 
 .read-more-toggle:hover {
-  background: transparent !important;
-  color: #a0e7b4 !important;
+  background: #ffffcc !important;
+  color: #0000ee !important;
 }
 
 .project-description.collapsed::after {
-  background: linear-gradient(transparent, var(--paper)) !important;
+  background: linear-gradient(rgba(216, 204, 178, 0), var(--paper)) !important;
 }
 
 .experience-role::before {
-  background: var(--link) !important;
+  background: #000 !important;
 }
 
 .experience-role::after {
   background: var(--paper) !important;
-  border-color: var(--link) !important;
+  border-color: #000 !important;
 }
 
 .scroll-wrapper,
@@ -382,105 +384,12 @@ mjx-container[display="true"] {
 }
 
 mjx-container {
-  color: var(--text) !important;
+  color: #000 !important;
 }
 
 mjx-container[display="true"] {
   margin: 1.25rem 0 !important;
   padding: 0.2rem 0 0.45rem;
-}
-
-/* Article tools share the page palette; plotted figures keep a light surface
-   so their existing axis labels and colored curves remain legible. */
-.thesis,
-.equation-note,
-.caveat-note,
-.choice-note,
-.essay-map,
-.anatomy-lab,
-.function-lab,
-.part-readout,
-.formula-card,
-.function-readout span,
-.tweet-shot,
-.drag-hint {
-  background: var(--paper-panel) !important;
-  color: var(--text) !important;
-  border-color: #444 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.thesis,
-.equation-note,
-.caveat-note,
-.choice-note {
-  border-left-color: var(--link) !important;
-}
-
-.tweet-handle,
-.tweet-date,
-span.sidenote {
-  color: #c4c4c4 !important;
-}
-
-sup.sidenote-number,
-span.sidenote::before {
-  color: var(--link) !important;
-}
-
-body.activation-page {
-  max-width: none !important;
-}
-
-.activation-nav,
-.article-frame,
-.activation-footer {
-  max-width: none;
-}
-
-span.sidenote,
-span.sidenote.left {
-  display: block;
-  float: none;
-  clear: both;
-  width: auto;
-  margin: 0.5rem 0 1rem 1rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--paper-panel);
-  border-left: 2px solid var(--link);
-  text-align: left;
-}
-
-button,
-select,
-input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-textarea {
-  background: #181818 !important;
-  color: var(--text) !important;
-  border: 1px solid #666 !important;
-  border-radius: 0 !important;
-  font-family: inherit;
-}
-
-input {
-  accent-color: var(--link) !important;
-}
-
-button[aria-pressed="true"] {
-  background: var(--link) !important;
-  color: #000 !important;
-}
-
-.viz svg,
-canvas {
-  background: #f3f5f3;
-  color-scheme: light;
-  color: #111;
-}
-
-.viz .neutral-node {
-  fill: #eef2ee;
 }
 
 @media (max-width: 600px) {
@@ -490,7 +399,7 @@ canvas {
   }
 
   h1 {
-    font-size: 1.75rem !important;
+    font-size: 1.42rem !important;
   }
 
   h2 {
@@ -515,18 +424,6 @@ canvas {
 }
 
 @media print {
-  :root {
-    color-scheme: light;
-    --paper: #fff;
-    --paper-panel: #f5f5f5;
-    --text: #000;
-    --link: #000;
-  }
-
-  html {
-    background: #fff;
-  }
-
   body {
     max-width: none !important;
     padding: 0 !important;
