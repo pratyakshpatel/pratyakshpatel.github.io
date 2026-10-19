@@ -347,21 +347,23 @@
 
       <p class="lede">Suppose we built an AI support agent today. It answers product questions, changes subscriptions, processes refunds inside policy, and sends the genuinely weird cases to a human.</p>
 
-      <p>Now we have to price it.</p>
+      <p>Now it is Monday morning and six people are sitting in a pricing meeting. Engineering has a spreadsheet of model and tool costs. Finance wants gross margin. Sales wants a number that will not frighten the first ten customers. The product team thinks charging for a successful resolution sounds honest. Somebody says “why not just charge per seat?” and everybody looks at the AI that is supposed to reduce the number of seats.</p>
 
-      <p>The engineering answer arrives first: count the tokens, add the tool calls, apply a margin, and send an invoice. Very clean. Also probably wrong. The customer does not wake up wanting twelve million tokens. It wants fewer tickets, shorter queues, happier users, and perhaps a smaller support bill.</p>
+      <p>This is the annoying thing about pricing. The arithmetic can be correct while the price is still wrong.</p>
 
-      <p>Okay, charge for outcomes then. Except now we need to decide what an outcome is. If the agent gives a vague answer and the customer silently leaves, did we solve the problem or merely exhaust the person? If one conversation resets a password and another saves a fifty-thousand-dollar renewal, are those really the same unit? If hard tickets are free because they escalate, what stops us from attempting only the easy ones?</p>
+      <p>The engineering answer is to count the tokens, add the tool calls, apply a margin, and send an invoice. That is useful for understanding cost. It is less useful for understanding what the customer bought. The customer did not come looking for twelve million tokens. It came because its support queue is growing, customers are waiting, and hiring another shift is expensive.</p>
 
-      <p>A seat price is not much safer. The product becomes more useful as it removes work from human agents, but its revenue falls as the customer needs fewer seats. Wonderful business model, truly. Our success eats our invoice.</p>
+      <p>Okay, charge for outcomes then. Except now we need to decide what an outcome is. If the agent gives a vague answer and the customer silently leaves, did we solve the problem or merely tire the person out? If one conversation resets a password and another saves a fifty-thousand-dollar renewal, are those really the same unit? If hard tickets are free because they escalate, does the vendor have a reason to avoid them?</p>
 
-      <p>This annoyed me enough to go down the pricing-theory rabbit hole. I expected a better formula. I found a game.</p>
+      <p>A seat price has a different problem. The product becomes more useful as it removes work from human agents, but its revenue falls as the customer needs fewer seats. The contract and the product are pulling in opposite directions.</p>
+
+      <p>I went into the pricing-theory rabbit hole expecting to find the formula companies had somehow forgotten to use. There is no such formula. What I found was a collection of smaller ideas about costs, choices, negotiation, competition, and incentives. Put together, they explain why a pricing page is never only a list of numbers.</p>
 
       <div class="thesis">
-        <strong>A price is not merely a number attached to a product. It is a rule that allocates risk, reveals private information, changes behaviour, and tells every player what to optimize.</strong>
+        <strong>A price is a rule for the relationship. It decides what gets counted, who carries the risk when things go wrong, and what each side has a reason to do next.</strong>
       </div>
 
-      <p>That is why pricing theory and game theory keep walking into the same room. The seller knows its costs better than the buyer. The buyer knows its workflow and willingness to pay better than the seller. Competitors watch both of them. Salespeople have their own information and incentives. Once a metric decides the bill, everybody learns how the metric works.</p>
+      <p>That is where game theory enters. I do not mean a room full of people drawing giant payoff matrices. I mean the ordinary fact that my best move depends on what I think you will do. The seller knows its costs better than the buyer. The buyer knows its workflow and budget better than the seller. A competitor can respond to a public discount. A salesperson can quietly change an experiment by offering an extra concession. Once a metric decides the bill, people begin adapting to the metric.</p>
 
       <p>Lemme build the story around one fake company. Call it <strong>RelayDesk</strong>. None of its numbers are benchmarks; they are just a clean little world in which we can break contracts without upsetting an actual finance team.</p>
 
@@ -404,6 +406,8 @@
 
       <p>That enormous gap looks like free money. It is not. It contains onboarding, monitoring, account support, mistakes, human review, security work, the customer's next-best vendor, and the fact that buyers generally dislike donating their entire surplus to a startup.</p>
 
+      <p>It also hides a fairly basic mistake: cost, value, and willingness to pay are three different numbers. Cost asks what RelayDesk must spend to serve the account. Value asks how much better the customer is with RelayDesk than without it. Willingness to pay asks how much of that improvement the customer would actually exchange for the product. A buyer might save $100,000 and still refuse a $70,000 contract because the savings are uncertain, the integration is painful, or a rival is available for $40,000.</p>
+
       <p>A useful first sketch is</p>
 
       <p>\[
@@ -411,6 +415,8 @@
       \]</p>
 
       <p>where \(q\) is the amount of service, \(F\) is the account-level fixed cost, and \(c\) is the extra cost of one more unit.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Fixed and marginal cost.</strong> A fixed cost is incurred even when usage is low, such as integration or security review. Marginal cost is the extra cost caused by one more conversation, token, or outcome.</span> For RelayDesk, \(F\) includes integration, evaluations, support, and monitoring. The $0.12 belongs inside \(c\), but it is not all of \(c\).</p>
+
+      <p>Imagine one account sending 100,000 simple password questions and another sending 5,000 conversations but needing custom permissions, weekly reviews, and legal approval for each workflow. The first has more usage. The second may cost more to support. A pure per-conversation price sees only the first fact, which is one reason platform fees appear.</p>
 
       <p>The seller would like a price above cost. The buyer accepts a price below the value of choosing RelayDesk instead of its best alternative. That last phrase matters. Manual labour may create $112,080 of apparent value, but if another vendor creates nearly the same result for $35,000, RelayDesk cannot negotiate as though the alternative were a room full of humans.</p>
 
@@ -426,6 +432,8 @@
       \]</p>
 
       <p>The left side is the fraction of price sitting above marginal cost. The right side says that a seller can sustain a larger markup when customers are less sensitive to price.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Elasticity, without ceremony.</strong> Price elasticity asks how strongly demand changes when price changes. If a 1 percent price increase reduces quantity by about 2 percent, elasticity is roughly \(-2\). The absolute value removes the minus sign.</span> This is the Lerner condition, not a quote calculator.<a href="#ref-4">[4]</a> Enterprise founders almost never know \(\varepsilon\) cleanly. A lost deal may be about security, timing, procurement, a missing integration, or price. The formula gives us a direction, not a button.</p>
+
+      <p>Think about two sales calls. One buyer says, “At $50,000 we approve this; at $60,000 we build it ourselves.” Another has a launch in three weeks and RelayDesk is the only approved vendor. Price probably changes the first buyer's decision more. Elasticity is the name for that difference in response, though enterprise teams usually estimate it from messy evidence.</p>
 
       <h2 id="history">How a number became a game</h2>
 
@@ -552,11 +560,15 @@
         <figcaption class="viz-caption">The first models asked how firms choose quantity or price.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a> Differentiation, bargaining, private information, incentive contracts, repeated competition, and learning then kept adding reactions to the picture.<a href="#ref-3">[3]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a><a href="#ref-7">[7]</a><a href="#ref-8">[8]</a><a href="#ref-9">[9]</a><a href="#ref-10">[10]</a><a href="#ref-13">[13]</a><a href="#ref-14">[14]</a><a href="#ref-15">[15]</a></figcaption>
       </figure>
 
-      <p>Cournot imagined firms choosing quantities. Bertrand's famous response made price itself the strategic move. Hotelling then showed why two sellers need not collapse into one identical commodity: location, taste, convenience, or product capability can soften direct price competition.<a href="#ref-1">[1]</a><a href="#ref-2">[2]</a><a href="#ref-3">[3]</a></p>
+      <p>Cournot's 1838 model began with quantity. Imagine two producers deciding how much to make. Each producer's profit depends not only on its own output but on how much the other producer releases into the market. That is already a game: choosing ten units is sensible if the rival chooses five and foolish if the rival chooses a hundred.<a href="#ref-1">[1]</a></p>
 
-      <p>Then the subject moved inside the deal. Nash asked how two parties divide a surplus when either can walk away. Oi asked why Disneyland might charge at the gate and again at the ride. Mussa and Rosen showed how a menu can make customers sort themselves. Holmström asked what happens when effort cannot be seen directly and only a noisy result can be rewarded. Each move changed the object called price. It became a tariff, a menu, a contract, a signal, and eventually a policy that learns.</p>
+      <p>A few decades later, Bertrand pushed on the obvious weak point. What if firms choose prices rather than quantities? If the products are identical and each seller can serve the whole market, a tiny undercut can take all the customers. Keep undercutting and the price is pushed toward cost.<a href="#ref-2">[2]</a> The assumptions are severe, but the result explains why software companies work so hard not to look interchangeable.</p>
 
-      <p>The latest AI pricing problem is new in costume, not in anatomy. We have a seller with hidden costs, a buyer with hidden value and task difficulty, an outcome that is expensive to verify, and repeated interaction after both sides learn how the rule behaves. A 2026 working paper by Lobel, Sun, and Wu models almost exactly this choice between charging for use and charging for reported success.<a href="#ref-10">[10]</a> It is a recent model, not settled consensus, but the old theory has clearly found a new customer.</p>
+      <p>Hotelling made that difference easier to see. His sellers occupied different locations, so customers cared about price and about the inconvenience of reaching a seller.<a href="#ref-3">[3]</a> For software, “distance” can mean missing integrations, weaker security, a confusing interface, or six months of migration work. Two products can look similar in a comparison table and still feel far apart to the buyer using them.</p>
+
+      <p>Later work moved closer to the actual deal. Nash asked how two parties might divide the gains from an agreement when both can walk away. Oi studied the choice between charging at the gate and charging again for each ride. Mussa and Rosen studied menus of different qualities and prices. Holmström studied payment when the person doing the work knows more about the effort than the person paying for it. The questions became less like “what is the monopoly price?” and more like “what can each side see, what can each side choose, and what happens after the contract is signed?”</p>
+
+      <p>That is why old pricing papers remain useful for a very new product. An AI vendor knows its model costs and failure modes. The buyer knows how difficult its tickets really are. Neither side can perfectly observe whether every answer solved the underlying problem. Both sides learn after deployment. A 2026 working paper by Lobel, Sun, and Wu studies this choice between charging for use and charging for reported success.<a href="#ref-10">[10]</a> It is one recent model, not the final word on AI pricing. I like it because it shows that outcome pricing is not simply a more modern invoice. It changes which facts matter and who has a reason to report them honestly.</p>
 
       <h2 id="meters">Four meters, four games</h2>
 
@@ -601,22 +613,32 @@
         </table>
       </div>
 
-      <p>A billing metric needs to be close to customer value, measurable, auditable, and hard for either side to manipulate. Nothing satisfies all four perfectly. Each meter is a miniature constitution. It decides who bears uncertainty, what action earns revenue, and which facts must be shared.</p>
+      <p>A billing metric should be close to customer value, measurable, and easy for both sides to check. It should also be difficult to manipulate. No metric does all of that perfectly. The practical question is which imperfection the buyer and seller can live with.</p>
+
+      <p>Seats are familiar and easy to budget. But an AI product can serve more work without adding another employee, which breaks the connection between seats and use. RelayDesk might automate half the queue and then see the customer's seat count fall from 120 to 70. Under a seat contract, doing the job well reduces the bill.</p>
+
+      <p>Tokens and model calls are easy to count. They also expose the buyer to choices it may not control. RelayDesk decides how long a prompt is, how often an agent retries, and which model handles the task. If an update doubles token use without improving the answer, a token contract asks the customer to pay for that inefficiency.</p>
+
+      <p>Conversations are closer to something a support leader recognizes, and incoming volume can be easier to forecast than successful outcomes. The weakness is that a five-second greeting and a forty-minute refund dispute both count as one.</p>
+
+      <p>Resolutions are closest to the result. If RelayDesk fails, the buyer does not pay the variable fee, so the vendor carries more performance risk. But now the definition of “resolved” matters financially. A status in a dashboard is worth $1.75.</p>
 
       <div class="scenario">
         <strong>Scenario: same volume, wildly different work.</strong>
         <p>Two customers send 10,000 conversations. One mostly needs password resets. The other sends refund disputes, security incidents, and broken integrations. Conversation pricing treats them as twins. Outcome pricing may attract the harder customer precisely because the vendor promises to absorb failure. This is adverse selection: the contract changes which customers choose it.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Adverse selection.</strong> One side privately knows its type before contracting. A generous insurance plan attracts higher-risk buyers; a flat outcome price can attract customers with unusually hard tasks.</span></p>
       </div>
 
-      <p>The metric also changes usage. A fee on every conversation can create a ticking meter in the buyer's head. Teams begin routing only obvious cases to the agent because every experiment has a visible cost. Research on information goods models this psychological cost of pay per use and shows that tariff shape can change both demand and profit.<a href="#ref-12">[12]</a> An included allowance or prepaid credits can make the marginal use feel less like a taxi meter, even when the expected bill is similar.</p>
+      <p>The customer knows its own mess. RelayDesk sees a demo and a sample of tickets. If RelayDesk carries all the risk for one flat outcome price, the companies with the hardest queues have the strongest reason to accept. The offer changes the kind of buyer who turns up. That is the simple idea behind adverse selection.</p>
 
-      <p>This is why “usage based” is not one design. A raw meter, a bundled allowance, a committed spend, and a platform fee plus overage can charge for the same event while producing different behaviour.</p>
+      <p>The metric also changes usage. A fee on every conversation can create a ticking meter in the buyer's head, so teams route only obvious cases to the agent. Research on information goods shows that this feeling of paying for every use can change demand and profit.<a href="#ref-12">[12]</a> An included allowance or prepaid credits can feel less like a taxi meter, even when the expected bill is similar.</p>
 
-      <h2 id="outcomes">Outcome pricing is a principal-agent problem wearing a nice shirt</h2>
+      <p>This is why “usage based” is not one design. A raw meter, a bundled allowance, a committed spend, and a platform fee plus overage can all count the same event while feeling different to the buyer. The unit may be identical. The experience of deciding whether to use one more unit is not.</p>
 
-      <p>The appeal is obvious. The buyer, called the principal in contract theory, wants a result. RelayDesk, the agent, chooses effort and implementation details the buyer cannot fully watch.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Principal and agent.</strong> The principal delegates work. The agent performs it and usually knows more about the action taken. The problem is to make the agent's private incentives point toward the principal's goal.</span> Pay for the result and their incentives appear aligned.</p>
+      <h2 id="outcomes">When we charge for outcomes, we start arguing about outcomes</h2>
 
-      <p>Appear is doing a lot of work.</p>
+      <p>The appeal is obvious. The buyer wants a result. RelayDesk chooses many of the details that produce it: which model to call, how much context to retrieve, when to try again, and when to bring in a person. The buyer cannot watch every one of those decisions. Contract theory calls the buyer the principal and RelayDesk the agent.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Principal and agent.</strong> One party delegates work and another performs it. The person doing the work usually knows more about the action taken. The contract tries to make their interests less different.</span> Paying for the result seems like a direct way to align them.</p>
+
+      <p>It works only if the result can be defined well enough.</p>
 
       <p>RelayDesk proposes the following rule:</p>
 
@@ -634,6 +656,12 @@
       </div>
 
       <p>That looks objective until a customer goes silent. Silence can mean “thanks,” “I gave up,” “I found the answer elsewhere,” or “I am now angrily searching for a competitor.” The vendor benefits from the first interpretation. The buyer benefits from disputing it. The measurement rule has created a new game inside the old one.</p>
+
+      <p>Picture a real ticket. A customer writes, “Why was I charged twice?” RelayDesk explains that one line is a temporary authorization and says it should disappear within three days. The customer leaves. On day two, the billing system captures both charges because this case was not a temporary authorization at all. On day four, the customer returns furious.</p>
+
+      <p>Was the first conversation resolved? Under a rule that counts silence after twenty-four hours, yes. Under a rule that reverses the charge when a ticket reopens within seven days, no. Under a customer-satisfaction rule, we may never know because the person ignored the survey. None of these definitions is absurd. They simply answer different questions.</p>
+
+      <p>This is where product analytics becomes contract language. The timeout, reopen window, escalation category, and exclusion list eventually decide money. They need to be written for a finance team that wants to reproduce the invoice, not only for a dashboard that wants a clean success rate.</p>
 
       <table class="payoff-table" aria-label="Incentives created by different outcome definitions">
         <thead>
@@ -664,13 +692,13 @@
 
       <p>This is not hypothetical. Intercom currently documents an “assumed resolution” when the user leaves after receiving an answer, while later reopens are deducted; it also distinguishes billable procedure handoffs from several non-billable escalations.<a href="#ref-18">[18]</a> Sierra argues for agreed outcome definitions and says most escalations are not charged.<a href="#ref-19">[19]</a> Decagon supports both conversation and resolution pricing, but says most of its customers choose conversation pricing for predictability and fewer arguments about what was solved.<a href="#ref-20">[20]</a></p>
 
-      <p>That disagreement is more useful than a universal best practice. It says observability decides whether an outcome contract works.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Observability.</strong> An outcome is observable when both sides can measure it reliably enough to contract on it. “API call completed” is easy. “Customer's real problem disappeared” is much harder.</span> HubSpot moved two agents toward completed-task pricing in April 2026. Zendesk says its outcome system uses the acting agent plus a separate evaluation model to verify a resolution.<a href="#ref-21">[21]</a><a href="#ref-22">[22]</a> The market is not converging on one meter. It is experimenting with different verification systems.</p>
+      <p>That disagreement is more useful than a universal best practice. It tells us that the quality of the measurement decides whether an outcome contract works.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Observability.</strong> This just asks whether both sides can measure an outcome reliably enough to put it in a contract. “API call completed” is easy. “The customer's real problem disappeared” is much harder.</span> HubSpot moved two agents toward completed-task pricing in April 2026. Zendesk says its outcome system uses the acting agent plus a separate evaluation model to verify a resolution.<a href="#ref-21">[21]</a><a href="#ref-22">[22]</a> The market is not converging on one meter. Different companies are trying different ways to verify the result.</p>
 
-      <p>Holmström's moral-hazard result explains the tension. Performance pay becomes more useful when the signal reflects the action we care about, but risk and noisy measurement weaken the contract.<a href="#ref-8">[8]</a> Holmström and Milgrom add the nastier multitask warning: reward one measurable task strongly and effort can move away from unmeasured quality.<a href="#ref-9">[9]</a></p>
+      <p>Holmström's work on hidden effort explains the tension. Paying for performance is helpful when the thing we measure closely reflects the work we care about. It becomes less helpful when luck and measurement error have a large effect on the score.<a href="#ref-8">[8]</a> Holmström and Milgrom add another problem. If a job contains several tasks and we strongly reward only the easiest one to measure, effort can move away from the rest.<a href="#ref-9">[9]</a></p>
 
-      <p>If RelayDesk is paid only for resolution count, it may improve count while harming tone, safety, coverage, or long-run trust. The fix is not fifty separate prices. It is a primary metric with guardrails: reopen rate, customer satisfaction, policy violations, escalation rate, and minimum coverage. Strong incentives on one noisy number are not alignment. They are a spotlight, and work moves into whatever the spotlight can see.</p>
+      <p>If RelayDesk is paid only for resolution count, it may improve the count while making tone, safety, coverage, or long-run trust worse. The answer is not to create fifty separate prices. It is to choose one main billing event and keep a short list of limits around it: reopen rate, customer satisfaction, policy violations, escalation rate, and minimum coverage. If one of those measures crosses an agreed threshold, the teams investigate or pause billing. That is less elegant than “pay only for success,” but it is much closer to how the work actually behaves.</p>
 
-      <h2 id="menus">The menu is a quiet interrogation</h2>
+      <h2 id="menus">A pricing menu is also a question</h2>
 
       <p>The buyer knows things RelayDesk does not. It knows its real ticket complexity, internal labour cost, appetite for budget surprises, and how painful a failed answer would be. Asking “what are you willing to pay?” is unlikely to produce a spiritual commitment to honesty.</p>
 
@@ -710,21 +738,27 @@
         </table>
       </div>
 
-      <p>This is second-degree price discrimination: the seller posts a menu and the buyer's choice reveals its type.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>First, second, third.</strong> First-degree discrimination charges each buyer its exact willingness to pay. Second-degree uses a menu so buyers self-select. Third-degree sets prices for observable groups, such as student or regional pricing.</span> Mussa and Rosen's classic model makes the self-selection logic precise.<a href="#ref-7">[7]</a> A recent B2B study by Ghili and Yoon uses won and lost deal data to estimate a nonlinear tariff, meaning a price schedule rather than one flat unit price.<a href="#ref-11">[11]</a> Their profit estimate belongs to their educational-services setting, not ours. The transferable lesson is that failed deals contain information too.</p>
+      <p>Economists call this second-degree price discrimination: the seller offers choices and lets buyers sort themselves.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Why “second-degree”?</strong> First-degree tries to charge each buyer its exact willingness to pay. Second-degree uses a menu. Third-degree sets prices for visible groups, such as student pricing.</span> The name sounds harsher than the everyday practice. Cloud providers do it with on-demand and committed-use plans. Gyms do it with monthly and annual memberships.</p>
+
+      <p>Mussa and Rosen's classic model makes the sorting logic precise.<a href="#ref-7">[7]</a> A recent B2B study by Ghili and Yoon uses won and lost deals to estimate a price schedule rather than one flat rate.<a href="#ref-11">[11]</a> Their numerical result belongs to their setting, not ours. The useful lesson is that failed deals contain information too. A buyer who rejects outcome pricing but accepts conversation pricing has revealed something about trust, risk, or budgeting.</p>
 
       <p>Two conditions keep the menu honest:</p>
 
       <p>\[
-        \underbrace{U_i(\text{chosen plan})\ge U_i(\text{outside option})}_{\text{participation}}
+        \underbrace{U_i(\text{chosen plan})\ge U_i(\text{outside option})}_{\text{better than leaving}}
       \]</p>
 
       <p>\[
-        \underbrace{U_i(\text{chosen plan})\ge U_i(\text{other plan})}_{\text{incentive compatibility}}.
+        \underbrace{U_i(\text{chosen plan})\ge U_i(\text{other plan})}_{\text{prefers the intended plan}}.
       \]</p>
 
-      <p>\(U_i\) simply means the value customer type \(i\) receives after price, risk, and effort.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Utility.</strong> Utility is a compact score for what a player prefers. Here it can be read as business value minus bill, implementation pain, risk, and the value of alternatives.</span> Participation says a plan must beat walking away. Incentive compatibility says the plan intended for a customer must actually be the one that customer prefers.</p>
+      <p>\(U_i\) means the overall value customer type \(i\) receives after price, risk, and effort.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Utility.</strong> This is a compact score for what someone prefers. Here, read it as business value minus the bill, implementation pain, risk, and the value of alternatives.</span> The first line says the plan must beat walking away. The second says the intended customer must actually prefer it to the other plans.</p>
 
-      <p>The second condition is where cute pricing pages go to die. Suppose complex customers know they generate costly cases. A flat outcome rate is especially attractive to them because RelayDesk absorbs the difficulty. Easy customers may choose conversation pricing. The menu has sorted buyers, just in the least profitable direction.</p>
+      <p>On the pricing call, that means the predictable plan must genuinely suit the buyer who wants predictability. Putting the word on the card is not enough. If the overage is frightening or the allowance is tiny, that buyer may choose another plan or leave.</p>
+
+      <p>A useful menu needs meaningful differences. Four cards with nearly identical economics reveal little. One plan can make the bill stable. Another can make the vendor carry performance risk. A third can exchange an annual commitment for a lower rate. Then the choice teaches us something.</p>
+
+      <p>The sorting can still go badly. Customers with complex cases may prefer a flat outcome rate because RelayDesk absorbs the difficulty, while easy customers choose conversation pricing. The menu has separated the groups, but in a costly direction.</p>
 
       <p>This is why the two-part tariff keeps reappearing:</p>
 
@@ -739,9 +773,11 @@
 
       <p>A platform fee is therefore not automatically a random tax added by sales. It can defend against a small but integration-heavy account and against hard customers selecting only a generous variable contract. The mistake is pretending the fee came from compute.</p>
 
-      <h2 id="bargaining">The enterprise price is bargained, not discovered</h2>
+      <p>More plans are not always better. Every new choice asks the customer to forecast a product it may not understand yet. If estimating next month's bill requires a simulator, a glossary, and a sales call, the menu is costing trust. RelayDesk needs enough choice to separate important needs, not every possible customer.</p>
 
-      <p>A self-serve price can look like a vending machine. Enterprise pricing is closer to two people standing over a surplus and arguing about the knife.</p>
+      <h2 id="bargaining">Enterprise pricing happens across a table</h2>
+
+      <p>A self-serve price can look like a vending machine: choose the plan, enter a card, and begin. Enterprise pricing is a conversation. The buyer asks for security work, custom limits, support, and a lower rate. The seller asks for an annual commitment, faster payment, or permission to use the logo. The final number depends on the other terms and on what happens if they fail to agree.</p>
 
       <p>The lightest useful version of Nash bargaining is</p>
 
@@ -751,16 +787,20 @@
         \bigl(U_S(p)-d_S\bigr)^{1-\beta}.
       \]</p>
 
-      <p>This looks more frightening than it is. \(U_B\) and \(U_S\) are the buyer's and seller's payoff from a deal. \(d_B\) and \(d_S\) are what each gets if the deal dies. The parameter \(\beta\) represents bargaining weight.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>“Arg max.”</strong> This means “choose the price that makes the following expression as large as possible.” The formula multiplies each side's gain above walking away.</span> The equation's practical lesson is not that every deal splits fifty-fifty. It is that the outside option enters the price.<a href="#ref-5">[5]</a></p>
+      <p>This looks more frightening than it is. \(U_B\) and \(U_S\) are what the buyer and seller get from making the deal. \(d_B\) and \(d_S\) are what they get if the deal dies. The parameter \(\beta\) represents how much weight the buyer has in the negotiation.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>“Arg max.”</strong> This means “choose the price that makes the following expression as large as possible.” The formula compares what each side gains from agreement with what it keeps by walking away.</span> The useful lesson is not that every deal splits the benefit fifty-fifty. It is that the alternatives outside the room affect the number inside it.<a href="#ref-5">[5]</a></p>
+
+      <p>Suppose RelayDesk saves the buyer $112,080 a month compared with doing everything manually. That does not mean the two sides are negotiating over the full $112,080. If the buyer can adopt another product and still save $95,000, RelayDesk is responsible for only about $17,000 of additional value before we consider switching costs and differences in risk. On the other hand, if RelayDesk is the only vendor approved before a major launch, the buyer's alternative may be overtime, delay, or a visibly bad support experience. The same product can support a very different price because the alternative changed.</p>
 
       <div class="scenario">
         <strong>Scenario: procurement has two credible finalists.</strong>
-        <p>RelayDesk keeps pointing at $112,080 of labour value. Procurement points at a rival offering nearly the same workflow for $1.40 per resolution. The customer's disagreement payoff just improved. RelayDesk's theoretical value did not vanish, but its differentiated value did.</p>
+        <p>RelayDesk keeps pointing at $112,080 of labour value. Procurement points at a rival offering nearly the same workflow for $1.40 per resolution. The customer's option if this negotiation fails just improved. RelayDesk still creates value, but much of that value is no longer unique to RelayDesk.</p>
       </div>
 
       <p>Now reverse it. The customer has spent six months integrating RelayDesk into permissions, billing, and internal policy. Switching is painful. RelayDesk's renewal leverage rises. It can exploit that once, perhaps. But this is a repeated game. The buyer can fund a replacement project, reduce expansion, refuse a reference, and remember the surprise at the next negotiation.</p>
 
-      <p>Game theory makes trust feel less soft. In a one-shot game, extracting every available dollar can be rational. In a repeated relationship, today's concession changes tomorrow's cooperation. Renewal caps, grandfathering, and volume commitments are not just kindness. They can purchase credibility.</p>
+      <p>This is also where the repeated part of the game matters. If this were the only transaction the two companies would ever have, squeezing for every available dollar might work. But the buyer will decide whether to expand, renew, provide a reference, or recommend RelayDesk to another team. Renewal caps, grandfathering, and volume commitments give the buyer some confidence about what happens after it becomes dependent on the product.</p>
+
+      <p>Trust here is not a sentimental extra. It changes behaviour. A buyer who expects a sharp renewal increase may hold back integrations and keep a replacement vendor warm. A buyer who understands the pricing rule may send more traffic, share better data, and spend less time auditing the invoice. Those actions affect the value RelayDesk can create later.</p>
 
       <p>The same logic explains discounts. A lower price exchanged for a longer commitment, reference rights, faster payment, or simpler implementation is a trade. A lower price because the salesperson panicked is merely missing data. Record the reason. Negotiation can teach the company, but only if every concession is attached to the fact that caused it.</p>
 
@@ -770,18 +810,22 @@
 
       <p>Hotelling's old spatial picture is useful even when nobody is standing on a beach. Put two vendors on a line. One is cheap and narrow. The other is expensive but can safely execute refunds and account changes. A buyer's effective price includes the distance between what it needs and what the product does. Product position changes how many customers an undercut actually steals.<a href="#ref-3">[3]</a></p>
 
-      <p>That is the clean game. Repetition makes it stranger. One firm cuts price, the other undercuts, both fall, then one jumps back up. Maskin and Tirole modeled versions of these Edgeworth cycles in an alternating price game.<a href="#ref-14">[14]</a> A public SaaS pricing change can create a slower version: rivals match it, procurement screenshots it, and old customers bring it to renewal. What looked like an experiment has changed everybody's strategy set.</p>
+      <p>Things become harder to predict when sellers respond over and over. One firm cuts price, the other undercuts it, both prices fall, and eventually one firm raises its price because the low rate is no longer worth offering. Maskin and Tirole modeled versions of this pattern, known as Edgeworth cycles, in a game where firms take turns setting prices.<a href="#ref-14">[14]</a> A public SaaS pricing change moves more slowly, but the reactions are familiar. Rivals match it, procurement saves a screenshot, and existing customers bring it to renewal. The test has changed the information available to everyone in the market.</p>
 
       <div class="scenario">
         <strong>Scenario: the temporary public discount.</strong>
-        <p>RelayDesk cuts its public outcome price for a test. Sales quietly adds extra concessions to save the expensive arm. Competitors match the visible price. Existing customers request the new rate. The experiment did not merely measure demand. It trained the market.</p>
+        <p>RelayDesk cuts its public outcome price for a test. Sales quietly adds extra concessions to save the expensive arm. Competitors match the visible price, and existing customers request the new rate. The test has now affected more than the buyers assigned to it.</p>
       </div>
 
-      <p>Algorithms make reactions faster. Calvano and coauthors found Q-learning agents sustaining prices above the competitive benchmark in a controlled repeated-oligopoly environment without direct communication.<a href="#ref-15">[15]</a> Brown and MacKay show that pricing algorithms with different update frequencies and commitment properties can change equilibrium prices and dispersion.<a href="#ref-16">[16]</a></p>
+      <p>There is a quieter version of this in almost every enterprise pipeline. A salesperson says a rival is “half the price.” Sometimes that is true. Sometimes the rival counts a different unit, excludes support, requires a larger annual commitment, or has not priced the same security work. Before reacting, RelayDesk has to normalize the offers. Otherwise it may cut its resolution price to match what was actually a conversation price with a minimum spend.</p>
 
-      <p>These are mechanisms, not accusations. A high market price does not prove collusion, and an annual enterprise negotiation is not an online retail bot changing a number every hour. The sober lesson is smaller: changing the speed and rule of response changes the game, even when the underlying products stay the same.</p>
+      <p>Differentiation helps only when the buyer values it and can verify it. Saying “our agents are more reliable” does little on its own. Showing that RelayDesk can safely process refunds, documenting the failure rate, and accepting a service guarantee turns a vague claim into part of the offer. Product work and pricing work meet here. A capability that the customer cannot see or trust will not protect much margin.</p>
 
-      <h2 id="learning">Dynamic pricing is three different things pretending to be one</h2>
+      <p>Algorithms make reactions faster. Calvano and coauthors studied software sellers that learned prices through trial and error in a controlled market with few competitors. The sellers kept prices above the competitive benchmark without directly communicating.<a href="#ref-15">[15]</a> Brown and MacKay show that how often pricing systems update, and whether one seller can hold a price while another reacts, can change the usual price and the spread between prices.<a href="#ref-16">[16]</a></p>
+
+      <p>None of this means a high market price proves that algorithms colluded. The cited studies explain ways repeated automated pricing can behave under particular assumptions. An annual enterprise negotiation is very different from an online shop changing prices every hour. The relevant lesson for RelayDesk is simply that faster reactions and more visible prices give competitors more chances to respond. We have to understand the setting before borrowing the conclusion.</p>
+
+      <h2 id="learning">What people mean when they say dynamic pricing</h2>
 
       <p>People use dynamic pricing to describe at least three systems:</p>
 
@@ -799,15 +843,21 @@
 
       <p>where \(\pi\) is profit and \(D(p)\) is demand at price \(p\).<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Demand function.</strong> \(D(p)\) describes how much the market buys at price \(p\). It usually falls as price rises, but enterprise data rarely reveals the curve cleanly.</span> Raising price improves margin on accepted deals and may reduce the number accepted. The seller is learning that curve while earning from it.</p>
 
-      <p>This is easy to say and hard to do with five enterprise renewals. Acceptance is sparse, negotiated, and selected. Sales representatives may compensate for a high-price test with more attention or a hidden discount. One deal fails a security review and gets labelled price sensitive. Another accepts because migration has already begun. Randomization on a spreadsheet does not rescue an experiment whose treatment changed in the room.</p>
+      <p>This is easy to say and hard to do with five enterprise renewals. There may be only a few observations, and no two deals are quite alike. Sales representatives may compensate for a high-price test with more attention or a hidden discount. One deal fails a security review and gets labelled price sensitive. Another accepts because migration has already begun. Assigning prices randomly in a spreadsheet does not help if the rest of the sales process changes with the price.</p>
 
-      <p>Cheung, Simchi-Levi, and Wang study demand learning when the seller can change prices only a limited number of times.<a href="#ref-13">[13]</a> That is a much better metaphor for enterprise SaaS than a supermarket repricing every minute. RelayDesk should learn at coherent commercial moments: pilots, new offers, expansions, and renewals. It should use broad segments, stable rules, and contribution profit rather than conversion alone.</p>
+      <p>Suppose RelayDesk compares $1.50 and $1.75 per resolution. The higher-price group happens to contain two banks with long security reviews, while the other group contains three small software companies ready to buy. Sales then gives the banks more attention and one free pilot. If the higher rate appears to lose, was it the price, the buyers, or the different sales process? With a small sample, the answer may remain unclear.</p>
 
-      <p>Personalization adds another game. If two similar buyers compare notes and discover different unexplained prices, demand may change because the procedure feels unfair. Competition makes the welfare effect ambiguous too; theory does not support the lazy claim that more customer data always means more seller profit.<a href="#ref-17">[17]</a> A price can be mathematically optimized and commercially radioactive.</p>
+      <p>Cheung, Simchi-Levi, and Wang study demand learning when the seller can change prices only a limited number of times.<a href="#ref-13">[13]</a> That is a much better metaphor for enterprise SaaS than a supermarket repricing every minute. RelayDesk should learn at pilots, new offers, expansions, and renewals. It should use broad groups, stable rules, and the profit left after serving an account rather than conversion alone.</p>
 
-      <h2 id="plumbing">Then somebody has to make the contract real</h2>
+      <p>A practical test can be modest. For one quarter, RelayDesk might keep the unit price fixed and compare two included allowances for new mid-market customers. The eligibility rule is written before the first quote, and sales records every exception. The test will not reveal a perfect demand curve. It can still show which package creates fewer objections and healthier use.</p>
 
-      <p>Economics chooses the game. Billing infrastructure makes sure everybody plays the version that was actually signed.</p>
+      <p>Conversion alone can reward bad pricing. A low rate may win nearly every deal while leaving no money for support. RelayDesk should also track what remains after model cost, tools, account support, and concessions. That is the contribution the profit formula is trying to summarize.</p>
+
+      <p>Personalization creates a separate problem. If two similar buyers compare notes and discover different unexplained prices, their reaction depends on more than the amount. They may decide the process was unfair. Competition makes the overall effect hard to predict too; theory does not support the easy claim that more customer data always means more seller profit.<a href="#ref-17">[17]</a> A model can find a number that looks profitable in historical data and still damage the relationship when a person has to explain it.</p>
+
+      <h2 id="plumbing">The billing system has to match the promise</h2>
+
+      <p>Once the teams agree on a pricing rule, the billing system has to reproduce it. This sounds administrative until the first disputed invoice arrives.</p>
 
       <div class="table-wrap" tabindex="0" aria-label="Contract stack from objective to invoice">
         <div class="contract-stack">
@@ -822,15 +872,21 @@
 
       <p>This is where companies such as <a href="https://flexprice.io/features/pricing-experiments">Flexprice</a>, <a href="https://www.withorb.com/solutions/ai">Orb</a>, <a href="https://stripe.com/billing/usage-based-billing">Metronome</a>, and <a href="https://getlago.com/solutions/industries/ai">Lago</a> enter. They sit mainly in the execution layers: ingest events, aggregate usage, apply customer-specific rates, manage credits and commitments, preserve legacy plans, and produce billing data.<a href="#ref-24">[24]</a><a href="#ref-25">[25]</a><a href="#ref-26">[26]</a><a href="#ref-27">[27]</a></p>
 
+      <p>Follow one resolution. RelayDesk records that conversation 813 began at 10:04, the AI took three actions, the user left at 10:11, and no human took over. After the waiting period, the billing layer checks that it is not spam, a test, or a duplicate. It applies the contracted rate and keeps enough detail for the customer to trace the charge.</p>
+
+      <p>If the user returns two days later, the system may reverse the event. An old contract might use a seven-day reopen window rather than three. An account that prepaid an annual commitment may record the usage without adding a charge. The simple idea “$1.75 per verified resolution” has become a list of data and accounting rules.</p>
+
+      <p>This is why changing a price takes longer than editing a website. Existing customers have old definitions, limits, credits, and renewal dates. Finance needs a history of which rule applied when, and customer success needs to explain the result. Without that history, a sensible experiment can create months of corrections.</p>
+
       <p>Flexprice is a particularly neat example because its current product pages connect pricing experiments to the operational mess underneath. It describes testing rate structures on subsets, rolling them back, grandfathering legacy plans, segment overrides, and audit logs.<a href="#ref-24">[24]</a> If RelayDesk chooses a $2,500 platform fee plus $1.75 per verified resolution, Flexprice can help turn accepted resolution events into the correct bill.</p>
 
-      <p>But this boundary matters: infrastructure can execute a rule without proving the rule is economically optimal. Metering is not demand estimation. A/B assignment is not causal identification if sales changes its behaviour. Calling a changing usage bill dynamic pricing does not make it a learning system. The plumbing can be excellent while the economics is confused.</p>
+      <p>There is still an important boundary. Infrastructure can execute a rule without proving that the rule is a good one. Counting usage does not tell us how demand responds to price. Splitting customers into test groups does not produce a clean comparison if sales treats the groups differently. Calling a changing usage bill dynamic pricing does not mean the system is learning anything. Good billing software can faithfully run a bad pricing decision.</p>
 
-      <p>Forethought's public description of a platform fee plus outcome-based cost is a nice real-world hybrid.<a href="#ref-23">[23]</a> Orb and Lago both describe support for tokens, outcomes, credits, commitments, and hybrid plans.<a href="#ref-25">[25]</a><a href="#ref-27">[27]</a> Their variety tells us something important. The modern pricing product is not one price. It is the ability to encode a contract without rebuilding the product every quarter.</p>
+      <p>Forethought's public description of a platform fee plus outcome-based cost is a useful real-world hybrid.<a href="#ref-23">[23]</a> Orb and Lago both describe support for tokens, outcomes, credits, commitments, and mixed plans.<a href="#ref-25">[25]</a><a href="#ref-27">[27]</a> The variety is the point. A modern pricing system needs to represent the contract a company has chosen without forcing the engineering team to rebuild billing every quarter.</p>
 
-      <h2 id="contract">The RelayDesk contract I would actually start with</h2>
+      <h2 id="contract">A first contract for RelayDesk</h2>
 
-      <p>After all that theory, I would not let an autonomous optimizer loose on five renewals. I would start with a boringly legible hybrid:</p>
+      <p>After all that theory, I would not let an autonomous optimizer loose on five renewals. I would begin with a contract that the support lead, salesperson, and finance team can each explain without opening a second document:</p>
 
       <div class="hero-equation">
         \[
@@ -840,9 +896,15 @@
         <div class="operator-line">platform + standard resolutions + complex outcomes + rare pass-through</div>
       </div>
 
-      <p>Here \(R\) is the number of verified standard resolutions and \(C\) is a separately defined complex outcome class. The contract would begin with a paid six-week proof of value. Both sides would agree on resolution windows, excluded traffic, audit samples, coverage, and quality measures before deployment.</p>
+      <p>Here \(F\) is the monthly platform fee. \(R\) is the number of verified standard resolutions and \(p_r\) is the price of each one. \(C\) is a separately defined complex outcome class and \(p_c\) is its price.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>The subscripts.</strong> The small \(r\) and \(c\) only label two rates: one for standard resolutions and one for complex outcomes. They do not introduce a new operation.</span> Approved tool costs cover rare third-party expenses that both sides agreed to pass through, not every internal token RelayDesk happens to use.</p>
 
-      <p>I would offer conversation pricing and verified-outcome pricing rather than declare one morally superior. The buyer can reveal whether it fears budget variance or performance risk more. Annual minimum commitments can purchase lower variable rates. Spend alerts and caps prevent the viral month from becoming a finance incident. No personalized rate changes appear halfway through a contract. Renewal tests happen across coherent groups with explicit grandfathering.</p>
+      <p>The relationship would start with a paid six-week proof of value. The teams would sample old conversations and write examples of what counts as resolved, escalated, or excluded. RelayDesk would then run on limited traffic while both sides score the same sample. Large disagreements would change the definition before they change the bill.</p>
+
+      <p>Only then would paid outcomes begin. A weekly file would show the conversation ID, category, resolution time, reopen status, and charge. Both teams would review a random sample. If errors exceeded the agreed limit, the account would return temporarily to conversation pricing or a fixed pilot fee.</p>
+
+      <p>This is slower than putting “pay for outcomes” on a pricing page, but it makes the phrase believable. The customer need not trust a private score, and RelayDesk need not accept a result redefined after the invoice arrives.</p>
+
+      <p>I would offer conversation pricing and verified-outcome pricing rather than declare one morally superior. The buyer can show whether it worries more about an unpredictable bill or about paying when the product fails. Annual minimum commitments can purchase lower variable rates. Spend alerts and caps prevent a busy month from becoming a finance incident. No personalized rate changes appear halfway through a contract. Renewal tests happen across broad, clearly defined groups, and existing customers know whether their old terms continue.</p>
 
       <p>For the large customer in our example, suppose the platform fee is $5,000 and the standard resolution price is $1.75:</p>
 
@@ -857,7 +919,9 @@
         =\$34{,}200.
       \]</p>
 
-      <p>These numbers do not prove $1.75 is optimal. They prove the offer is possible and expose the assumptions that could kill it. That is already more useful than multiplying token cost by five and calling the result strategy.</p>
+      <p>These numbers do not prove $1.75 is optimal. They tell us that the example is at least internally possible, and they make the assumptions visible. What happens if resolution falls from 60 percent to 40 percent? What if account support costs $18,000 rather than $8,000? What if the buyer's best alternative costs only $35,000? Each answer changes the deal.</p>
+
+      <p>This is the kind of spreadsheet I would actually want beside the contract. Not one tab containing a single “recommended price,” but a few cases showing easy traffic, hard traffic, high support, low support, strong competition, and weak competition. Pricing theory does not remove judgment. It makes the judgment easier to inspect.</p>
 
       <h2>Now try to break it</h2>
 
@@ -876,31 +940,23 @@
 
       <h2>What this story does not say</h2>
 
-      <p>It does not say outcome pricing is always better. It is better only when the outcome is valuable, observable, auditable, and not dangerously incomplete. A conversation can be the more honest meter when success is disputed.</p>
+      <p>It does not say outcome pricing is always better. It works best when the result is valuable and both sides can verify it. A conversation can be the more honest meter when success is disputed. It also does not say value-based pricing means charging the customer everything it gains. Competitors, alternatives, and the long-term relationship all limit what the seller can reasonably keep.</p>
 
-      <p>It does not say value-based pricing means charging the customer's entire value. Competition and bargaining determine how much of the surplus the seller can keep. Trust and repeated play determine how much it should try to keep.</p>
+      <p>Not every customer needs a unique price either. Personalization can improve fit, but it adds fairness and explanation problems. A small menu is often easier to learn from. And high prices do not automatically prove algorithmic collusion. Laboratory agents, online shops, and negotiated B2B software are different settings.</p>
 
-      <p>It does not say every customer needs a unique price. Personalization can improve fit, but it adds fairness, governance, and explanation costs. A small menu often learns more cleanly than a mysterious model-generated number.</p>
+      <p>Tokens still matter because they affect cost. Seats describe part of the customer's organization. Conversations are easy to count. Outcomes get closer to value. The mistake is expecting one of these units to answer every question.</p>
 
-      <p>It does not say algorithms collude whenever prices remain high. Laboratory learning agents, dynamic-oligopoly models, online retail evidence, and negotiated B2B software are different settings. The research shows possible mechanisms, not an automatic verdict.</p>
+      <h2>Back to the Monday pricing meeting</h2>
 
-      <p>And it does not say tokens have stopped mattering. Tokens affect cost. Seats describe the organization. Conversations measure contact. Outcomes approach value. The error is asking any one of them to explain the whole exchange.</p>
+      <p>We began with six people trying to price an AI support agent. Engineering brought the twenty-cent compute estimate. The customer example suggested $112,080 of possible labour value. Both numbers were useful. Neither could become the price on its own.</p>
 
-      <h2>The invoice was the institution</h2>
+      <p>The team still has to ask ordinary questions. What would the buyer do without RelayDesk? Can both sides reproduce the resolution count? Who pays when tickets are harder than the sample? Will the contract still feel fair at renewal?</p>
 
-      <p>I began with an AI worker and one apparently simple question: what should it cost?</p>
+      <p>Pricing theory gives the team ways to organize those questions. Game theory reminds it that the answers change behaviour. A conversation fee may suppress experiments. An outcome fee may create disputes about success. A strong reward for one quality score may pull attention away from safety. A surprise renewal increase may cause the customer to keep a replacement ready.</p>
 
-      <p>The first answer was twenty cents of compute per resolution. The second was $112,080 of possible labour value. Neither was the price. The price had to survive a buyer with private information, a seller with private costs, a noisy definition of success, a salesperson with discretion, a rival with its own response, and a relationship that continued after the first invoice.</p>
+      <p>So I would leave the meeting with a small menu, a paid pilot, clear event definitions, a platform fee for account-level work, and one variable rate the customer can audit. I would write down every assumption behind the number and test them slowly. The exact rate will change. The reasons for the rate should remain understandable.</p>
 
-      <p>That is what pricing theory added. Cost gives a floor. Value gives a distant ceiling. Elasticity describes how demand pushes back. Differentiation changes how hard competitors can steal. Menus make hidden types reveal themselves. Two-part tariffs divide account costs from usage. Bargaining gives outside options a mathematical seat at the table.</p>
-
-      <p>Game theory added the more uncomfortable part. Every rule becomes somebody's strategy. Bill conversations and the buyer may suppress them. Bill outcomes and both sides argue over the event. Reward one quality metric and effort walks away from the others. Publish a discount and the competitor learns too. Optimize every renewal and the loyal customer realizes it has become the experiment.</p>
-
-      <p>So the final result is not $1.75, or $0.99, or any other neat number from this essay. It is a method. Measure cost and value separately. Name the outside option. Pick a metric both sides can inspect. Offer a small menu. Put risk with the party best able to control it. Test at moments when a test will not poison the relationship. Then use the billing stack to enforce the promise that economics designed.</p>
-
-      <p>The token was never the product. The invoice was never just accounting.</p>
-
-      <p>It was the rule of the game.</p>
+      <p>That, more than the cleverness of the formula, is what makes a price usable.</p>
 
       <section class="references" aria-labelledby="references-heading">
         <h2 id="references-heading">References and links</h2>
