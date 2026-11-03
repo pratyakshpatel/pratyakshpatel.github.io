@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A ground-up, narrative introduction to decision theory through one Amazon review page: acts and states, decisions under ignorance, probability, utility, the von Neumann–Morgenstern axioms, Bayesian updating, order effects, prospect theory, the value of information, optimal stopping, and the platform systems that decide alongside us.">
+  <title>A Rational Shopper Would Shuffle the Reviews</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YEX4Y4DJM3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YEX4Y4DJM3');
+  </script>
+  <style>
+    body.decision-page {
+      max-width: 80rem !important;
+      counter-reset: sidenote-counter;
+      overflow-x: hidden;
+    }
+
+    .decision-nav,
+    .article-frame,
+    .decision-footer {
+      width: 100%;
+      max-width: 50rem;
+      margin-right: auto !important;
+      margin-left: auto !important;
+    }
+
+    .article-frame {
+      overflow: visible;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .thesis {
+      margin: 1.8rem 0;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #777;
+      border-left: 5px solid #0000ee;
+      font-size: 1.04rem;
+    }
+
+    .essay-map {
+      margin: 1.7rem 0 2.2rem;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+    }
+
+    .essay-map strong {
+      display: block;
+      margin-bottom: 0.45rem;
+    }
+
+    .essay-map ol {
+      columns: 2;
+      column-gap: 2.5rem;
+      margin-bottom: 0;
+    }
+
+    .equation-note,
+    .scenario,
+    .caveat-note,
+    .theorem {
+      margin: 1.5rem 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #999;
+      border-left: 4px solid #000;
+    }
+
+    .scenario {
+      border-left-color: #0000ee;
+    }
+
+    .theorem {
+      border-left-color: #0000ee;
+      border-top: 1px solid #0000ee;
+    }
+
+    .scenario strong:first-child,
+    .theorem strong:first-child,
+    .caveat-note strong:first-child {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .equation-note > :last-child,
+    .scenario > :last-child,
+    .caveat-note > :last-child,
+    .theorem > :last-child {
+      margin-bottom: 0 !important;
+    }
+
+    .hero-equation {
+      margin: 2rem 0;
+      padding: 1.2rem 0.8rem;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.33);
+      border: 1px solid #777;
+      border-top: 4px solid #0000ee;
+      text-align: center;
+    }
+
+    .hero-equation .operator-line {
+      margin-top: 0.75rem;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .viz {
+      margin: 2rem 0 !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .viz svg {
+      display: block;
+      width: 100%;
+      min-width: 720px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .viz svg text {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+    }
+
+    .timeline-viz {
+      width: min(1120px, calc(100vw - 2rem));
+      max-width: none;
+      margin-left: 50% !important;
+      transform: translateX(-50%);
+    }
+
+    .timeline-viz svg {
+      min-width: 980px;
+    }
+
+    .viz-caption {
+      margin-top: 0.7rem;
+    }
+
+    .viz:focus-visible,
+    .table-wrap:focus-visible {
+      outline: 3px solid #0000ee;
+      outline-offset: 3px;
+    }
+
+    .table-wrap {
+      max-width: 100%;
+      margin: 1.4rem 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-wrap table {
+      min-width: 640px;
+      margin-bottom: 0;
+      font-size: 0.88rem;
+    }
+
+    .payoff-table th,
+    .payoff-table td {
+      text-align: center !important;
+    }
+
+    .payoff-table th:first-child,
+    .payoff-table td:first-child {
+      text-align: left !important;
+    }
+
+    .payoff-table td.win {
+      color: #0000ee !important;
+      font-weight: 700;
+    }
+
+    sup.sidenote-number {
+      counter-increment: sidenote-counter;
+      color: #0000ee;
+      font-size: 0.7em;
+      line-height: 0;
+    }
+
+    sup.sidenote-number::after {
+      content: counter(sidenote-counter);
+      padding: 0 0.08em;
+    }
+
+    span.sidenote {
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.25rem -15rem 0.9rem 1.2rem;
+      color: #222;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    span.sidenote.left {
+      float: left;
+      clear: left;
+      margin-right: 1.2rem;
+      margin-left: -15rem;
+      text-align: right;
+    }
+
+    span.sidenote::before {
+      content: counter(sidenote-counter) ". ";
+      color: #0000ee;
+      font-weight: 700;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 1320px) {
+      body.decision-page {
+        max-width: 50rem !important;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 0.45rem 0 0.85rem 1rem;
+        padding: 0.45rem 0.65rem;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 2px solid #777;
+        font-size: 0.74rem;
+        line-height: 1.4;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .essay-map ol {
+        columns: 1;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        margin-left: 0.55rem;
+        font-size: 0.72rem;
+      }
+    }
+
+    @media print {
+      body.decision-page {
+        max-width: none !important;
+      }
+
+      .scenario,
+      .equation-note,
+      .theorem,
+      .table-wrap,
+      .viz {
+        break-inside: avoid;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        width: auto;
+        margin: 0.4rem 0 0.8rem;
+        padding-left: 0.8rem;
+        border-left: 2px solid #777;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="decision-page">
+  <nav class="nav-links decision-nav" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article class="article-frame">
+      <h1>A Rational Shopper Would Shuffle the Reviews</h1>
+      <div class="meta">3 November, 2026 &middot; Decision theory from the ground up: acts, beliefs, utility, models, and the systems that decide alongside us</div>
+
+      <p class="lede">At some point in my second year of college I was having the very quiet kind of crisis where you keep two browser tabs open for a month. One tab was physics. The other was data science. I liked both, I was not sure which one liked me back, and I was reading far too many papers from both sides in the hope that one of them would make the decision for me.</p>
+
+      <p>One of the papers that wandered into the data-science tab was about Amazon reviews. It wasn't about a recommendation engine or a giant neural network. It was about the reviews themselves: the little blocks of text under a product, the stars, and the line that says <em>312 people found this helpful</em>. It was called <em>Exploring reviews and review sequences on e-commerce platform: A study of helpful reviews on Amazon.in</em>, by Kapil Kaushik, Rajhans Mishra, Nripendra P. Rana, and Yogesh K. Dwivedi, published in the <em>Journal of Retailing and Consumer Services</em> in 2018.<a href="#ref-1">[1]</a></p>
+
+      <p>The abstract had the ingredients I expected: star ratings, the volume of reviews, how informative they were, their valence. Then it had one word I kept going back to: <em>sequence</em>. The authors were asking whether the order in which helpful reviews appear affects product sales. They built their model with ideas from message persuasion, cognitive overload, and something called the belief-adjustment model.<a href="#ref-1">[1]</a></p>
+
+      <p>That question bothered me in a productive way, because I had just learnt enough probability to have a strong opinion about it. Order should not matter. If ten reviews contain seven happy customers and three unhappy ones, a sensible person should end up believing the same thing whether the complaints come first or last. Multiplication commutes. Bayes' rule does not care which piece of evidence you hand it first. So if the order mattered, then either the shoppers were not being sensible, or my idea of sensible was too small.</p>
+
+      <p>Both turned out to be true. Working out why took me through a whole field I had not realised I was walking into. A few months later I was at IIM Nagpur for the summer, interning with Dr. Kaushik on an NLP project. The next summer I went back for a vision-and-language problem, which is how I ended up <a href="blip.html">obsessed with BLIP</a>. Dr. Kaushik works in decision science and information systems.<a href="#ref-2">[2]</a> Looking back, his Amazon paper was my first real encounter with that phrase. It was not about models that predict. It was about models that sit next to someone who has to <em>choose</em>.</p>
+
+      <p>This essay is the ground-up version of what I wish I had read that semester. We begin with almost nothing, just a table of acts and states. Then we build up through probability, utility, the axioms that justify expected utility, Bayes, the ways real people break those axioms, the value of information, optimal stopping, and finally the systems where a platform's ranking decision and a shopper's buying decision are tangled together. One running example carries the whole thing: a pair of earphones on Amazon.in, ten reviews, and whether their order should change what you buy.</p>
+
+      <div class="thesis">
+        <strong>A decision has three moving parts: what you believe, what you want, and what it costs to find out more. Bayes makes the first part ignore order. People break that rule in one direction. A perfectly rational reader who pays for every review breaks it in the opposite direction.</strong>
+      </div>
+
+      <div class="essay-map">
+        <strong>The route through the review page</strong>
+        <ol>
+          <li><a href="#decision">What a decision is made of</a></li>
+          <li><a href="#ignorance">Choosing when you refuse to guess</a></li>
+          <li><a href="#history">Three centuries of deciders</a></li>
+          <li><a href="#belief">Probability as a price</a></li>
+          <li><a href="#utility">Why expected money fails</a></li>
+          <li><a href="#axioms">Four axioms and a ruler</a></li>
+          <li><a href="#bayes">The reviews as evidence</a></li>
+          <li><a href="#people">How people actually update</a></li>
+          <li><a href="#paradoxes">Where the axioms crack</a></li>
+          <li><a href="#information">What review eleven is worth</a></li>
+          <li><a href="#stopping">The rational reader stops early</a></li>
+          <li><a href="#models">A model is not a decision</a></li>
+          <li><a href="#systems">The platform is deciding too</a></li>
+          <li><a href="#loop">The whole system</a></li>
+        </ol>
+      </div>
+
+      <h2 id="decision">What a decision is made of</h2>
+
+      <p>Lemme start lower than feels necessary. Here's the situation. You need earphones. There is a budget pair at ₹1,499 with a 4.1-star average and a premium pair at ₹4,999. You could also wait and keep your current pair, the one whose left ear crackles when you turn your head.</p>
+
+      <p>Leonard Savage gave us a vocabulary for this that has barely changed since 1954.<a href="#ref-3">[3]</a> A <strong>state</strong> is a complete description of the part of the world you do not control. An <strong>act</strong> is something you can choose. A <strong>consequence</strong> is what happens when an act meets a state. Formally, an act is a function from states to consequences:</p>
+
+      <p>\[
+        f : S \to C, \qquad s \mapsto f(s).
+      \]</p>
+
+      <p>That definition is less abstract than it looks. "Buy the budget pair" is not a consequence. It is a rule that hands back a different consequence depending on how the world turns out. If the budget pair is fine, you saved ₹3,500. If it is a lemon, you have a crackling right ear now as well as a crackling left ear.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Why functions?</strong> Treating an act as a function from states to outcomes is what allows us to compare acts state by state. It also makes clear what you control (the function) and what you don't (the argument).</span></p>
+
+      <p>For our earphones I will use three states:</p>
+
+      <ul>
+        <li>\(s_1\): the budget pair turns out fine.</li>
+        <li>\(s_2\): the budget pair is a lemon, and the premium pair would have been fine.</li>
+        <li>\(s_3\): it barely matters, because you lose whatever you buy within a month. Historically, this is my most likely state.</li>
+      </ul>
+
+      <p>Now fill in how good each consequence feels. For the moment, just pretend these numbers mean something. In a few sections we will earn the right to use them.</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="Decision matrix for the earphone purchase">
+          <thead>
+            <tr>
+              <th>Act</th>
+              <th>\(s_1\): budget fine</th>
+              <th>\(s_2\): budget lemon</th>
+              <th>\(s_3\): lost in a month</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>B</strong>: buy budget</td>
+              <td>8</td>
+              <td>1</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td><strong>P</strong>: buy premium</td>
+              <td>7</td>
+              <td>6</td>
+              <td>−1</td>
+            </tr>
+            <tr>
+              <td><strong>W</strong>: wait</td>
+              <td>3</td>
+              <td>3</td>
+              <td>3</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Budget is best if the cheap pair works. Premium is safest against a lemon, but if you lose it, the loss stings more. Waiting is bland in every state. This little matrix is the atom of decision theory. Every later idea either fills in the missing information about which column you are in or questions whether the numbers in the cells deserve to be added up.</p>
+
+      <p>One rule needs no extra information at all. An act \(f\) <strong>dominates</strong> \(g\) if \(f(s)\) is at least as good as \(g(s)\) in every state and strictly better in at least one. Nobody argues with dominance. If some act is worse no matter what happens, throw it away. The trouble is that dominance almost never settles anything interesting. In our table, no act dominates another. Each one wins somewhere.</p>
+
+      <h2 id="ignorance">Choosing when you refuse to guess</h2>
+
+      <p>Suppose you refuse to say how likely each state is. That sounds like a reasonable position. It's a new product, the reviews could be fake, and who are you to put a probability on a lemon? Decision theorists spent the early 1950s writing down rules for exactly this mood, which they called <em>decisions under ignorance</em>.<a href="#ref-4">[4]</a><a href="#ref-5">[5]</a><a href="#ref-6">[6]</a></p>
+
+      <p><strong>Maximin</strong> is the pessimist's rule. For each act, look at its worst outcome and choose the act whose worst is least bad. Abraham Wald built much of statistical decision theory around this minimax idea.<a href="#ref-4">[4]</a> The worst cases are \(1\), \(-1\), and \(3\), so maximin says <strong>wait</strong>.</p>
+
+      <p><strong>Maximax</strong> is the optimist's rule. Look at each act's best outcome. The best cases are \(8\), \(7\), and \(3\), so maximax says <strong>buy budget</strong>.</p>
+
+      <p>Leonid Hurwicz proposed a dial between the two. Pick an optimism level \(\alpha\in[0,1]\) and score each act as</p>
+
+      <p>\[
+        H_\alpha(f)=\alpha\max_s f(s)+(1-\alpha)\min_s f(s).
+      \]</p>
+
+      <p>For our table, \(H_\alpha(B)=1+7\alpha\), \(H_\alpha(P)=-1+8\alpha\), and \(H_\alpha(W)=3\). Budget overtakes waiting once \(1+7\alpha \gt 3\), or \(\alpha \gt 2/7\). Premium would need \(-1+8\alpha \gt 1+7\alpha\), or \(\alpha\gt 2\), which is impossible. Under Hurwicz, the premium pair never wins for <em>any</em> optimism level.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Hurwicz criterion scores as optimism varies">
+        <svg viewBox="0 0 860 380" role="img" aria-labelledby="hurwicz-title hurwicz-desc">
+          <title id="hurwicz-title">The Hurwicz dial: which act wins as optimism increases</title>
+          <desc id="hurwicz-desc">Three lines show Hurwicz scores against optimism alpha from zero to one. Wait is flat at three. Budget rises from one to eight. Premium rises from minus one to seven and stays below budget. Budget overtakes wait at alpha equal to two sevenths.</desc>
+          <defs>
+            <marker id="hz-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#000"/></marker>
+          </defs>
+          <rect x="80" y="40" width="177.1" height="280" fill="rgba(0,0,238,0.06)"/>
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="80" y1="306" x2="700" y2="306"/>
+            <line x1="80" y1="278" x2="700" y2="278"/>
+            <line x1="80" y1="222" x2="700" y2="222"/>
+            <line x1="80" y1="166" x2="700" y2="166"/>
+            <line x1="80" y1="110" x2="700" y2="110"/>
+            <line x1="80" y1="54" x2="700" y2="54"/>
+          </g>
+          <line x1="80" y1="320" x2="712" y2="320" stroke="#000" stroke-width="1.5" marker-end="url(#hz-arrow)"/>
+          <line x1="80" y1="320" x2="80" y2="32" stroke="#000" stroke-width="1.5" marker-end="url(#hz-arrow)"/>
+          <g font-size="11" text-anchor="end">
+            <text x="72" y="310">−1</text>
+            <text x="72" y="282">0</text>
+            <text x="72" y="226">2</text>
+            <text x="72" y="170">4</text>
+            <text x="72" y="114">6</text>
+            <text x="72" y="58">8</text>
+          </g>
+          <g font-size="11" text-anchor="middle">
+            <text x="80" y="338">0</text>
+            <text x="235" y="338">0.25</text>
+            <text x="390" y="338">0.5</text>
+            <text x="545" y="338">0.75</text>
+            <text x="700" y="338">1</text>
+            <text x="390" y="365">optimism α (weight placed on each act's best case)</text>
+          </g>
+          <text x="24" y="180" font-size="11" transform="rotate(-90 24 180)" text-anchor="middle">Hurwicz score</text>
+          <path d="M80 194 L700 194" stroke="#000" stroke-width="2"/>
+          <path d="M80 306 L700 82" stroke="#000" stroke-width="2" stroke-dasharray="7 5"/>
+          <path d="M80 250 L700 54" stroke="#0000ee" stroke-width="2.6"/>
+          <circle cx="257.1" cy="194" r="5.5" fill="#0000ee"/>
+          <line x1="257.1" y1="194" x2="257.1" y2="320" stroke="#0000ee" stroke-dasharray="3 3"/>
+          <text x="264" y="214" font-size="11" fill="#0000ee" font-weight="bold">α = 2/7</text>
+          <g font-size="11.5">
+            <text x="708" y="58" fill="#0000ee" font-weight="bold">Budget: 1 + 7α</text>
+            <text x="708" y="86">Premium: −1 + 8α</text>
+            <text x="708" y="198">Wait: 3</text>
+          </g>
+          <text x="168" y="64" font-size="12" text-anchor="middle" font-weight="bold">wait wins</text>
+          <text x="168" y="80" font-size="10.5" text-anchor="middle">a pessimist's corner</text>
+          <text x="480" y="300" font-size="12" text-anchor="middle" font-weight="bold" fill="#0000ee">budget wins for every α &gt; 2/7</text>
+          <text x="600" y="178" font-size="10.5" text-anchor="middle">premium runs just below, never on top</text>
+        </svg>
+        <figcaption class="viz-caption">Hurwicz's rule turns optimism into a single dial. For this table it only ever recommends waiting or buying the budget pair. Premium, which minimax regret and Laplace will both choose in a moment, is never the top line.</figcaption>
+      </figure>
+
+      <p>Savage suggested a different emotion to minimise: <strong>regret</strong>.<a href="#ref-5">[5]</a> For each state, regret is how much worse you did than the best act available in that state. You never look across states, only down each column:</p>
+
+      <p>\[
+        r(f,s)=\max_{g} g(s)-f(s),
+        \qquad
+        \text{choose } \arg\min_f \max_s r(f,s).
+      \]</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="Regret table">
+          <thead>
+            <tr>
+              <th>Regret</th>
+              <th>\(s_1\) (best = 8)</th>
+              <th>\(s_2\) (best = 6)</th>
+              <th>\(s_3\) (best = 3)</th>
+              <th>Worst regret</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>B</strong></td><td>0</td><td>5</td><td>1</td><td>5</td></tr>
+            <tr><td><strong>P</strong></td><td>1</td><td>0</td><td>4</td><td class="win">4</td></tr>
+            <tr><td><strong>W</strong></td><td>5</td><td>3</td><td>0</td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Minimax regret picks <strong>premium</strong>. Finally, Laplace's principle of insufficient reason says that if you have no reason to favour any state, you should treat them as equally likely and average. The averages are \(11/3\), \(12/3\), and \(3\), so Laplace also picks <strong>premium</strong>.</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="Which rule picks which act">
+          <thead>
+            <tr><th>Rule</th><th>The question it asks</th><th>Choice</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Maximin</td><td>What is the worst that can happen?</td><td>Wait</td></tr>
+            <tr><td>Maximax</td><td>What is the best that can happen?</td><td>Budget</td></tr>
+            <tr><td>Hurwicz, \(\alpha\gt 2/7\)</td><td>A blend of best and worst</td><td>Budget</td></tr>
+            <tr><td>Minimax regret</td><td>How bad will I feel looking back?</td><td>Premium</td></tr>
+            <tr><td>Laplace</td><td>What if every state were equally likely?</td><td>Premium</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The same nine numbers give three different answers. That is not a failure of the rules. Each one encodes a different attitude, and in 1954 John Milnor showed that no rule for decisions under ignorance can satisfy every reasonable-sounding condition at once.<a href="#ref-7">[7]</a> Maximin ignores everything except one cell per row. Regret makes the choice depend on which other acts happen to be on the menu: add a silly fourth option and the regret ranking of the first three can flip.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Menu dependence.</strong> Minimax regret violates "independence of irrelevant alternatives." A new act can raise the best value in some column, which changes every other act's regret. Then your choice between B and P depends on whether a third product is listed.</span></p>
+
+      <p>Notice what Laplace quietly did. It assigned probabilities, \(1/3\) each. The moment you admit that some states are more plausible than others, you are no longer deciding under ignorance. And this is the whole point of reading reviews: <em>reviews are evidence about which column you are in</em>.</p>
+
+      <p>Let's put numbers on that. Write \(\mathbb E_p[f]=\sum_s p(s)f(s)\) for an act's expected score under beliefs \(p\). If you believe \(p=(0.6,0.3,0.1)\), the expected scores are \(5.3\), \(5.9\), and \(3\), and you buy premium. If the reviews push you to \(p=(0.8,0.1,0.1)\), the scores become \(6.7\), \(6.1\), and \(3\), and you buy budget. Waiting falls away as soon as you hold any reasonable belief. It only won under maximin, which considers nothing but the worst case.</p>
+
+      <p>Keep \(p(s_3)=0.1\) fixed, since losing earphones is a fact about me rather than the product, and let \(q\) be your probability that the budget pair is good. Then \(p(s_1)=0.9q\), \(p(s_2)=0.9(1-q)\), and</p>
+
+      <div class="hero-equation">
+        \[
+          \mathbb E[B]=1.1+6.3q,\qquad
+          \mathbb E[P]=5.3+0.9q,\qquad
+          B\succ P \iff q\gt \tfrac{7}{9}\approx 0.778 .
+        \]
+        <div class="operator-line">the whole purchase reduces to one belief crossing one line</div>
+      </div>
+
+      <p>Hold on to that \(7/9\). For the rest of the essay, the review page has a single job: to move \(q\) across that line or leave it where it is.</p>
+
+      <h2 id="history">How a gambling letter became a theory of choice</h2>
+
+      <p>I used to think of decision theory as one tidy subject: maximise expected utility, done. The history is messier and much more fun. It has three threads that keep tugging at each other. One thread asks what a <em>rational</em> chooser should do. A second asks what <em>people</em> actually do, and keeps finding that it is something else. A third, younger thread asks what happens when the chooser is a <em>machine</em> that has to decide again and again while it learns.</p>
+
+      <figure class="viz timeline-viz" tabindex="0" aria-label="Scrollable history of decision theory in three lanes">
+        <svg viewBox="0 0 1120 630" role="img" aria-labelledby="dt-history-title dt-history-desc">
+          <title id="dt-history-title">From a gambling letter to bandit algorithms</title>
+          <desc id="dt-history-desc">A three-lane timeline. The rational choice lane includes Pascal and Fermat in 1654, Bernoulli in 1738, Bayes in 1763, Ramsey in 1926, von Neumann and Morgenstern in 1944, and Savage in 1954. The behavioural lane includes Allais in 1953, Simon in 1955, Ellsberg in 1961, Tversky and Kahneman in 1974, prospect theory in 1979, Hogarth and Einhorn in 1992, and Kaushik and coauthors in 2018. The machine lane includes Thompson in 1933, Wald in 1950, Bellman in 1957, Howard in 1966, Gittins in 1979, Lai and Robbins in 1985, and contextual bandits in 2010.</desc>
+          <defs>
+            <marker id="dt-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#000"/>
+            </marker>
+            <filter id="dt-paper" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="13" result="noise"/>
+              <feComposite in="noise" in2="SourceGraphic" operator="in" result="texture"/>
+              <feBlend in="SourceGraphic" in2="texture" mode="multiply"/>
+            </filter>
+          </defs>
+
+          <text x="22" y="35" font-size="15" font-weight="bold">decision theory kept discovering another kind of decider</text>
+          <text x="22" y="57" font-size="11">events are chronological inside each lane and spaced for legibility, not to scale</text>
+
+          <g font-size="10" font-weight="bold">
+            <text x="20" y="133">RATIONAL</text>
+            <text x="20" y="146">CHOICE</text>
+            <text x="20" y="313">HOW PEOPLE</text>
+            <text x="20" y="326">CHOOSE</text>
+            <text x="20" y="493">MACHINES</text>
+            <text x="20" y="506">THAT DECIDE</text>
+          </g>
+
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="112" y1="160" x2="1070" y2="160"/>
+            <line x1="112" y1="340" x2="1070" y2="340"/>
+            <line x1="112" y1="520" x2="1070" y2="520"/>
+          </g>
+
+          <line x1="112" y1="160" x2="1070" y2="160" stroke="#000" stroke-width="1.5" marker-end="url(#dt-arrow)"/>
+          <line x1="112" y1="340" x2="1070" y2="340" stroke="#000" stroke-width="1.5" marker-end="url(#dt-arrow)"/>
+          <line x1="112" y1="520" x2="1070" y2="520" stroke="#000" stroke-width="1.5" marker-end="url(#dt-arrow)"/>
+
+          <path d="M150 160 C275 77 385 235 500 160 S725 89 835 160 S965 230 1040 160" fill="none" stroke="#0000ee" stroke-width="2" stroke-dasharray="6 5" opacity="0.75"/>
+          <path d="M150 340 C300 260 410 415 555 340 S800 265 1040 340" fill="none" stroke="#0000ee" stroke-width="2" stroke-dasharray="6 5" opacity="0.75"/>
+          <path d="M150 520 C360 440 555 595 735 520 S910 450 1040 520" fill="none" stroke="#0000ee" stroke-width="2" stroke-dasharray="6 5" opacity="0.75"/>
+
+          <g text-anchor="middle" font-size="10.5">
+            <!-- rational choice lane -->
+            <circle cx="160" cy="160" r="9" fill="#0000ee"/>
+            <line x1="160" y1="151" x2="160" y2="117" stroke="#0000ee"/>
+            <rect x="89" y="83" width="142" height="34" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="160" y="98" fill="#0000ee" font-weight="bold">1654 Pascal–Fermat</text>
+            <text x="160" y="111">expected value</text>
+
+            <circle cx="330" cy="160" r="8" fill="#000"/>
+            <line x1="330" y1="168" x2="330" y2="206" stroke="#000"/>
+            <rect x="268" y="206" width="124" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="330" y="221" font-weight="bold">1738 Bernoulli</text>
+            <text x="330" y="234">utility, not money</text>
+
+            <circle cx="500" cy="160" r="8" fill="#000"/>
+            <line x1="500" y1="152" x2="500" y2="117" stroke="#000"/>
+            <rect x="438" y="83" width="124" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="500" y="98" font-weight="bold">1763 Bayes</text>
+            <text x="500" y="111">update on evidence</text>
+
+            <circle cx="680" cy="160" r="8" fill="#000"/>
+            <line x1="680" y1="168" x2="680" y2="206" stroke="#000"/>
+            <rect x="600" y="206" width="160" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="680" y="221" font-weight="bold">1926 Ramsey</text>
+            <text x="680" y="234">belief as a betting rate</text>
+
+            <circle cx="850" cy="160" r="8" fill="#000"/>
+            <line x1="850" y1="152" x2="850" y2="117" stroke="#000"/>
+            <rect x="744" y="83" width="212" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="850" y="98" font-weight="bold">1944 von Neumann–Morgenstern</text>
+            <text x="850" y="111">axioms give a utility</text>
+
+            <circle cx="1020" cy="160" r="9" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <line x1="1020" y1="169" x2="1020" y2="206" stroke="#0000ee"/>
+            <rect x="952" y="206" width="136" height="34" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="1020" y="221" fill="#0000ee" font-weight="bold">1954 Savage</text>
+            <text x="1020" y="234" fill="#0000ee">beliefs from choices</text>
+
+            <!-- behavioural lane -->
+            <circle cx="150" cy="340" r="9" fill="#0000ee"/>
+            <line x1="150" y1="331" x2="150" y2="297" stroke="#0000ee"/>
+            <rect x="88" y="263" width="124" height="34" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="150" y="278" fill="#0000ee" font-weight="bold">1953 Allais</text>
+            <text x="150" y="291">independence fails</text>
+
+            <circle cx="295" cy="340" r="8" fill="#000"/>
+            <line x1="295" y1="348" x2="295" y2="386" stroke="#000"/>
+            <rect x="245" y="386" width="100" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="295" y="401" font-weight="bold">1955 Simon</text>
+            <text x="295" y="414">satisficing</text>
+
+            <circle cx="440" cy="340" r="8" fill="#000"/>
+            <line x1="440" y1="332" x2="440" y2="297" stroke="#000"/>
+            <rect x="378" y="263" width="124" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="440" y="278" font-weight="bold">1961 Ellsberg</text>
+            <text x="440" y="291">ambiguity aversion</text>
+
+            <circle cx="585" cy="340" r="8" fill="#000"/>
+            <line x1="585" y1="348" x2="585" y2="386" stroke="#000"/>
+            <rect x="502" y="386" width="166" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="585" y="401" font-weight="bold">1974 Tversky–Kahneman</text>
+            <text x="585" y="414">heuristics and biases</text>
+
+            <circle cx="730" cy="340" r="8" fill="#000"/>
+            <line x1="730" y1="332" x2="730" y2="297" stroke="#000"/>
+            <rect x="652" y="263" width="156" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="730" y="278" font-weight="bold">1979 prospect theory</text>
+            <text x="730" y="291">losses loom larger</text>
+
+            <circle cx="875" cy="340" r="8" fill="#000"/>
+            <line x1="875" y1="348" x2="875" y2="386" stroke="#000"/>
+            <rect x="797" y="386" width="156" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="875" y="401" font-weight="bold">1992 Hogarth–Einhorn</text>
+            <text x="875" y="414">order effects in belief</text>
+
+            <circle cx="1025" cy="340" r="10" fill="#0000ee" filter="url(#dt-paper)"/>
+            <line x1="1025" y1="330" x2="1025" y2="297" stroke="#0000ee"/>
+            <rect x="945" y="255" width="160" height="42" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="1025" y="272" fill="#0000ee" font-weight="bold">2018 Kaushik et al.</text>
+            <text x="1025" y="286" fill="#0000ee">does review order sell?</text>
+
+            <!-- machine lane -->
+            <circle cx="150" cy="520" r="9" fill="#0000ee"/>
+            <line x1="150" y1="511" x2="150" y2="477" stroke="#0000ee"/>
+            <rect x="82" y="443" width="136" height="34" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="150" y="458" fill="#0000ee" font-weight="bold">1933 Thompson</text>
+            <text x="150" y="471">sample the posterior</text>
+
+            <circle cx="295" cy="520" r="8" fill="#000"/>
+            <line x1="295" y1="528" x2="295" y2="566" stroke="#000"/>
+            <rect x="220" y="566" width="150" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="295" y="581" font-weight="bold">1950 Wald</text>
+            <text x="295" y="594">statistics as decisions</text>
+
+            <circle cx="440" cy="520" r="8" fill="#000"/>
+            <line x1="440" y1="512" x2="440" y2="477" stroke="#000"/>
+            <rect x="378" y="443" width="124" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="440" y="458" font-weight="bold">1957 Bellman</text>
+            <text x="440" y="471">decide recursively</text>
+
+            <circle cx="585" cy="520" r="8" fill="#000"/>
+            <line x1="585" y1="528" x2="585" y2="566" stroke="#000"/>
+            <rect x="517" y="566" width="136" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="585" y="581" font-weight="bold">1966 Howard</text>
+            <text x="585" y="594">value of information</text>
+
+            <circle cx="730" cy="520" r="8" fill="#000"/>
+            <line x1="730" y1="512" x2="730" y2="477" stroke="#000"/>
+            <rect x="662" y="443" width="136" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="730" y="458" font-weight="bold">1979 Gittins</text>
+            <text x="730" y="471">an index for bandits</text>
+
+            <circle cx="875" cy="520" r="8" fill="#000"/>
+            <line x1="875" y1="528" x2="875" y2="566" stroke="#000"/>
+            <rect x="800" y="566" width="150" height="34" fill="rgba(255,255,255,.45)" stroke="#000"/>
+            <text x="875" y="581" font-weight="bold">1985 Lai–Robbins</text>
+            <text x="875" y="594">regret grows like log T</text>
+
+            <circle cx="1025" cy="520" r="9" fill="none" stroke="#0000ee" stroke-width="3"/>
+            <line x1="1025" y1="511" x2="1025" y2="477" stroke="#0000ee"/>
+            <rect x="936" y="443" width="178" height="34" fill="rgba(255,255,255,.45)" stroke="#0000ee"/>
+            <text x="1025" y="458" fill="#0000ee" font-weight="bold">2010 contextual bandits</text>
+            <text x="1025" y="471" fill="#0000ee">learning what to show</text>
+          </g>
+        </svg>
+        <figcaption class="viz-caption">The top lane builds the normative theory: expected value, utility, Bayesian updating, betting-rate probability, and the axioms that tie them together.<a href="#ref-8">[8]</a><a href="#ref-9">[9]</a><a href="#ref-10">[10]</a><a href="#ref-11">[11]</a><a href="#ref-13">[13]</a><a href="#ref-3">[3]</a> The middle lane keeps catching people violating it, and that is where the Amazon paper sits.<a href="#ref-15">[15]</a><a href="#ref-17">[17]</a><a href="#ref-16">[16]</a><a href="#ref-18">[18]</a><a href="#ref-19">[19]</a><a href="#ref-21">[21]</a><a href="#ref-1">[1]</a> The bottom lane turns decisions into algorithms that must act and learn at the same time.<a href="#ref-28">[28]</a><a href="#ref-4">[4]</a><a href="#ref-27">[27]</a><a href="#ref-24">[24]</a><a href="#ref-29">[29]</a><a href="#ref-30">[30]</a><a href="#ref-31">[31]</a></figcaption>
+      </figure>
+
+      <p>The top lane begins with a gambling problem. In 1654, Pascal and Fermat exchanged letters about how to split the stakes of a game of chance that had been interrupted halfway. Their answer was to weight each possible ending by its probability, and that idea became expected value.<a href="#ref-8">[8]</a> Bernoulli then showed that expected <em>money</em> could not be the whole story. Bayes's essay, published after his death, showed how evidence should change belief. Ramsey argued that a belief is a betting rate. Then von Neumann and Morgenstern, almost in passing while founding game theory, proved that four plain axioms about preferences force you to maximise an expected <em>utility</em>.<a href="#ref-13">[13]</a> Savage finished the structure by deriving both the probabilities and the utilities from choices alone.<a href="#ref-3">[3]</a></p>
+
+      <p>The middle lane is the theory's shadow. It barely waited for the axioms to dry. In 1953, Maurice Allais handed economists a pair of bets on which most of them broke the independence axiom.<a href="#ref-15">[15]</a> Herbert Simon argued that real minds do not maximise at all; they search until something is good enough.<a href="#ref-17">[17]</a> Ellsberg showed that people treat unknown probabilities differently from known ones.<a href="#ref-16">[16]</a> Tversky and Kahneman spent the 1970s cataloguing the shortcuts behind judgment, then proposed prospect theory as a descriptive replacement.<a href="#ref-18">[18]</a><a href="#ref-19">[19]</a> Hogarth and Einhorn's 1992 model of order effects in belief updating is the piece that leads straight to the Amazon paper.<a href="#ref-21">[21]</a><a href="#ref-1">[1]</a></p>
+
+      <p>The bottom lane starts, oddly, earlier than von Neumann. In 1933 William Thompson asked how to allocate patients between two treatments when you are still learning which one works. His answer, sample from your current belief and act as if the sample were true, sat mostly unused for decades before it started running large chunks of the internet.<a href="#ref-28">[28]</a><a href="#ref-32">[32]</a> Wald recast statistics itself as a decision problem. Bellman turned repeated decisions into a recursion. Howard put a price on information. Gittins and then Lai and Robbins worked out what it costs to learn while you earn.<a href="#ref-4">[4]</a><a href="#ref-27">[27]</a><a href="#ref-24">[24]</a><a href="#ref-29">[29]</a><a href="#ref-30">[30]</a> In this essay we'll walk the top lane first, then the middle, then the bottom, and at the end the three lanes meet on one review page.</p>
+
+      <h2 id="belief">Probability as a price you would pay</h2>
+
+      <p>Before we can weight utilities by probabilities, we have to say what a probability <em>is</em> when it describes one pair of earphones. It can't really be a long-run frequency. You are not buying this exact pair a thousand times. Ramsey in 1926 and de Finetti in 1937 gave the answer that decision theory runs on: your probability for an event is the price at which you would be equally happy to buy or sell a ticket that pays ₹1 if the event happens.<a href="#ref-11">[11]</a><a href="#ref-12">[12]</a></p>
+
+      <p>That sounds like a loose definition, but it has teeth. Suppose you announce that the budget pair is good with probability 0.6, and separately, because the one-star reviews scared you, that it is a lemon with probability 0.6. A bookie sells you a ₹1 ticket on "good" for ₹0.60 and a ₹1 ticket on "lemon" for ₹0.60. Exactly one of them will pay. You have spent ₹1.20 to receive ₹1.00, and you lose 20 paise <em>in every state of the world</em>. This is called a Dutch book.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Dutch book, without ceremony.</strong> A set of bets you would accept one by one, but which together lose money no matter what happens. Avoiding sure loss is a much weaker demand than being right. It only asks you not to contradict yourself.</span></p>
+
+      <div class="theorem">
+        <strong>Coherence (Ramsey, de Finetti).</strong>
+        <p>For bets on a finite set of mutually exclusive, exhaustive events \(E_1,\dots,E_n\), your betting prices \(P(E_i)\) are immune to every Dutch book if and only if</p>
+        <p>\[
+          P(E_i)\ge 0,\qquad \sum_{i=1}^n P(E_i)=1,\qquad P(E_i\cup E_j)=P(E_i)+P(E_j)\ \text{for } i\ne j.
+        \]</p>
+      </div>
+
+      <p>This was the first real surprise of the subject for me. The axioms of probability are not just conventions mathematicians agreed on. They are what consistent betting prices have to look like. A shopper whose beliefs about a product violate them can be made to lose money for sure. Being "Bayesian" therefore starts as a claim about consistency, not about being smart.</p>
+
+      <h2 id="utility">Why expected money is the wrong thing to maximise</h2>
+
+      <p>Expected value was the original definition of a fair price. Nicolaus Bernoulli broke it with a game that his cousin Daniel later analysed in a paper for the St Petersburg Academy, which is how the game got its name.<a href="#ref-9">[9]</a></p>
+
+      <p>Toss a fair coin until it lands heads. If the first heads arrives on toss \(k\), you win ₹\(2^k\). How much would you pay to play? The expected payout is</p>
+
+      <p>\[
+        \mathbb E[X]=\sum_{k=1}^{\infty}\frac{1}{2^k}\cdot 2^k=\sum_{k=1}^{\infty}1=\infty.
+      \]</p>
+
+      <p>No sane person pays even ₹50, let alone everything they own. Daniel Bernoulli's answer is one of the most important sentences in economics: the value of an item should be based not on its price but on the <em>utility</em> it yields.<a href="#ref-9">[9]</a> A rupee means more when you have few of them. He proposed logarithmic utility, \(u(x)=\ln x\), and with it the game becomes worth a finite amount:</p>
+
+      <p>\[
+        \mathbb E[\ln X]=\sum_{k=1}^{\infty}\frac{k\ln 2}{2^k}=\ln 2\sum_{k=1}^{\infty}\frac{k}{2^k}=2\ln 2
+        \quad\Longrightarrow\quad
+        \text{certainty equivalent}=e^{2\ln 2}=₹4.
+      \]</p>
+
+      <p>The step \(\sum_k k/2^k=2\) is the mean of a geometric distribution, which is a nice thing to verify on a napkin.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Bernoulli's version includes wealth.</strong> He actually evaluated \(\ln(w+\text{payout}-\text{price})\) for a person with wealth \(w\). The fair price rises with wealth, but only slowly. Later writers built super-St-Petersburg games with payouts growing fast enough to break log utility too, which is one reason many theorists insist that utility be bounded.</span> A certainty equivalent is the sure amount you would accept in place of the gamble. Under log utility, an infinite expectation shrinks to ₹4.</p>
+
+      <p>The lesson for our earphones is a quiet one. The numbers 8, 1, and 2 in the table were never meant to be rupees. They have to be something whose <em>average</em> is meaningful, and Bernoulli did not tell us what licenses that averaging. That took two more centuries.</p>
+
+      <h2 id="axioms">Four axioms and a ruler</h2>
+
+      <p>Von Neumann and Morgenstern asked the question in reverse. Forget utility for a moment. Suppose you only have preferences over <strong>lotteries</strong>, meaning probability distributions over outcomes. What conditions on those preferences would force them to look like expected utility?<a href="#ref-13">[13]</a></p>
+
+      <p>Write a lottery as \(L=(p_1,x_1;\dots;p_n,x_n)\), and write the mixture \(\alpha L+(1-\alpha)N\) for the compound lottery that runs \(L\) with probability \(\alpha\) and \(N\) otherwise. The four axioms are:</p>
+
+      <ol>
+        <li><strong>Completeness.</strong> For any \(L, M\): \(L\succeq M\) or \(M\succeq L\). You can always compare.</li>
+        <li><strong>Transitivity.</strong> If \(L\succeq M\) and \(M\succeq N\), then \(L\succeq N\). Otherwise someone can cycle you through trades and charge a fee each time.</li>
+        <li><strong>Continuity.</strong> If \(L\succ M\succ N\), there is some \(\alpha\in(0,1)\) with \(\alpha L+(1-\alpha)N\sim M\). No outcome is infinitely good or infinitely bad.</li>
+        <li><strong>Independence.</strong> \(L\succeq M\) if and only if \(\alpha L+(1-\alpha)N\succeq \alpha M+(1-\alpha)N\) for every \(N\) and every \(\alpha\in(0,1]\). Mixing both options with the same third lottery should not flip your preference.</li>
+      </ol>
+
+      <div class="theorem">
+        <strong>The expected utility theorem (von Neumann and Morgenstern, 1944; axioms in the 1947 edition).</strong>
+        <p>A preference \(\succeq\) over lotteries on a finite set of outcomes satisfies the four axioms if and only if there is a function \(u\) with</p>
+        <p>\[
+          L\succeq M \iff \sum_i p_i\,u(x_i)\ \ge\ \sum_i q_i\,u(x_i).
+        \]</p>
+        <p>Moreover, \(u\) is unique up to a positive affine transformation: \(v\) represents the same preferences if and only if \(v=a u+b\) with \(a\gt 0\).</p>
+      </div>
+
+      <p>The proof is short enough that I want to show the idea. Let \(\bar x\) be the best outcome and \(\underline x\) the worst. For any outcome \(x\) in between, continuity guarantees a probability \(u(x)\) that makes you indifferent:</p>
+
+      <p>\[
+        x\ \sim\ u(x)\,\bar x+\bigl(1-u(x)\bigr)\,\underline x.
+      \]</p>
+
+      <p>That number is the definition of utility. Now take any lottery \(L\). Independence lets you replace each outcome \(x_i\) inside \(L\) with its equivalent best-or-worst gamble without changing how much you like \(L\). After all the replacements, \(L\) has turned into a lottery over only two outcomes, \(\bar x\) and \(\underline x\), and the chance of getting the best one is \(\sum_i p_i u(x_i)\). Between two best-or-worst lotteries, the one with the higher chance of the best outcome wins. So you prefer whichever lottery has higher expected utility.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Where each axiom works.</strong> Completeness and transitivity give a ranking. Continuity creates the number \(u(x)\). Independence lets you substitute it inside a bigger lottery. The independence axiom does most of the heavy lifting, and it is the one people break most often.</span></p>
+
+      <p>This gives the 8 in our table a real meaning. On a scale where the worst earphone outcome is 0 and the best is 10, "budget pair, works fine" scores 8 because you would be indifferent between getting it for sure and taking an 80 percent chance at the best outcome with a 20 percent chance at the worst. Utility is a ruler, and you choose where its zero and its unit go, the way Celsius and Fahrenheit place 0 and 100 at different temperatures. Ratios of utility <em>differences</em> survive the choice of ruler. Statements like "twice as happy" do not.</p>
+
+      <p>Once utility exists, its shape describes your attitude to risk. If \(u\) is concave, Jensen's inequality gives \(\mathbb E[u(X)]\le u(\mathbb E[X])\). A gamble is then worth less to you than its average for certain, and you are <strong>risk averse</strong>.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Concave utility, certainty equivalent, and risk premium">
+        <svg viewBox="0 0 800 400" role="img" aria-labelledby="util-title util-desc">
+          <title id="util-title">Square-root utility turns a ₹5,000 average into a ₹2,500 certainty equivalent</title>
+          <desc id="util-desc">The concave curve u of x equals square root of x from zero to ten thousand rupees. A dashed chord joins the two outcomes of a fifty-fifty gamble. The chord's midpoint gives expected utility fifty, below the curve's value of about seventy point seven at five thousand. The certainty equivalent is two thousand five hundred rupees, so the risk premium is two thousand five hundred rupees.</desc>
+          <defs>
+            <marker id="ut-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#000"/></marker>
+          </defs>
+          <line x1="80" y1="330" x2="715" y2="330" stroke="#000" stroke-width="1.5" marker-end="url(#ut-arrow)"/>
+          <line x1="80" y1="330" x2="80" y2="30" stroke="#000" stroke-width="1.5" marker-end="url(#ut-arrow)"/>
+          <g font-size="11" text-anchor="middle">
+            <text x="80" y="348">₹0</text>
+            <text x="235" y="348">₹2,500</text>
+            <text x="390" y="348">₹5,000</text>
+            <text x="545" y="348">₹7,500</text>
+            <text x="700" y="348">₹10,000</text>
+          </g>
+          <g font-size="11" text-anchor="end">
+            <text x="72" y="334">0</text>
+            <text x="72" y="196">50</text>
+            <text x="72" y="139">70.7</text>
+            <text x="72" y="58">100</text>
+          </g>
+          <text x="22" y="185" font-size="11" transform="rotate(-90 22 185)" text-anchor="middle">utility</text>
+          <path d="M80.0 330.0 L86.2 302.4 L92.4 290.9 L98.6 282.2 L104.8 274.8 L111.0 268.2 L117.2 262.3 L123.4 256.9 L129.6 251.9 L135.8 247.1 L142.0 242.7 L148.2 238.4 L154.4 234.3 L160.6 230.4 L166.8 226.7 L173.0 223.0 L179.2 219.5 L185.4 216.1 L191.6 212.8 L197.8 209.6 L204.0 206.5 L210.2 203.4 L216.4 200.5 L222.6 197.5 L228.8 194.7 L235.0 191.9 L241.2 189.2 L247.4 186.5 L253.6 183.9 L259.8 181.3 L266.0 178.7 L272.2 176.2 L278.4 173.8 L284.6 171.3 L290.8 169.0 L297.0 166.6 L303.2 164.3 L309.4 162.0 L315.6 159.7 L321.8 157.5 L328.0 155.3 L334.2 153.2 L340.4 151.0 L346.6 148.9 L352.8 146.8 L359.0 144.7 L365.2 142.7 L371.4 140.7 L377.6 138.6 L383.8 136.7 L390.0 134.7 L396.2 132.8 L402.4 130.8 L408.6 128.9 L414.8 127.0 L421.0 125.2 L427.2 123.3 L433.4 121.5 L439.6 119.7 L445.8 117.9 L452.0 116.1 L458.2 114.3 L464.4 112.5 L470.6 110.8 L476.8 109.0 L483.0 107.3 L489.2 105.6 L495.4 103.9 L501.6 102.2 L507.8 100.6 L514.0 98.9 L520.2 97.3 L526.4 95.6 L532.6 94.0 L538.8 92.4 L545.0 90.8 L551.2 89.2 L557.4 87.6 L563.6 86.1 L569.8 84.5 L576.0 83.0 L582.2 81.4 L588.4 79.9 L594.6 78.4 L600.8 76.9 L607.0 75.4 L613.2 73.9 L619.4 72.4 L625.6 70.9 L631.8 69.4 L638.0 68.0 L644.2 66.5 L650.4 65.1 L656.6 63.7 L662.8 62.2 L669.0 60.8 L675.2 59.4 L681.4 58.0 L687.6 56.6 L693.8 55.2 L700.0 53.8" fill="none" stroke="#0000ee" stroke-width="2.6"/>
+          <line x1="80" y1="330" x2="700" y2="53.8" stroke="#000" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <g stroke="#777" stroke-dasharray="3 3">
+            <line x1="390" y1="330" x2="390" y2="134.7"/>
+            <line x1="235" y1="330" x2="235" y2="191.9"/>
+            <line x1="80" y1="191.9" x2="235" y2="191.9"/>
+            <line x1="80" y1="134.7" x2="390" y2="134.7"/>
+          </g>
+          <line x1="235" y1="191.9" x2="390" y2="191.9" stroke="#000" stroke-width="2.2"/>
+          <circle cx="80" cy="330" r="5" fill="#000"/>
+          <circle cx="700" cy="53.8" r="5" fill="#000"/>
+          <circle cx="390" cy="191.9" r="5.5" fill="#000"/>
+          <circle cx="390" cy="134.7" r="5.5" fill="#0000ee"/>
+          <circle cx="235" cy="191.9" r="5.5" fill="#0000ee"/>
+          <g font-size="11.5">
+            <text x="520" y="60" fill="#0000ee" font-weight="bold">u(x) = √x</text>
+            <text x="382" y="126" fill="#0000ee" text-anchor="end">u(₹5,000 for sure) ≈ 70.7</text>
+            <text x="400" y="212">E[u] of the 50–50 gamble = 50</text>
+            <text x="560" y="250" font-size="10.5">dashed chord: mixing the two outcomes</text>
+            <text x="242" y="212" fill="#0000ee" font-weight="bold">CE = ₹2,500</text>
+          </g>
+          <path d="M235 366 L235 374 L390 374 L390 366" fill="none" stroke="#000" stroke-width="1.5"/>
+          <text x="312" y="392" font-size="11.5" text-anchor="middle" font-weight="bold">risk premium ₹2,500</text>
+        </svg>
+        <figcaption class="viz-caption">A 50–50 gamble between ₹0 and ₹10,000. The gamble's expected utility lies on the chord, so it sits below the curve. Reading back across to the curve gives the certainty equivalent of ₹2,500. The gap between that and the ₹5,000 average is the price of risk for this chooser.</figcaption>
+      </figure>
+
+      <p>John Pratt and Kenneth Arrow turned the curvature into a number. The coefficient of absolute risk aversion is</p>
+
+      <p>\[
+        A(x)=-\frac{u''(x)}{u'(x)},\qquad
+        \pi\approx\tfrac12 A(\bar x)\,\sigma^2,
+      \]</p>
+
+      <p>where \(\pi\) is the risk premium, \(\bar x\) is the gamble's mean, and \(\sigma^2\) its variance.<a href="#ref-14">[14]</a> For \(u=\sqrt x\), \(A(x)=1/(2x)\). For the gamble in the figure, \(\sigma^2=2.5\times10^7\), so the approximation gives \(\pi\approx\tfrac12\cdot 10^{-4}\cdot 2.5\times 10^{7}=₹1{,}250\). The true premium is ₹2,500. The approximation is off by a factor of two, and that is exactly why Pratt's paper is called <em>Risk Aversion in the Small and in the Large</em>. The formula is a second-order Taylor expansion, so it only holds for small gambles relative to wealth.</p>
+
+      <p>Savage then took the final step.<a href="#ref-3">[3]</a> Von Neumann and Morgenstern took probabilities as given, like the odds on a roulette wheel. Savage started with nothing but preferences over acts, functions from states to consequences like the ones in our first table. From seven postulates he derived <em>both</em> a probability \(P\) over states and a utility \(u\) over consequences:</p>
+
+      <p>\[
+        f\succeq g\iff \sum_{s\in S}P(s)\,u\bigl(f(s)\bigr)\ \ge\ \sum_{s\in S}P(s)\,u\bigl(g(s)\bigr).
+      \]</p>
+
+      <p>The postulate everyone remembers is the <strong>sure-thing principle</strong>. If you would prefer \(f\) to \(g\) when you know some event \(E\) happens, and you would also prefer \(f\) to \(g\) when you know \(E\) does not happen, then you should prefer \(f\) to \(g\) when you do not know. It sounds unarguable, and Ellsberg will argue with it shortly. For now it completes the justification for what we did with the earphones. The table supplies \(u\), your beliefs supply \(P\), and a coherent shopper picks the act with the highest weighted sum.</p>
+
+      <h2 id="bayes">The reviews as evidence</h2>
+
+      <p>Now we can finally read the review page as a decision theorist. Simplify the world to two hypotheses about the budget pair: it is <strong>G</strong>ood or a <strong>L</strong>emon. Each review is either positive (four or five stars) or negative (one or two). Good products still get some angry reviews, and lemons still get some happy ones, so a review is a noisy signal:</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="Likelihood of each review given product quality">
+          <thead>
+            <tr><th>Likelihood</th><th>positive review</th><th>negative review</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>if <strong>G</strong> (good)</td><td>0.8</td><td>0.2</td></tr>
+            <tr><td>if <strong>L</strong> (lemon)</td><td>0.4</td><td>0.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Bayes' rule is easiest to see in odds form.<a href="#ref-10">[10]</a> Posterior odds equal prior odds times the likelihood ratio of the evidence:</p>
+
+      <p>\[
+        \underbrace{\frac{P(G\mid r)}{P(L\mid r)}}_{\text{posterior odds}}
+        =\underbrace{\frac{P(G)}{P(L)}}_{\text{prior odds}}
+        \times
+        \underbrace{\frac{P(r\mid G)}{P(r\mid L)}}_{\text{likelihood ratio}}.
+      \]</p>
+
+      <p>A positive review has likelihood ratio \(0.8/0.4=2\): it doubles the odds. A negative review has ratio \(0.2/0.6=1/3\): it cuts the odds to a third. Take logarithms and multiplication becomes addition. Each positive review adds \(\ln 2\) to your log-odds, and each negative review subtracts \(\ln 3\). If reviews are independent given the product's quality, then after \(k\) positive and \(m\) negative reviews,</p>
+
+      <div class="hero-equation">
+        \[
+          \log\frac{q_n}{1-q_n}=\log\frac{q_0}{1-q_0}+k\ln 2-m\ln 3 .
+        \]
+        <div class="operator-line">a sum, so the order of the terms cannot matter</div>
+      </div>
+
+      <p>Start at \(q_0=0.5\) and read seven positive and three negative reviews. The posterior odds are \(2^7/3^3=128/27\approx 4.74\), so \(q=128/155\approx 0.826\). That is above \(7/9\approx0.778\): buy the budget pair. Now try two orders. With the bad news first, your belief goes \(0.5\to0.25\to0.10\to0.036\), then climbs back through \(0.07, 0.13, 0.23, 0.37, 0.54, 0.70\) and lands at \(0.826\). With the bad news last, it climbs \(0.5\to0.67\to0.80\to\dots\to0.992\), then falls \(0.977\to0.934\to0.826\). The paths look completely different, but they end at the same point.</p>
+
+      <div class="theorem">
+        <strong>Order invariance.</strong>
+        <p>If the reviews \(r_1,\dots,r_n\) are conditionally independent given the hypothesis, then for every permutation \(\sigma\) of \(\{1,\dots,n\}\),</p>
+        <p>\[
+          P(G\mid r_1,\dots,r_n)=P(G\mid r_{\sigma(1)},\dots,r_{\sigma(n)}).
+        \]</p>
+        <p>The posterior depends on the data only through the counts \((k,m)\). Those counts are a sufficient statistic.</p>
+      </div>
+
+      <p>This is the sense of the title. A Bayesian could shuffle the reviews before reading them and lose nothing. De Finetti showed the idea runs deeper than our two-hypothesis toy.<a href="#ref-12">[12]</a> Call a sequence of binary reviews <strong>exchangeable</strong> if every reordering has the same probability. De Finetti's representation theorem says an infinite exchangeable sequence behaves as if there were an unknown satisfaction rate \(\theta\), with reviews independent given \(\theta\):</p>
+
+      <p>\[
+        P(r_1,\dots,r_n)=\int_0^1\theta^{k}(1-\theta)^{n-k}\,d\mu(\theta).
+      \]</p>
+
+      <p>If \(\mu\) is a Beta\((a,b)\) prior, reading \(k\) positive reviews out of \(n\) gives the posterior Beta\((a+k,\,b+n-k)\), with mean \((a+k)/(a+b+n)\). This is the conjugate-prior pattern that every Bayesian course teaches in week three. Keep it in your pocket, because the platform will use the exact same object when we get to ranking.</p>
+
+      <div class="caveat-note">
+        <strong>Order of updating versus position as evidence.</strong>
+        <p>Real review pages are not exchangeable. Amazon sorts by helpfulness, so the top review is not a random draw. Early reviewers may be enthusiasts, and later ones may be reacting to the early ones. A Bayesian can handle this, but the information goes into the <em>likelihood</em>: "a review in position one is more likely to be careful." Bayes still never cares about the order in which the facts are <em>processed</em>. What it can care about is where a review was placed, if the placement itself tells you something.</p>
+      </div>
+
+      <h2 id="people">How people actually update</h2>
+
+      <p>Here is where the Amazon paper's theory section sent me. Robin Hogarth and Hillel Einhorn's 1992 belief-adjustment model was built to explain a pile of experiments where the order of evidence <em>did</em> change people's final judgments.<a href="#ref-21">[21]</a> In its step-by-step form, you hold a current belief \(S_{k-1}\in[0,1]\), read a piece of evidence, score it as \(s(x_k)\in[-1,1]\), and adjust:</p>
+
+      <p>\[
+        S_k=S_{k-1}+w_k\,s(x_k),
+        \qquad
+        w_k=\begin{cases}
+          \alpha\,S_{k-1} &amp; \text{if } s(x_k)\le 0,\\[2pt]
+          \beta\,(1-S_{k-1}) &amp; \text{if } s(x_k)\gt 0.
+        \end{cases}
+      \]</p>
+
+      <p>Read the weights slowly, because they hold the whole psychology. Negative evidence moves you in proportion to how much belief you have left to lose. Positive evidence moves you in proportion to how much room you have to rise. A glowing review is a bigger surprise to a sceptic. A harsh review hits harder when you were nearly convinced. Hogarth and Einhorn call this a contrast effect.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Two processing modes.</strong> Hogarth and Einhorn distinguish step-by-step updating, where you adjust after every item, from end-of-sequence updating, where you take everything in and adjust once. Their model predicts recency for short, simple, mixed sequences processed step by step, and can predict primacy for longer or more complex ones.</span></p>
+
+      <p>It looks almost Bayesian, but it does not commute. Take \(\alpha=\beta=1\) and evidence of fixed strength \(s\). One positive followed by one negative leaves you at \((S+(1-S)s)(1-s)\). One negative followed by one positive leaves you at \(S(1-s)+(1-S(1-s))s\). Subtract the two and almost everything cancels:</p>
+
+      <div class="hero-equation">
+        \[
+          S_{\,-\,\text{then}\,+}\;-\;S_{\,+\,\text{then}\,-}\;=\;s^2 .
+        \]
+        <div class="operator-line">the commutator of two reviews: whichever came last wins by s²</div>
+      </div>
+
+      <p>The gap does not even depend on where you started. Whatever came last pulls you a little further. That is <strong>recency</strong>, written as a single line of algebra. Now run the same ten reviews through this model with \(s=0.2\). With the bad news first, you end at \(0.844\). With the bad news last, you end at \(0.458\). The Bayesian ends at \(0.826\) both times.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Belief paths for the same ten reviews in two orders">
+        <svg viewBox="0 0 900 440" role="img" aria-labelledby="paths-title paths-desc">
+          <title id="paths-title">Same ten reviews, two orders, two kinds of reader</title>
+          <desc id="paths-desc">Belief that the budget pair is good, plotted after each of ten reviews. Two blue Bayesian paths start at one half, diverge widely, and meet at zero point eight two six. Two black belief-adjustment paths end at zero point eight four four when bad reviews come first and zero point four five eight when bad reviews come last. A dotted line at seven ninths marks the buy-budget threshold.</desc>
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="80" y1="257.5" x2="700" y2="257.5"/>
+            <line x1="80" y1="185" x2="700" y2="185"/>
+            <line x1="80" y1="112.5" x2="700" y2="112.5"/>
+            <line x1="80" y1="40" x2="700" y2="40"/>
+          </g>
+          <line x1="80" y1="330" x2="700" y2="330" stroke="#000" stroke-width="1.5"/>
+          <line x1="80" y1="330" x2="80" y2="36" stroke="#000" stroke-width="1.5"/>
+          <g font-size="11" text-anchor="end">
+            <text x="72" y="334">0</text>
+            <text x="72" y="261">0.25</text>
+            <text x="72" y="189">0.5</text>
+            <text x="72" y="116">0.75</text>
+            <text x="72" y="44">1</text>
+          </g>
+          <text x="22" y="185" font-size="11" transform="rotate(-90 22 185)" text-anchor="middle">belief that the budget pair is good</text>
+          <line x1="80" y1="104.4" x2="700" y2="104.4" stroke="#0000ee" stroke-width="1.2" stroke-dasharray="1.5 4"/>
+          <text x="360" y="120" font-size="10.5" fill="#0000ee">buy-budget line, q = 7/9</text>
+
+          <path d="M80.0 185.0 L142.0 257.5 L204.0 301.0 L266.0 319.6 L328.0 310.0 L390.0 292.6 L452.0 263.7 L514.0 222.1 L576.0 172.7 L638.0 126.0 L700.0 90.5" fill="none" stroke="#0000ee" stroke-width="2.5"/>
+          <path d="M80.0 185.0 L142.0 136.7 L204.0 98.0 L266.0 72.2 L328.0 57.1 L390.0 48.8 L452.0 44.5 L514.0 42.2 L576.0 46.6 L638.0 59.1 L700.0 90.5" fill="none" stroke="#0000ee" stroke-width="2.5" stroke-dasharray="7 5"/>
+          <path d="M80.0 185.0 L142.0 214.0 L204.0 237.2 L266.0 255.8 L328.0 212.6 L390.0 178.1 L452.0 150.5 L514.0 128.4 L576.0 110.7 L638.0 96.6 L700.0 85.2" fill="none" stroke="#000" stroke-width="2"/>
+          <path d="M80.0 185.0 L142.0 156.0 L204.0 132.8 L266.0 114.2 L328.0 99.4 L390.0 87.5 L452.0 78.0 L514.0 70.4 L576.0 122.3 L638.0 163.9 L700.0 197.1" fill="none" stroke="#000" stroke-width="2" stroke-dasharray="7 5"/>
+          <circle cx="700" cy="90.5" r="4.5" fill="#0000ee"/>
+          <circle cx="700" cy="85.2" r="4" fill="#000"/>
+          <circle cx="700" cy="197.1" r="4" fill="#000"/>
+          <g font-size="11">
+            <text x="710" y="80">adjuster, bad first: 0.844</text>
+            <text x="710" y="97" fill="#0000ee" font-weight="bold">Bayes, both: 0.826</text>
+            <text x="710" y="201">adjuster, bad last: 0.458</text>
+          </g>
+
+          <g font-size="10.5">
+            <rect x="486" y="262" width="210" height="62" fill="rgba(255,255,255,.55)" stroke="#999"/>
+            <line x1="496" y1="276" x2="526" y2="276" stroke="#0000ee" stroke-width="2.5"/>
+            <text x="532" y="280">Bayes</text>
+            <line x1="496" y1="294" x2="526" y2="294" stroke="#000" stroke-width="2"/>
+            <text x="532" y="298">belief adjustment</text>
+            <text x="496" y="316">solid: bad first · dashed: bad last</text>
+          </g>
+
+          <g font-size="10.5" text-anchor="middle">
+            <text x="142" y="346">1</text><text x="204" y="346">2</text><text x="266" y="346">3</text><text x="328" y="346">4</text><text x="390" y="346">5</text>
+            <text x="452" y="346">6</text><text x="514" y="346">7</text><text x="576" y="346">8</text><text x="638" y="346">9</text><text x="700" y="346">10</text>
+          </g>
+          <text x="20" y="378" font-size="10.5" font-weight="bold">bad first</text>
+          <text x="20" y="408" font-size="10.5" font-weight="bold">bad last</text>
+          <g font-size="12" font-weight="bold" text-anchor="middle">
+            <g fill="#000">
+              <rect x="133" y="364" width="18" height="18" fill="#000"/><rect x="195" y="364" width="18" height="18" fill="#000"/><rect x="257" y="364" width="18" height="18" fill="#000"/>
+            </g>
+            <g fill="#0000ee">
+              <rect x="319" y="364" width="18" height="18"/><rect x="381" y="364" width="18" height="18"/><rect x="443" y="364" width="18" height="18"/><rect x="505" y="364" width="18" height="18"/><rect x="567" y="364" width="18" height="18"/><rect x="629" y="364" width="18" height="18"/><rect x="691" y="364" width="18" height="18"/>
+              <rect x="133" y="394" width="18" height="18"/><rect x="195" y="394" width="18" height="18"/><rect x="257" y="394" width="18" height="18"/><rect x="319" y="394" width="18" height="18"/><rect x="381" y="394" width="18" height="18"/><rect x="443" y="394" width="18" height="18"/><rect x="505" y="394" width="18" height="18"/>
+            </g>
+            <g fill="#000">
+              <rect x="567" y="394" width="18" height="18"/><rect x="629" y="394" width="18" height="18"/><rect x="691" y="394" width="18" height="18"/>
+            </g>
+            <g fill="#fff">
+              <text x="142" y="378">−</text><text x="204" y="378">−</text><text x="266" y="378">−</text>
+              <text x="328" y="378">+</text><text x="390" y="378">+</text><text x="452" y="378">+</text><text x="514" y="378">+</text><text x="576" y="378">+</text><text x="638" y="378">+</text><text x="700" y="378">+</text>
+              <text x="142" y="408">+</text><text x="204" y="408">+</text><text x="266" y="408">+</text><text x="328" y="408">+</text><text x="390" y="408">+</text><text x="452" y="408">+</text><text x="514" y="408">+</text>
+              <text x="576" y="408">−</text><text x="638" y="408">−</text><text x="700" y="408">−</text>
+            </g>
+          </g>
+          <text x="390" y="432" font-size="11" text-anchor="middle">review number, with the review read at that step</text>
+        </svg>
+        <figcaption class="viz-caption">Both readers see seven positive and three negative reviews. The Bayesian paths swing wildly but must end at the same point, \(128/155\approx0.826\). The belief adjuster (\(\alpha=\beta=1\), \(s=0.2\)) ends wherever the last few reviews pushed it. With the bad news last, it lands below the threshold and buys a different product.</figcaption>
+      </figure>
+
+      <p>That last line is the real point. It is not just that the two readers' numbers differ. They <em>act</em> differently. Seeing the bad news last, the belief adjuster ends up below \(7/9\) and buys premium, while the Bayesian buys budget. Sales are made of acts, not beliefs, and this is how an order effect in someone's head can show up in an order effect on a sales chart.</p>
+
+      <p>The Amazon paper asked whether sequence matters for sales on a real platform, using this theory alongside cognitive overload and message persuasion.<a href="#ref-1">[1]</a> For the size and direction of the effects they estimated, read the paper itself. It is the empirical half of this story, and I'm only giving you the theory half. What hooked me was simply that the question could be asked. Tversky and Kahneman's anchoring-and-adjustment heuristic, where people start from an initial value and adjust insufficiently, is the older cousin of the same idea.<a href="#ref-18">[18]</a></p>
+
+      <h2 id="paradoxes">Where the axioms crack</h2>
+
+      <p>Order effects break Bayes. Other experiments break expected utility itself. The most famous is Allais's, in rupees here.<a href="#ref-15">[15]</a></p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="The Allais paradox">
+          <thead>
+            <tr><th>Choice</th><th>Option</th><th>Lottery</th><th>Most people pick</th></tr>
+          </thead>
+          <tbody>
+            <tr><td rowspan="2">1</td><td>A</td><td>₹1 million for certain</td><td class="win">A</td></tr>
+            <tr><td>B</td><td>10%: ₹5M, 89%: ₹1M, 1%: nothing</td><td></td></tr>
+            <tr><td rowspan="2">2</td><td>C</td><td>11%: ₹1M, 89%: nothing</td><td></td></tr>
+            <tr><td>D</td><td>10%: ₹5M, 90%: nothing</td><td class="win">D</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Both choices sound reasonable. Who risks a sure million for a 1 percent chance of nothing? But if one option already has a 90 percent chance of nothing, why not reach for the bigger prize? Now write the choices in expected utility with \(u(0)=0\):</p>
+
+      <p>\[
+        A\succ B\iff 0.11\,u(1)\gt 0.10\,u(5),
+        \qquad
+        D\succ C\iff 0.10\,u(5)\gt 0.11\,u(1).
+      \]</p>
+
+      <p>These are the same inequality pointing in opposite directions. No utility function can produce both choices. The culprit is independence. Both pairs share an 89 percent slice. In the first pair it is ₹1M, and in the second it is nothing. Independence says a common slice should not matter, and people's choices say it does: certainty has a pull of its own.</p>
+
+      <p>Ellsberg went after Savage's sure-thing principle.<a href="#ref-16">[16]</a> An urn holds 30 red balls and 60 that are black or yellow in an unknown mix. Most people would rather bet on red than on black. Most people would also rather bet on "black or yellow" than "red or yellow." The first choice implies \(P(R)\gt P(B)\). The second, after cancelling the shared yellow, implies \(P(B)\gt P(R)\). People are not misjudging a probability here. They dislike <em>not knowing</em> the probability, and that dislike is called ambiguity aversion.</p>
+
+      <div class="scenario">
+        <strong>Scenario: the flawless product with three reviews.</strong>
+        <p>Product X has three reviews, all positive. Product Y has 2,400 positive out of 3,000. With a uniform prior, X's posterior is Beta(4, 1) and Y's is Beta(2401, 601). Both have mean 0.80. But X's standard deviation is about 0.16, while Y's is about 0.007. An expected-utility shopper whose utility is linear in \(\theta\) is exactly indifferent. Almost every real shopper picks Y. That is Ellsberg, live on a product page. Review <em>volume</em>, one of the variables in the Amazon paper, matters partly because it turns ambiguity into risk.</p>
+      </div>
+
+      <p>Kahneman and Tversky's prospect theory was built to describe these patterns rather than condemn them.<a href="#ref-19">[19]</a><a href="#ref-20">[20]</a> It changes two things. Outcomes are judged as gains and losses relative to a reference point, through a value function that is concave for gains, convex for losses, and steeper for losses. Probabilities are passed through a weighting function that inflates small chances and deflates large ones. Using the median parameters from their 1992 paper (the weighting parameter shown is the one for gains),</p>
+
+      <p>\[
+        v(x)=\begin{cases}x^{0.88}&amp;x\ge 0\\-2.25\,(-x)^{0.88}&amp;x\lt 0\end{cases},
+        \qquad
+        w(p)=\frac{p^{\gamma}}{\bigl(p^{\gamma}+(1-p)^{\gamma}\bigr)^{1/\gamma}},\ \ \gamma=0.61.
+      \]</p>
+
+      <figure class="viz" tabindex="0" aria-label="Prospect theory value function and probability weighting">
+        <svg viewBox="0 0 760 370" role="img" aria-labelledby="pt-title pt-desc">
+          <title id="pt-title">Losses loom larger, and small probabilities feel bigger</title>
+          <desc id="pt-desc">Left panel: the prospect theory value function, concave for gains and steeper and convex for losses. A loss of one hundred has value about minus one hundred twenty nine point five, while a gain of one hundred has value about fifty seven point five. Right panel: the probability weighting function lies above the diagonal for small probabilities and below it for large ones.</desc>
+          <text x="230" y="24" font-size="12.5" font-weight="bold" text-anchor="middle">value of a gain or loss</text>
+          <text x="595" y="24" font-size="12.5" font-weight="bold" text-anchor="middle">weight given to a probability</text>
+          <line x1="60" y1="136.7" x2="400" y2="136.7" stroke="#000" stroke-width="1.2"/>
+          <line x1="230" y1="40" x2="230" y2="330" stroke="#000" stroke-width="1.2"/>
+          <path d="M60.0 315.5 L61.7 313.9 L63.4 312.3 L65.1 310.7 L66.8 309.2 L68.5 307.6 L70.2 306.0 L71.9 304.4 L73.6 302.8 L75.3 301.2 L77.0 299.6 L78.7 298.0 L80.4 296.4 L82.1 294.8 L83.8 293.2 L85.5 291.6 L87.2 290.0 L88.9 288.4 L90.6 286.8 L92.3 285.2 L94.0 283.6 L95.7 282.0 L97.4 280.3 L99.1 278.7 L100.8 277.1 L102.5 275.5 L104.2 273.8 L105.9 272.2 L107.6 270.6 L109.3 268.9 L111.0 267.3 L112.7 265.7 L114.4 264.0 L116.1 262.4 L117.8 260.7 L119.5 259.1 L121.2 257.4 L122.9 255.7 L124.6 254.1 L126.3 252.4 L128.0 250.7 L129.7 249.1 L131.4 247.4 L133.1 245.7 L134.8 244.0 L136.5 242.3 L138.2 240.6 L139.9 238.9 L141.6 237.2 L143.3 235.5 L145.0 233.8 L146.7 232.1 L148.4 230.4 L150.1 228.7 L151.8 226.9 L153.5 225.2 L155.2 223.5 L156.9 221.7 L158.6 220.0 L160.3 218.3 L162.0 216.5 L163.7 214.7 L165.4 213.0 L167.1 211.2 L168.8 209.4 L170.5 207.6 L172.2 205.9 L173.9 204.1 L175.6 202.3 L177.3 200.5 L179.0 198.6 L180.7 196.8 L182.4 195.0 L184.1 193.2 L185.8 191.3 L187.5 189.5 L189.2 187.6 L190.9 185.7 L192.6 183.8 L194.3 181.9 L196.0 180.0 L197.7 178.1 L199.4 176.2 L201.1 174.3 L202.8 172.3 L204.5 170.3 L206.2 168.4 L207.9 166.4 L209.6 164.3 L211.3 162.3 L213.0 160.2 L214.7 158.1 L216.4 156.0 L218.1 153.9 L219.8 151.7 L221.5 149.5 L223.2 147.2 L224.9 144.8 L226.6 142.4 L228.3 139.8 L230.0 136.7 L231.7 135.3 L233.4 134.1 L235.1 133.0 L236.8 132.0 L238.5 131.0 L240.2 130.0 L241.9 129.0 L243.6 128.1 L245.3 127.1 L247.0 126.2 L248.7 125.3 L250.4 124.4 L252.1 123.5 L253.8 122.6 L255.5 121.7 L257.2 120.8 L258.9 120.0 L260.6 119.1 L262.3 118.2 L264.0 117.4 L265.7 116.5 L267.4 115.7 L269.1 114.9 L270.8 114.0 L272.5 113.2 L274.2 112.4 L275.9 111.6 L277.6 110.7 L279.3 109.9 L281.0 109.1 L282.7 108.3 L284.4 107.5 L286.1 106.7 L287.8 105.9 L289.5 105.1 L291.2 104.3 L292.9 103.5 L294.6 102.8 L296.3 102.0 L298.0 101.2 L299.7 100.4 L301.4 99.6 L303.1 98.9 L304.8 98.1 L306.5 97.3 L308.2 96.5 L309.9 95.8 L311.6 95.0 L313.3 94.2 L315.0 93.5 L316.7 92.7 L318.4 92.0 L320.1 91.2 L321.8 90.5 L323.5 89.7 L325.2 89.0 L326.9 88.2 L328.6 87.5 L330.3 86.7 L332.0 86.0 L333.7 85.2 L335.4 84.5 L337.1 83.7 L338.8 83.0 L340.5 82.3 L342.2 81.5 L343.9 80.8 L345.6 80.1 L347.3 79.3 L349.0 78.6 L350.7 77.9 L352.4 77.2 L354.1 76.4 L355.8 75.7 L357.5 75.0 L359.2 74.3 L360.9 73.5 L362.6 72.8 L364.3 72.1 L366.0 71.4 L367.7 70.7 L369.4 69.9 L371.1 69.2 L372.8 68.5 L374.5 67.8 L376.2 67.1 L377.9 66.4 L379.6 65.7 L381.3 64.9 L383.0 64.2 L384.7 63.5 L386.4 62.8 L388.1 62.1 L389.8 61.4 L391.5 60.7 L393.2 60.0 L394.9 59.3 L396.6 58.6 L398.3 57.9 L400.0 57.2" fill="none" stroke="#0000ee" stroke-width="2.6"/>
+          <circle cx="400" cy="57.2" r="4.5" fill="#0000ee"/>
+          <circle cx="60" cy="315.5" r="4.5" fill="#000"/>
+          <line x1="60" y1="315.5" x2="230" y2="315.5" stroke="#777" stroke-dasharray="3 3"/>
+          <line x1="230" y1="57.2" x2="400" y2="57.2" stroke="#777" stroke-dasharray="3 3"/>
+          <g font-size="10.5">
+            <text x="395" y="152" text-anchor="end">gain ₹100</text>
+            <text x="64" y="152">loss ₹100</text>
+            <text x="300" y="50" text-anchor="middle" fill="#0000ee">v(100) ≈ 57.5</text>
+            <text x="145" y="308" text-anchor="middle">v(−100) ≈ −129.5</text>
+            <text x="255" y="230">a loss hurts</text>
+            <text x="255" y="244">≈ 2.25× a gain</text>
+            <text x="236" y="52">v</text>
+          </g>
+
+          <rect x="470" y="40" width="250" height="250" fill="none" stroke="#000" stroke-width="1.2"/>
+          <line x1="470" y1="290" x2="720" y2="40" stroke="#777" stroke-dasharray="5 4"/>
+          <path d="M470.0 290.0 L472.5 276.2 L475.0 269.7 L477.5 264.8 L480.0 260.7 L482.5 257.1 L485.0 253.9 L487.5 251.0 L490.0 248.3 L492.5 245.8 L495.0 243.4 L497.5 241.2 L500.0 239.1 L502.5 237.1 L505.0 235.1 L507.5 233.3 L510.0 231.5 L512.5 229.7 L515.0 228.0 L517.5 226.4 L520.0 224.8 L522.5 223.2 L525.0 221.7 L527.5 220.2 L530.0 218.8 L532.5 217.3 L535.0 215.9 L537.5 214.5 L540.0 213.1 L542.5 211.8 L545.0 210.4 L547.5 209.1 L550.0 207.8 L552.5 206.4 L555.0 205.1 L557.5 203.9 L560.0 202.6 L562.5 201.3 L565.0 200.0 L567.5 198.8 L570.0 197.5 L572.5 196.2 L575.0 195.0 L577.5 193.7 L580.0 192.5 L582.5 191.2 L585.0 189.9 L587.5 188.7 L590.0 187.4 L592.5 186.1 L595.0 184.8 L597.5 183.6 L600.0 182.3 L602.5 181.0 L605.0 179.6 L607.5 178.3 L610.0 177.0 L612.5 175.7 L615.0 174.3 L617.5 172.9 L620.0 171.5 L622.5 170.1 L625.0 168.7 L627.5 167.3 L630.0 165.8 L632.5 164.3 L635.0 162.8 L637.5 161.3 L640.0 159.7 L642.5 158.2 L645.0 156.5 L647.5 154.9 L650.0 153.2 L652.5 151.5 L655.0 149.7 L657.5 147.9 L660.0 146.1 L662.5 144.2 L665.0 142.2 L667.5 140.2 L670.0 138.1 L672.5 136.0 L675.0 133.8 L677.5 131.5 L680.0 129.1 L682.5 126.6 L685.0 124.0 L687.5 121.2 L690.0 118.3 L692.5 115.3 L695.0 112.1 L697.5 108.6 L700.0 104.9 L702.5 100.9 L705.0 96.5 L707.5 91.7 L710.0 86.2 L712.5 79.9 L715.0 72.2 L717.5 62.1 L720.0 40.0" fill="none" stroke="#0000ee" stroke-width="2.6"/>
+          <g font-size="10.5">
+            <text x="470" y="306" text-anchor="middle">0</text>
+            <text x="720" y="306" text-anchor="middle">1</text>
+            <text x="595" y="320" text-anchor="middle">stated probability p</text>
+            <text x="460" y="294" text-anchor="end">0</text>
+            <text x="460" y="44" text-anchor="end">1</text>
+            <line x1="474" y1="274" x2="528" y2="272" stroke="#0000ee" stroke-width="0.8"/>
+            <text x="532" y="276" fill="#0000ee">1% feels like 5.5%</text>
+            <line x1="640" y1="90" x2="714" y2="64" stroke="#0000ee" stroke-width="0.8"/>
+            <text x="636" y="96" text-anchor="end" fill="#0000ee">99% feels like 91%</text>
+            <text x="480" y="62" fill="#777">diagonal: w(p) = p</text>
+          </g>
+        </svg>
+        <figcaption class="viz-caption">Left: a ₹100 loss weighs about 2.25 times as much as a ₹100 gain. Right: a 1 percent chance is weighted like about 5.5 percent, and 99 percent like about 91 percent, so certainty gets a premium. Together these reproduce the Allais pattern. Parameters are Tversky and Kahneman's 1992 medians.<a href="#ref-20">[20]</a></figcaption>
+      </figure>
+
+      <p>A one-star review usually describes a loss: "died after two weeks," "the left ear stopped working," "refund took a month." A five-star review usually describes a gain against a reference point the shopper already expected to reach. Under loss aversion, the asymmetry is predictable. Chevalier and Mayzlin found in book sales on Amazon.com and Barnes &amp; Noble that a one-star review had a larger effect than a five-star one.<a href="#ref-23">[23]</a> Mudambi and Schuff found that what readers rate as <em>helpful</em> depends on review depth, on how extreme the rating is, and on whether the product is one you can judge from specifications or only by using it.<a href="#ref-22">[22]</a> Valence, the third ingredient in the Amazon paper, is a loss-gain variable in disguise.<a href="#ref-1">[1]</a></p>
+
+      <p>None of this makes expected utility useless. It means there are two theories with two jobs. The <em>normative</em> theory says what a coherent decision looks like. The <em>descriptive</em> theory says what people actually do. A platform that wants to understand its sales needs the second. A person who wants to avoid getting Dutch-booked needs the first. The interesting engineering, as we'll see, happens when one party uses the descriptive theory to design the environment in which the other party makes decisions.</p>
+
+      <h2 id="information">What review number eleven is worth</h2>
+
+      <p>So far the shopper has been handed a fixed pile of reviews. Real shoppers choose how many to read, and that choice is a decision too. Ronald Howard turned this into a formula in a four-page paper in 1966.<a href="#ref-24">[24]</a> The question is: how much should you pay to learn something before you act?</p>
+
+      <p>Start with the extreme case, a perfect oracle that tells you whether the budget pair is good. With the oracle, you would pick the best act in each state and then average over your current belief. Without it, you pick one act now. The difference is the <strong>expected value of perfect information</strong>:</p>
+
+      <p>\[
+        \mathrm{EVPI}(q)=\mathbb E_{\theta}\Bigl[\max_a U(a,\theta)\Bigr]-\max_a \mathbb E_{\theta}\bigl[U(a,\theta)\bigr].
+      \]</p>
+
+      <p>In our setup, if the oracle says G, buy budget and get \(7.4\). If it says L, buy premium and get \(5.3\). So \(\mathrm{EVPI}(q)=7.4q+5.3(1-q)-\max(1.1+6.3q,\ 5.3+0.9q)\). At \(q=0.7\) that is \(6.77-5.93=0.84\). It is zero at \(q=0\) and \(q=1\), where you already know what to do, and it peaks at \(0.93\) exactly on the threshold \(q=7/9\).</p>
+
+      <p>That shape gives the most useful sentence in this section. <em>Information is valuable only to the extent that it could change what you do.</em> If no possible answer would flip your choice, the answer is worth exactly zero to you, however interesting it is.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>A practical test.</strong> Before ordering an analysis, a survey, or another dashboard, ask: "Which result would make us choose differently?" If nobody can name one, the analysis has no decision value, whatever else it is good for.</span></p>
+
+      <p>A review is not an oracle. It is a noisy signal, and its worth is the <strong>expected value of sample information</strong>. You average, over the possible reviews, the value of acting optimally after seeing each one, then subtract the value of acting now:</p>
+
+      <p>\[
+        \mathrm{EVSI}(q)=\sum_{r\in\{+,-\}}P(r\mid q)\,\max_a\mathbb E\bigl[U(a)\mid q_r\bigr]\;-\;\max_a\mathbb E\bigl[U(a)\mid q\bigr].
+      \]</p>
+
+      <p>At \(q=0.7\), a positive review arrives with probability \(0.8(0.7)+0.4(0.3)=0.68\) and lifts you to \(0.824\), which is across the line, so you would switch to budget. A negative review drops you to \(0.44\), and you stay with premium. Laid out as a decision tree:</p>
+
+      <figure class="viz" tabindex="0" aria-label="Decision tree for reading one more review at belief 0.7">
+        <svg viewBox="0 0 800 370" role="img" aria-labelledby="tree-title tree-desc">
+          <title id="tree-title">Should you read one more review? A decision tree at q = 0.70</title>
+          <desc id="tree-desc">A square decision node at belief zero point seven offers three branches: buy budget worth five point five one, buy premium worth five point nine three, or read one more review at a cost of zero point zero five. Reading leads to a chance node. A positive review with probability zero point six eight moves belief to zero point eight two, where budget is best at six point two nine. A negative review with probability zero point three two moves belief to zero point four four, where premium is best at five point six nine. The expected value of reading is six point one zero, or six point zero five after cost, which beats buying premium now.</desc>
+          <text x="30" y="26" font-size="12.5" font-weight="bold">at q = 0.70 one more review is worth 0.168, more than its 0.05 cost</text>
+
+          <rect x="30" y="165" width="26" height="26" fill="#0000ee"/>
+          <text x="43" y="155" font-size="11" text-anchor="middle" font-weight="bold">q = 0.70</text>
+
+          <path d="M56 178 L140 70 L290 70" fill="none" stroke="#777" stroke-width="1.5"/>
+          <text x="150" y="63" font-size="11">buy budget</text>
+          <text x="298" y="74" font-size="11.5">5.51</text>
+
+          <path d="M56 178 L140 140 L290 140" fill="none" stroke="#777" stroke-width="1.5"/>
+          <text x="150" y="133" font-size="11">buy premium</text>
+          <text x="298" y="144" font-size="11.5" font-weight="bold">5.93</text>
+
+          <path d="M56 178 L140 255 L300 255" fill="none" stroke="#0000ee" stroke-width="2.6"/>
+          <text x="150" y="248" font-size="11" fill="#0000ee" font-weight="bold">read one more review</text>
+          <text x="150" y="270" font-size="10.5" fill="#0000ee">costs 0.05 of attention</text>
+          <circle cx="314" cy="255" r="14" fill="rgba(255,255,255,.6)" stroke="#0000ee" stroke-width="2.5"/>
+          <text x="230" y="300" font-size="11" text-anchor="middle">E = 0.68·6.29 + 0.32·5.69 = 6.10</text>
+          <text x="230" y="316" font-size="11" text-anchor="middle" fill="#0000ee" font-weight="bold">net of cost: 6.05 &gt; 5.93</text>
+
+          <path d="M328 255 L380 200 L500 200" fill="none" stroke="#0000ee" stroke-width="2.2"/>
+          <text x="388" y="193" font-size="11">positive · 0.68</text>
+          <rect x="500" y="187" width="26" height="26" fill="#000"/>
+          <text x="513" y="180" font-size="10.5" text-anchor="middle">q = 0.82</text>
+          <path d="M526 200 L560 160 L690 160" fill="none" stroke="#0000ee" stroke-width="2.2"/>
+          <text x="568" y="153" font-size="11" fill="#0000ee">budget</text>
+          <text x="698" y="164" font-size="11.5" fill="#0000ee" font-weight="bold">6.29</text>
+          <path d="M526 200 L560 225 L690 225" fill="none" stroke="#999" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="568" y="218" font-size="11" fill="#777">premium</text>
+          <text x="698" y="229" font-size="11.5" fill="#777">6.04</text>
+
+          <path d="M328 255 L380 310 L500 310" fill="none" stroke="#0000ee" stroke-width="2.2"/>
+          <text x="388" y="303" font-size="11">negative · 0.32</text>
+          <rect x="500" y="297" width="26" height="26" fill="#000"/>
+          <text x="513" y="290" font-size="10.5" text-anchor="middle">q = 0.44</text>
+          <path d="M526 310 L560 280 L690 280" fill="none" stroke="#999" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="568" y="273" font-size="11" fill="#777">budget</text>
+          <text x="698" y="284" font-size="11.5" fill="#777">3.86</text>
+          <path d="M526 310 L560 345 L690 345" fill="none" stroke="#0000ee" stroke-width="2.2"/>
+          <text x="568" y="338" font-size="11" fill="#0000ee">premium</text>
+          <text x="698" y="349" font-size="11.5" fill="#0000ee" font-weight="bold">5.69</text>
+        </svg>
+        <figcaption class="viz-caption">Squares are your decisions, and the circle is the world's move. You solve the tree from the right. At each square keep the best branch, at the circle take the probability-weighted average, then compare at the root. Reading is worth \(6.098-5.930=0.168\) before its cost, which is the EVSI. Howard and Matheson later compressed trees like this into influence diagrams.<a href="#ref-25">[25]</a></figcaption>
+      </figure>
+
+      <p>This "solve from the right" procedure is backward induction. If you have read <a href="tree_based_methods.html">my trees essay</a>, note the name clash. Those decision trees <em>learn</em> splits from data. These decision trees <em>evaluate</em> choices against uncertainty. Same drawing, almost opposite jobs.</p>
+
+      <p>Now for the strange part. At \(q=0.5\), EVSI is exactly zero. One positive review moves you to \(0.667\), which is still below \(7/9\), so a single review can never change your act. A myopic shopper at \(q=0.5\) would never read anything. Yet two positive reviews would move you to \(0.80\), across the line. One review is worth nothing, but the <em>option</em> to read several is worth something. To capture that, we need to think about the whole sequence of reading decisions at once.</p>
+
+      <h2 id="stopping">The rational reader stops early</h2>
+
+      <p>Herbert Simon's objection to classical rationality was never that people are stupid. It was that search is costly. A mind with limited attention should search until something is good enough, then stop.<a href="#ref-17">[17]</a> The Amazon paper's cognitive-overload theory says the same thing in a different vocabulary: past some point, more reviews add burden rather than clarity.<a href="#ref-1">[1]</a> We can make that precise without giving up rationality. We just charge a cost \(c\) for each review read.</p>
+
+      <p>Let \(V(q)=\max(1.1+6.3q,\ 5.3+0.9q)\) be what you get if you stop and buy now. Let \(V^\star(q)\) be what you get if you play optimally from belief \(q\), with the option to keep reading. Richard Bellman's principle of optimality says the optimal plan must also be optimal from wherever it takes you next.<a href="#ref-27">[27]</a> That gives a fixed-point equation:</p>
+
+      <div class="hero-equation">
+        \[
+          V^\star(q)=\max\Bigl\{\,V(q),\ \ -c+\sum_{r\in\{+,-\}}P(r\mid q)\,V^\star(q_r)\Bigr\}.
+        \]
+        <div class="operator-line">stop and buy now, or pay c, read one, and play optimally from there</div>
+      </div>
+
+      <p>I solved this numerically by value iteration on a fine grid of beliefs. With \(c=0.05\), the solution has a clean shape. There is an interval of beliefs, \(0.279\lt q\lt 0.947\), where reading on is worth more than stopping. Outside it, you stop and buy. Cheaper reading widens the interval. At \(c=0.02\) it is \((0.094,\ 0.979)\), and at \(c=0.1\) it shrinks to \((0.524,\ 0.900)\). This is the same structure as Wald's sequential probability ratio test, which keeps sampling while the evidence sits between two boundaries and stops when it crosses one.<a href="#ref-26">[26]</a></p>
+
+      <figure class="viz" tabindex="0" aria-label="Optimal stopping region for reading reviews">
+        <svg viewBox="0 0 800 440" role="img" aria-labelledby="stop-title stop-desc">
+          <title id="stop-title">With a reading cost of 0.05, keep reading only between 0.279 and 0.947</title>
+          <desc id="stop-desc">The value of stopping now is the upper envelope of two lines, kinked at seven ninths. The optimal value with the option to keep reading lies above it between beliefs zero point two seven nine and zero point nine four seven, which is shaded as the region where you should keep reading. Below the plot, a reader who sees bad reviews first exits the region after one review and buys premium, while a reader who sees good reviews first reads five and buys budget.</desc>
+          <rect x="253.1" y="40" width="413.9" height="290" fill="rgba(0,0,238,0.07)"/>
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="80" y1="292.2" x2="700" y2="292.2"/>
+            <line x1="80" y1="229.1" x2="700" y2="229.1"/>
+            <line x1="80" y1="166.1" x2="700" y2="166.1"/>
+            <line x1="80" y1="103" x2="700" y2="103"/>
+            <line x1="80" y1="40" x2="700" y2="40"/>
+          </g>
+          <line x1="80" y1="330" x2="700" y2="330" stroke="#000" stroke-width="1.5"/>
+          <line x1="80" y1="330" x2="80" y2="36" stroke="#000" stroke-width="1.5"/>
+          <g font-size="11" text-anchor="end">
+            <text x="72" y="296">5.5</text>
+            <text x="72" y="233">6.0</text>
+            <text x="72" y="170">6.5</text>
+            <text x="72" y="107">7.0</text>
+            <text x="72" y="44">7.5</text>
+          </g>
+          <text x="22" y="185" font-size="11" transform="rotate(-90 22 185)" text-anchor="middle">expected utility</text>
+          <g font-size="10.5" text-anchor="middle">
+            <text x="80" y="346">0</text>
+            <text x="253.1" y="346" fill="#0000ee">0.279</text>
+            <text x="390" y="346">0.5</text>
+            <text x="562.2" y="346">7/9</text>
+            <text x="667" y="346" fill="#0000ee">0.947</text>
+            <text x="700" y="360">1</text>
+          </g>
+          <g stroke-dasharray="4 4">
+            <line x1="253.1" y1="40" x2="253.1" y2="425" stroke="#0000ee"/>
+            <line x1="667" y1="40" x2="667" y2="425" stroke="#0000ee"/>
+            <line x1="562.2" y1="40" x2="562.2" y2="330" stroke="#000"/>
+          </g>
+          <line x1="80" y1="317.4" x2="700" y2="203.9" stroke="#999" stroke-width="1"/>
+          <line x1="483.5" y1="330" x2="700" y2="52.6" stroke="#999" stroke-width="1"/>
+          <path d="M80.0 317.4 L92.4 315.1 L104.8 312.9 L117.2 310.6 L129.6 308.3 L142.0 306.0 L154.4 303.8 L166.8 301.5 L179.2 299.2 L191.6 297.0 L204.0 294.7 L216.4 292.4 L228.8 290.2 L241.2 287.9 L253.6 285.6 L266.0 283.3 L278.4 281.1 L290.8 278.8 L303.2 276.5 L315.6 274.3 L328.0 272.0 L340.4 269.7 L352.8 267.5 L365.2 265.2 L377.6 262.9 L390.0 260.7 L402.4 258.4 L414.8 256.1 L427.2 253.8 L439.6 251.6 L452.0 249.3 L464.4 247.0 L476.8 244.8 L489.2 242.5 L501.6 240.2 L514.0 238.0 L526.4 235.7 L538.8 233.4 L551.2 231.1 L562.2 229.1 L576.0 211.5 L588.4 195.6 L600.8 179.7 L613.2 163.8 L625.6 147.9 L638.0 132.0 L650.4 116.2 L662.8 100.3 L675.2 84.4 L687.6 68.5 L700.0 52.6" fill="none" stroke="#000" stroke-width="2"/>
+          <path d="M80.0 317.4 L92.4 315.1 L104.8 312.9 L117.2 310.6 L129.6 308.3 L142.0 306.0 L154.4 303.8 L166.8 301.5 L179.2 299.2 L191.6 297.0 L204.0 294.7 L216.4 292.4 L228.8 290.2 L241.2 287.9 L253.6 285.6 L266.0 282.0 L278.4 278.4 L290.8 274.7 L303.2 271.0 L315.6 267.1 L328.0 263.0 L340.4 258.9 L352.8 254.8 L365.2 250.7 L377.6 246.4 L390.0 242.1 L402.4 237.7 L414.8 233.2 L427.2 228.2 L439.6 223.1 L452.0 218.0 L464.4 212.9 L476.8 207.6 L489.2 202.1 L501.6 196.5 L514.0 190.8 L526.4 184.8 L538.8 178.6 L551.2 172.4 L563.6 166.1 L576.0 159.4 L588.4 152.5 L600.8 144.8 L613.2 136.9 L625.6 128.7 L638.0 120.2 L650.4 109.6 L662.8 98.7 L675.2 84.4 L687.6 68.5 L700.0 52.6" fill="none" stroke="#0000ee" stroke-width="2.6"/>
+
+          <text x="166" y="60" font-size="11.5" text-anchor="middle" font-weight="bold">stop: buy premium</text>
+          <text x="460" y="60" font-size="12" text-anchor="middle" font-weight="bold" fill="#0000ee">keep reading</text>
+          <text x="460" y="76" font-size="10.5" text-anchor="middle" fill="#0000ee">the option to learn is worth more than 0.05</text>
+          <text x="708" y="60" font-size="11" font-weight="bold">stop:</text>
+          <text x="708" y="74" font-size="11" font-weight="bold">buy budget</text>
+
+          <g font-size="10.5">
+            <rect x="90" y="96" width="156" height="58" fill="rgba(255,255,255,.55)" stroke="#999"/>
+            <line x1="100" y1="113" x2="128" y2="113" stroke="#0000ee" stroke-width="2.6"/>
+            <text x="134" y="117">V*(q): may read on</text>
+            <line x1="100" y1="133" x2="128" y2="133" stroke="#000" stroke-width="2"/>
+            <text x="134" y="137">V(q): must stop now</text>
+            <text x="100" y="149" fill="#777">grey: the two acts</text>
+          </g>
+
+          <text x="20" y="390" font-size="10.5" font-weight="bold">bad first</text>
+          <text x="20" y="420" font-size="10.5" font-weight="bold">bad last</text>
+          <defs>
+            <marker id="st-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#000"/></marker>
+          </defs>
+          <line x1="384" y1="386" x2="242" y2="386" stroke="#000" stroke-width="1.4" marker-end="url(#st-arrow)"/>
+          <circle cx="390" cy="386" r="5" fill="#777"/>
+          <circle cx="235" cy="386" r="5.5" fill="#000"/>
+          <text x="400" y="390" font-size="10.5">1 review read, exits low → premium</text>
+          <g stroke="#0000ee" stroke-width="1.4">
+            <line x1="395" y1="416" x2="487" y2="416"/>
+            <line x1="499" y1="416" x2="570" y2="416"/>
+            <line x1="582" y1="416" x2="625" y2="416"/>
+            <line x1="637" y1="416" x2="658" y2="416"/>
+            <line x1="668" y1="416" x2="676" y2="416"/>
+          </g>
+          <circle cx="390" cy="416" r="5" fill="#777"/>
+          <circle cx="493.3" cy="416" r="4.5" fill="#0000ee"/>
+          <circle cx="576" cy="416" r="4.5" fill="#0000ee"/>
+          <circle cx="631.1" cy="416" r="4.5" fill="#0000ee"/>
+          <circle cx="663.4" cy="416" r="4.5" fill="#0000ee"/>
+          <circle cx="681.4" cy="416" r="5.5" fill="#0000ee"/>
+          <text x="692" y="420" font-size="10.5">5 read → budget</text>
+        </svg>
+        <figcaption class="viz-caption">The black curve is the value of stopping now: the better of the two grey act lines. The blue curve adds the option to keep reading, and it rises above the black curve only inside the shaded band. Under the plot, two readers start at \(q=0.5\) with the same ten reviews in opposite orders. Each stops as soon as its belief leaves the band.</figcaption>
+      </figure>
+
+      <p>Now run the two orders again, with a rational reader who pays \(c=0.05\) per review. With the bad news first, the first review is negative, \(q\) drops to \(0.25\), that is outside the band, and the reader stops after <em>one</em> review and buys premium. With the bad news last, the reader sees five positive reviews, \(q\) rises \(0.67, 0.80, 0.89, 0.94, 0.97\), leaves the band at the top, and buys budget. The three negative reviews at the end are never read.</p>
+
+      <div class="table-wrap" tabindex="0">
+        <table class="payoff-table" aria-label="Three readers, two orders, same ten reviews">
+          <thead>
+            <tr><th>Reader</th><th>Bad news first</th><th>Bad news last</th><th>Order effect</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bayesian, reads all ten</td><td>0.826 → budget</td><td>0.826 → budget</td><td>none</td></tr>
+            <tr><td>Belief adjuster, reads all ten</td><td>0.844 → budget</td><td>0.458 → premium</td><td>recency</td></tr>
+            <tr><td>Bayesian, pays 0.05 per review</td><td>1 read, 0.25 → premium</td><td>5 read, 0.97 → budget</td><td class="win">primacy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>This table is the thing I would have loved to see in second year. Order effects are not automatic evidence of irrationality. A perfectly coherent Bayesian who pays for attention shows a <em>primacy</em> effect, because the first reviews decide whether it reads any more. A human-like belief adjuster who reads everything shows <em>recency</em>, because the last reviews push hardest. The same data can produce opposite order effects through different mechanisms. That is why the empirical question in the Amazon paper is a real question and not something theory can answer from an armchair.</p>
+
+      <p>It also shifts the spotlight. On a page where most shoppers stop early, the first few reviews are not a sample of the evidence. They are most of the evidence that will ever be read. Whoever decides which reviews come first is making a decision with large consequences, and that decider is not the shopper.</p>
+
+      <h2 id="models">A model is not a decision</h2>
+
+      <p>Here is a confession from the data-science tab. For a long time, when I trained a classifier, the decision step was an afterthought: take the predicted probability and threshold it at 0.5. Decision theory says that threshold is a utility function in disguise.</p>
+
+      <p>Wald saw this in 1950 when he recast statistics itself as decision-making.<a href="#ref-4">[4]</a> A decision rule \(\delta\) maps data to actions. A loss \(L(\theta,a)\) says how bad each action is in each state. The rule's risk is \(R(\theta,\delta)=\mathbb E_\theta\bigl[L(\theta,\delta(X))\bigr]\). A Bayesian rule minimises expected loss under the posterior. Estimation, testing, and classification all become special cases of choosing an act.</p>
+
+      <p>Take the platform's fake-review detector. It outputs \(p=P(\text{fake}\mid\text{text})\). Removing a genuine review costs \(c_{\mathrm{FP}}\): an honest customer is silenced and the evidence pool loses a real data point. Keeping a fake costs \(c_{\mathrm{FN}}\): the evidence is poisoned for every later reader. Remove the review exactly when the expected loss of keeping it is larger:</p>
+
+      <div class="hero-equation">
+        \[
+          p\,c_{\mathrm{FN}}\gt (1-p)\,c_{\mathrm{FP}}
+          \iff
+          p\gt \frac{c_{\mathrm{FP}}}{c_{\mathrm{FP}}+c_{\mathrm{FN}}}.
+        \]
+        <div class="operator-line">the threshold comes from the losses, not from the model</div>
+      </div>
+
+      <p>If a kept fake is four times as harmful as a wrongly removed genuine review, the threshold is \(1/5=0.2\), not \(0.5\). The 0.5 default only says that both mistakes cost the same, and almost nothing in a real system satisfies that.<a href="#ref-39">[39]</a> This is also why calibration matters more than people usually say. A decision consumes probabilities. If the model's "0.3" does not mean 30 percent, the threshold is applied to the wrong number.</p>
+
+      <p>So the vocabulary lines up neatly. A model is a <em>belief</em>: it supplies \(P\). A loss function is a <em>utility</em>: it supplies \(u\). A decision rule combines them. A <em>system</em> is everything that happens next: who sees the output, what they do, and how their actions change the data the model will be retrained on. Simon described managerial decision-making in three phases: intelligence (noticing that a decision is needed), design (constructing the options), and choice.<a href="#ref-37">[37]</a> Gorry and Scott Morton used that framing in 1971 to define decision support systems, meaning software that helps a person through the poorly structured parts of a choice.<a href="#ref-38">[38]</a> That is the field Dr. Kaushik's title refers to. I now read "decision science and information systems" as one idea, not two.</p>
+
+      <h2 id="systems">When the platform is also deciding</h2>
+
+      <p>Go back to the review page and look at it from the other side. The platform has to choose an order. Its options are rankings. Its states include how useful each review really is. Its consequences include sales, returns, trust, and whether people bother to write reviews at all. Its information comes from helpfulness votes, and those votes are themselves shaped by the ranking.</p>
+
+      <p>That last clause creates a feedback loop with an old mathematical name. Imagine two reviews that are equally good. Each new reader is more likely to see, and therefore vote for, whichever one already has more votes. Model it as a Pólya urn.<a href="#ref-33">[33]</a> Review 1 has \(a\) votes and review 2 has \(b\). The next vote goes to review 1 with probability \(a/(a+b)\), and the winner's count goes up by one.</p>
+
+      <div class="theorem">
+        <strong>Pólya's urn.</strong>
+        <p>Starting from \((a_0,b_0)\), the share \(a_t/(a_t+b_t)\) converges almost surely to a random limit \(Z\sim\mathrm{Beta}(a_0,b_0)\). Starting from one vote each, \(Z\) is uniform on \([0,1]\).</p>
+      </div>
+
+      <p>Read that again with two equally good reviews in mind. The long-run share does settle, but <em>where</em> it settles is a coin flip spread evenly over every possible split. A 90–10 outcome is exactly as likely as a 50–50 one. The final ranking records which review got lucky in the first few votes.</p>
+
+      <figure class="viz" tabindex="0" aria-label="Six simulated Pólya urn paths">
+        <svg viewBox="0 0 800 360" role="img" aria-labelledby="polya-title polya-desc">
+          <title id="polya-title">Two equally good reviews, six possible histories</title>
+          <desc id="polya-desc">Six simulated paths of the share of helpful votes going to review one, over four hundred votes, each starting at one vote apiece. The paths settle early and finish at about zero point nine one, zero point seven seven, zero point seven two, zero point five eight, zero point four six, and zero point four five.</desc>
+          <g stroke="#aaa" stroke-dasharray="3 5">
+            <line x1="80" y1="235" x2="700" y2="235"/>
+            <line x1="80" y1="170" x2="700" y2="170"/>
+            <line x1="80" y1="105" x2="700" y2="105"/>
+            <line x1="80" y1="40" x2="700" y2="40"/>
+          </g>
+          <line x1="80" y1="300" x2="700" y2="300" stroke="#000" stroke-width="1.5"/>
+          <line x1="80" y1="300" x2="80" y2="36" stroke="#000" stroke-width="1.5"/>
+          <g font-size="11" text-anchor="end">
+            <text x="72" y="304">0</text>
+            <text x="72" y="239">0.25</text>
+            <text x="72" y="174">0.5</text>
+            <text x="72" y="109">0.75</text>
+            <text x="72" y="44">1</text>
+          </g>
+          <g font-size="11" text-anchor="middle">
+            <text x="80" y="318">0</text>
+            <text x="235" y="318">100</text>
+            <text x="390" y="318">200</text>
+            <text x="545" y="318">300</text>
+            <text x="700" y="318">400</text>
+            <text x="390" y="342">helpful votes cast</text>
+          </g>
+          <text x="22" y="170" font-size="11" transform="rotate(-90 22 170)" text-anchor="middle">share of votes for review 1</text>
+          <g fill="none" stroke-width="1.8">
+            <path stroke="#0000ee" d="M80.0 170.0 L92.4 66.0 L104.8 54.4 L117.2 70.0 L129.6 62.9 L142.0 58.6 L154.4 55.6 L166.8 57.9 L179.2 55.8 L191.6 57.6 L204.0 59.0 L216.4 57.3 L228.8 55.9 L241.2 57.2 L253.6 58.2 L266.0 57.0 L278.4 56.0 L290.8 55.1 L303.2 56.0 L315.6 55.2 L328.0 57.7 L340.4 56.8 L352.8 57.5 L365.2 56.8 L377.6 61.4 L390.0 60.6 L402.4 59.8 L414.8 61.5 L427.2 61.9 L439.6 63.3 L452.0 62.6 L464.4 61.8 L476.8 62.2 L489.2 61.5 L501.6 60.9 L514.0 60.3 L526.4 61.5 L538.8 61.8 L551.2 61.2 L563.6 63.2 L576.0 62.6 L588.4 62.8 L600.8 63.1 L613.2 63.3 L625.6 63.5 L638.0 63.7 L650.4 63.2 L662.8 62.7 L675.2 62.9 L687.6 63.1 L700.0 62.6"/>
+            <path stroke="#000" opacity="0.75" d="M80.0 170.0 L92.4 170.0 L104.8 126.7 L117.2 120.0 L129.6 101.2 L142.0 89.5 L154.4 92.0 L166.8 98.3 L179.2 107.0 L191.6 103.2 L204.0 100.2 L216.4 94.9 L228.8 93.1 L241.2 89.1 L253.6 85.6 L266.0 89.0 L278.4 92.0 L290.8 94.6 L303.2 93.4 L315.6 94.0 L328.0 96.2 L340.4 96.6 L352.8 98.4 L365.2 98.7 L377.6 97.6 L390.0 96.6 L402.4 98.2 L414.8 96.1 L427.2 95.2 L439.6 95.6 L452.0 96.9 L464.4 97.2 L476.8 98.4 L489.2 98.6 L501.6 97.9 L514.0 96.2 L526.4 96.5 L538.8 95.8 L551.2 95.2 L563.6 96.3 L576.0 95.7 L588.4 95.9 L600.8 97.7 L613.2 97.1 L625.6 97.3 L638.0 98.2 L650.4 98.3 L662.8 98.5 L675.2 97.9 L687.6 99.4 L700.0 99.5"/>
+            <path stroke="#0000ee" stroke-dasharray="6 4" d="M80.0 170.0 L92.4 248.0 L104.8 198.9 L117.2 200.0 L129.6 208.2 L142.0 201.0 L154.4 201.2 L166.8 210.3 L179.2 205.5 L191.6 208.6 L204.0 201.7 L216.4 196.0 L228.8 191.2 L241.2 184.7 L253.6 183.7 L266.0 182.8 L278.4 182.0 L290.8 183.2 L303.2 186.0 L315.6 185.2 L328.0 182.8 L340.4 183.8 L352.8 181.7 L365.2 182.6 L377.6 179.4 L390.0 180.3 L402.4 182.4 L414.8 183.1 L427.2 183.8 L439.6 181.1 L452.0 181.8 L464.4 183.5 L476.8 183.1 L489.2 184.7 L501.6 183.3 L514.0 180.1 L526.4 180.8 L538.8 179.6 L551.2 180.2 L563.6 179.1 L576.0 179.7 L588.4 179.5 L600.8 179.2 L613.2 179.0 L625.6 179.5 L638.0 179.3 L650.4 180.5 L662.8 181.7 L675.2 180.8 L687.6 180.6 L700.0 181.0"/>
+            <path stroke="#000" opacity="0.75" stroke-dasharray="2 3" d="M80.0 170.0 L92.4 170.0 L104.8 170.0 L117.2 140.0 L129.6 147.1 L142.0 145.2 L154.4 144.0 L166.8 138.6 L179.2 146.4 L191.6 145.4 L204.0 141.5 L216.4 144.0 L228.8 143.5 L241.2 143.0 L253.6 140.4 L266.0 142.3 L278.4 140.0 L290.8 139.9 L303.2 141.5 L315.6 146.4 L328.0 145.9 L340.4 148.6 L352.8 148.1 L365.2 147.6 L377.6 148.6 L390.0 145.5 L402.4 145.2 L414.8 145.0 L427.2 145.8 L439.6 144.4 L452.0 142.1 L464.4 144.0 L476.8 145.8 L489.2 144.6 L501.6 148.2 L514.0 149.7 L526.4 146.7 L538.8 145.6 L551.2 147.1 L563.6 147.6 L576.0 148.2 L588.4 147.2 L600.8 147.7 L613.2 147.5 L625.6 147.2 L638.0 150.6 L650.4 150.3 L662.8 151.4 L675.2 150.5 L687.6 149.5 L700.0 150.0"/>
+            <path stroke="#000" opacity="0.55" d="M80.0 170.0 L92.4 118.0 L104.8 83.3 L117.2 90.0 L129.6 93.5 L142.0 89.5 L154.4 81.6 L166.8 84.8 L179.2 87.3 L191.6 92.7 L204.0 97.1 L216.4 106.4 L228.8 109.0 L241.2 108.7 L253.6 113.0 L266.0 108.2 L278.4 106.0 L290.8 105.9 L303.2 109.5 L315.6 109.2 L328.0 110.6 L340.4 110.4 L352.8 110.1 L365.2 114.1 L377.6 115.1 L390.0 112.1 L402.4 111.8 L414.8 113.9 L427.2 112.5 L439.6 111.1 L452.0 112.0 L464.4 110.7 L476.8 112.6 L489.2 113.3 L501.6 113.1 L514.0 111.9 L526.4 110.8 L538.8 112.4 L551.2 113.1 L563.6 111.2 L576.0 111.9 L588.4 111.7 L600.8 111.5 L613.2 109.9 L625.6 109.0 L638.0 109.0 L650.4 110.3 L662.8 111.5 L675.2 112.7 L687.6 111.3 L700.0 113.7"/>
+            <path stroke="#000" opacity="0.55" stroke-dasharray="6 4" d="M80.0 170.0 L92.4 196.0 L104.8 198.9 L117.2 190.0 L129.6 177.6 L142.0 194.8 L154.4 180.4 L166.8 183.4 L179.2 173.9 L191.6 170.0 L204.0 182.7 L216.4 187.3 L228.8 191.2 L241.2 189.6 L253.6 190.5 L266.0 191.3 L278.4 194.0 L290.8 196.4 L303.2 194.9 L315.6 198.7 L328.0 198.9 L340.4 200.6 L352.8 200.7 L365.2 199.4 L377.6 200.8 L390.0 200.9 L402.4 199.7 L414.8 197.4 L427.2 197.6 L439.6 197.8 L452.0 197.9 L464.4 197.0 L476.8 195.2 L489.2 192.5 L501.6 189.9 L514.0 190.3 L526.4 189.7 L538.8 189.2 L551.2 189.5 L563.6 188.2 L576.0 186.1 L588.4 186.5 L600.8 185.4 L613.2 185.0 L625.6 183.2 L638.0 182.9 L650.4 181.9 L662.8 181.7 L675.2 181.5 L687.6 183.2 L700.0 182.9"/>
+          </g>
+          <g font-size="10.5">
+            <text x="708" y="66" fill="#0000ee">0.91</text>
+            <text x="708" y="100">0.77</text>
+            <text x="708" y="116">0.72</text>
+            <text x="708" y="153">0.58</text>
+            <text x="708" y="186">0.46, 0.45</text>
+          </g>
+          <text x="560" y="268" font-size="11" text-anchor="middle">same quality, same rule, different early luck</text>
+        </svg>
+        <figcaption class="viz-caption">Each line is one possible history of 400 helpful votes split between two equally good reviews, both starting with one vote. The paths flatten quickly, so most of the final share is decided in the first few dozen votes. This is an idealised model, but the direction matches field evidence on social influence.<a href="#ref-34">[34]</a><a href="#ref-35">[35]</a></figcaption>
+      </figure>
+
+      <p>The urn is a cartoon, but the effect is real. In Salganik, Dodds, and Watts's MusicLab experiment, letting participants see what others had downloaded made success both more unequal and less predictable across parallel worlds.<a href="#ref-34">[34]</a> In Muchnik, Aral, and Taylor's randomised experiment on a social news site, a single artificial up-vote on a comment raised the chance that the next viewer also rated it positively by 32 percent and lifted its final score by 25 percent on average. Artificial down-votes were largely corrected by later users.<a href="#ref-35">[35]</a> On Amazon itself, Danescu-Niculescu-Mizil and coauthors found that whether readers call a review helpful depends not only on its text but on how its star rating compares with the other reviews.<a href="#ref-36">[36]</a> "Most helpful" is not a neutral measurement. It is partly a record of earlier ranking decisions.</p>
+
+      <p>A careful platform therefore faces a classic dilemma. If it always shows the review with the best current helpfulness ratio, it <em>exploits</em> what it knows, and a new, possibly excellent review with zero votes never gets the exposure it needs to earn any. If it shows new reviews too often, it wastes readers' attention on unproven text. This is the multi-armed bandit problem: each review is an arm with an unknown rate \(\theta_i\) of earning a helpful vote, showing it is a pull, and a vote is the reward.</p>
+
+      <p>Thompson's 1933 answer is still the most elegant one I know.<a href="#ref-28">[28]</a><a href="#ref-32">[32]</a> Keep a Beta posterior for each review, which is <em>exactly</em> the object our shopper used in the Bayes section, and then:</p>
+
+      <div class="equation-note">
+        <p>\[
+          \tilde\theta_i\sim\mathrm{Beta}\bigl(1+h_i,\ 1+n_i-h_i\bigr)\ \text{ for each review } i,
+          \qquad
+          \text{show } \arg\max_i\tilde\theta_i,
+        \]</p>
+        <p>where \(h_i\) is the number of helpful votes and \(n_i\) the number of times review \(i\) has been shown. After the reader responds, update that review's posterior and repeat.</p>
+      </div>
+
+      <p>A review with few votes has a wide posterior, so it sometimes draws a high sample and gets shown. A review with many votes has a narrow posterior and is shown roughly as often as it deserves. Exploration is driven by uncertainty, with no hand-tuned exploration rate. The shopper's belief from earlier in the essay has turned into the platform's ranking policy.</p>
+
+      <p>The general version of the platform's problem is a Bellman equation over beliefs. The state \(s\) is the whole collection of posteriors, an action \(a\) is what to show, and</p>
+
+      <p>\[
+        V(s)=\max_a\Bigl\{r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)\,V(s')\Bigr\}.
+      \]</p>
+
+      <p>For independent arms with geometric discounting, Gittins proved in 1979 that this enormous problem splits into one index per arm, and the optimal policy is to pull the arm with the highest index.<a href="#ref-29">[29]</a> Lai and Robbins showed how fast regret, the shortfall relative to always showing the truly best review, must grow for any policy that eventually learns. For Bernoulli arms with means \(\theta_i\) and best mean \(\theta^\star\),</p>
+
+      <p>\[
+        \liminf_{T\to\infty}\frac{\mathbb E[\mathrm{Regret}_T]}{\log T}\ \ge\ \sum_{i:\,\theta_i\lt\theta^\star}\frac{\theta^\star-\theta_i}{\mathrm{KL}\bigl(\theta_i\,\|\,\theta^\star\bigr)}.
+      \]</p>
+
+      <p>Learning has an unavoidable logarithmic price, and arms that look similar, with small KL divergence, are the expensive ones to tell apart.<a href="#ref-30">[30]</a> Thompson sampling is known to match this bound for Bernoulli bandits.<a href="#ref-32">[32]</a> By 2010, contextual bandits were choosing news stories on Yahoo!'s front page.<a href="#ref-31">[31]</a></p>
+
+      <p>One more twist completes the picture. A ranking changes what the platform will learn next, and in the long run it changes what people choose to write. Perdomo and coauthors call predictions that influence the outcomes they predict <em>performative</em>.<a href="#ref-40">[40]</a> The data are no longer a fixed sample from the world. Part of the world is now a response to the model.</p>
+
+      <h2 id="loop">The whole system</h2>
+
+      <p>Put the pieces together and the review page stops looking like a list. It looks like a loop of decisions, each with its own beliefs, utilities, and costs.</p>
+
+      <figure class="viz" tabindex="0" aria-label="The decision loop on a review page">
+        <svg viewBox="0 0 800 420" role="img" aria-labelledby="loop-title loop-desc">
+          <title id="loop-title">Every arrow on a review page is somebody's decision</title>
+          <desc id="loop-desc">A cycle of five boxes. Shoppers buy and review, creating new evidence. Readers vote helpful, creating Pólya feedback. The platform ranks reviews, a bandit and Bellman problem. A shopper reads a few, a costly information problem. The shopper buys, waits, or switches, an expected utility problem, which leads back to new reviews.</desc>
+          <defs>
+            <marker id="lp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0000ee"/></marker>
+          </defs>
+          <ellipse cx="400" cy="205" rx="250" ry="135" fill="none" stroke="#bbb" stroke-dasharray="3 6"/>
+          <g fill="rgba(255,255,255,.55)" stroke="#000">
+            <rect x="310" y="40" width="180" height="50"/>
+            <rect x="570" y="145" width="180" height="50"/>
+            <rect x="465" y="315" width="180" height="50"/>
+            <rect x="155" y="315" width="180" height="50"/>
+            <rect x="50" y="145" width="180" height="50"/>
+          </g>
+          <g text-anchor="middle">
+            <text x="400" y="61" font-size="11.5" font-weight="bold">shoppers buy &amp; review</text>
+            <text x="400" y="78" font-size="10.5">new evidence enters</text>
+            <text x="660" y="166" font-size="11.5" font-weight="bold">readers vote helpful</text>
+            <text x="660" y="183" font-size="10.5">Pólya feedback</text>
+            <text x="555" y="336" font-size="11.5" font-weight="bold">platform ranks reviews</text>
+            <text x="555" y="353" font-size="10.5">bandit · Bellman · loss</text>
+            <text x="245" y="336" font-size="11.5" font-weight="bold">shopper reads a few</text>
+            <text x="245" y="353" font-size="10.5">costly information · stopping</text>
+            <text x="140" y="166" font-size="11.5" font-weight="bold">buy, wait, or switch</text>
+            <text x="140" y="183" font-size="10.5">expected utility · threshold</text>
+          </g>
+          <g fill="none" stroke="#0000ee" stroke-width="2" marker-end="url(#lp-arrow)">
+            <path d="M492 68 Q600 78 650 141"/>
+            <path d="M662 198 Q658 268 602 312"/>
+            <path d="M462 342 Q400 372 339 342"/>
+            <path d="M200 312 Q146 268 140 199"/>
+            <path d="M150 142 Q198 76 307 66"/>
+          </g>
+          <g font-size="10" fill="#0000ee" text-anchor="middle">
+            <text x="612" y="92">exposure</text>
+            <text x="690" y="262">votes as data</text>
+            <text x="400" y="388">display order</text>
+            <text x="96" y="262">first few reviews</text>
+            <text x="175" y="72">purchases, returns</text>
+          </g>
+          <text x="400" y="200" font-size="13" font-weight="bold" text-anchor="middle">beliefs · utilities · costs</text>
+          <text x="400" y="220" font-size="11" text-anchor="middle">every arrow is somebody's decision</text>
+          <text x="400" y="238" font-size="10.5" text-anchor="middle" fill="#777">and every decision changes the next one's data</text>
+        </svg>
+        <figcaption class="viz-caption">The shopper's problem from the first half of this essay sits on the left. The platform's problem from the second half sits on the right. They share one object, a Beta posterior over how good something is, and one fact: attention is scarce, so order carries weight.</figcaption>
+      </figure>
+
+      <p>This is what "decision systems" means to me now. The shopper is an expected-utility maximiser with a threshold, a reading cost, and, being human, some recency. The platform is a sequential decision-maker learning from votes it partly causes. The votes are an urn. The reviews are evidence whose usefulness depends on where they are placed. Each piece is a textbook model on its own. The system is what you get when you connect them and let the loop run.</p>
+
+      <h2>Now try to break it</h2>
+
+      <p>This is the part I would make longer if this were a pitch deck.</p>
+
+      <ol>
+        <li><strong>Reviews are not conditionally independent.</strong> If later reviewers read earlier ones, the shopper's likelihood ratios double-count. A Bayesian who multiplies ten correlated signals as if they were independent is overconfident in a perfectly coherent way.</li>
+        <li><strong>The likelihoods are adversarial.</strong> Fake reviews are written to imitate real ones, so \(P(+\mid L)\) is a strategic choice, not a constant. At that point decision theory becomes game theory, which is where my <a href="pricing_game_theory.html">pricing</a> and <a href="mechanism_design_adtech.html">mechanism design</a> essays live.</li>
+        <li><strong>The utility table is invented.</strong> Real people often do not have stable preferences waiting to be measured. They construct them while choosing. The axioms describe consistency, not where the numbers come from.</li>
+        <li><strong>Reading cost is not constant.</strong> People skim stars, jump straight to the one-star reviews, sort by "most recent," or read only the review with a photo. Each habit is a different stopping rule with a different order effect.</li>
+        <li><strong>The platform's objective is not the shopper's.</strong> A ranking tuned for conversion may differ from one tuned for informed purchases, and returns are where that gap shows up.</li>
+        <li><strong>My parameters are illustrative.</strong> The belief-adjustment strength \(s=0.2\), the likelihoods 0.8 and 0.4, and the reading cost 0.05 were chosen to make the mechanics visible. The sign and size of order effects on a real platform are empirical questions, and that is exactly the kind of question the Amazon paper set out to study.<a href="#ref-1">[1]</a></li>
+      </ol>
+
+      <h2>What this story does not say</h2>
+
+      <p>It does not say people are irrational because their beliefs depend on order. A costly-attention Bayesian shows order effects too. It does not say expected utility is wrong because Allais and Ellsberg exist. It says the normative and descriptive theories answer different questions. It does not say helpfulness rankings are useless. It says they are decisions with feedback, and they deserve the care we give any other decision.</p>
+
+      <p>It also makes no claim about the specific estimates in Kaushik, Mishra, Rana, and Dwivedi's paper. I have used its question and its theoretical ingredients as the door into this subject. For its data, model, and results, go to the paper.<a href="#ref-1">[1]</a> All earphone prices, utilities, likelihoods, and costs in this essay are made up for the illustration.</p>
+
+      <h2>Back to the two tabs</h2>
+
+      <p>I did not run expected utility on physics versus data science. I'm not that far gone. But looking back with this essay's vocabulary, that second-year semester looks a lot like the review page.</p>
+
+      <p>I was sitting near a threshold, where information is worth the most. The choice was expensive to reverse. And there was a cheap experiment available: a summer at IIM Nagpur, working on real text data with someone whose job is literally decision science. In Howard's terms, it was sample information with high EVSI. In Simon's terms, it was a sensible place to search before stopping. It was also, without my planning it, a very good first review. It came early, it was positive, and it pushed me out of the band. A Bayesian with limited attention would recognise the pattern immediately.</p>
+
+      <p>The paper that started it was asking whether the order of reviews changes what people buy. The ground-up answer is the best kind of annoying. For a perfect Bayesian reading everything, no. For a person, often yes. For a perfect Bayesian who has better things to do than read every review, also yes, but in the opposite direction. And for the platform choosing the order, that question is not academic at all. It is the decision.</p>
+
+      <p>A rational shopper would shuffle the reviews. Nobody shuffles the reviews. That gap is where decision theory gets interesting.</p>
+
+      <section class="references" aria-labelledby="references-heading">
+        <h2 id="references-heading">References and links</h2>
+        <ol>
+          <li id="ref-1">K. Kaushik, R. Mishra, N. P. Rana, and Y. K. Dwivedi, <a href="https://doi.org/10.1016/j.jretconser.2018.08.002">“Exploring reviews and review sequences on e-commerce platform: A study of helpful reviews on Amazon.in”</a>, <em>Journal of Retailing and Consumer Services</em>, 45, 21–32, 2018. doi:10.1016/j.jretconser.2018.08.002. Accepted manuscript: <a href="http://hdl.handle.net/10454/18088">Bradford Scholars</a>.</li>
+          <li id="ref-2">Indian Institute of Management Nagpur, <a href="https://www.iimnagpur.ac.in/faculty/kapil-kaushik/">faculty profile of Kapil Kaushik</a>, Decision Science and Information Systems; accessed 3 November 2026.</li>
+          <li id="ref-3">L. J. Savage, <em>The Foundations of Statistics</em>, Wiley, 1954.</li>
+          <li id="ref-4">A. Wald, <em>Statistical Decision Functions</em>, Wiley, 1950.</li>
+          <li id="ref-5">L. J. Savage, <a href="https://doi.org/10.1080/01621459.1951.10500768">“The Theory of Statistical Decision”</a>, <em>Journal of the American Statistical Association</em>, 46(253), 55–67, 1951.</li>
+          <li id="ref-6">R. D. Luce and H. Raiffa, <em>Games and Decisions: Introduction and Critical Survey</em>, Wiley, 1957. Chapter 13 surveys maximin, Hurwicz, minimax regret, and Laplace under ignorance.</li>
+          <li id="ref-7">J. Milnor, “Games Against Nature”, in R. M. Thrall, C. H. Coombs, and R. L. Davis (eds.), <em>Decision Processes</em>, Wiley, 1954, 49–59.</li>
+          <li id="ref-8">B. Pascal and P. de Fermat, correspondence on the problem of points, 1654. English translation in D. E. Smith (ed.), <em>A Source Book in Mathematics</em>, McGraw-Hill, 1929.</li>
+          <li id="ref-9">D. Bernoulli, <a href="https://doi.org/10.2307/1909829">“Exposition of a New Theory on the Measurement of Risk”</a>, 1738; English translation by L. Sommer, <em>Econometrica</em>, 22(1), 23–36, 1954.</li>
+          <li id="ref-10">T. Bayes, <a href="https://doi.org/10.1098/rstl.1763.0053">“An Essay towards Solving a Problem in the Doctrine of Chances”</a>, <em>Philosophical Transactions of the Royal Society of London</em>, 53, 370–418, 1763.</li>
+          <li id="ref-11">F. P. Ramsey, “Truth and Probability”, 1926, in R. B. Braithwaite (ed.), <em>The Foundations of Mathematics and Other Logical Essays</em>, Kegan Paul, 1931.</li>
+          <li id="ref-12">B. de Finetti, <a href="http://www.numdam.org/item/AIHP_1937__7_1_1_0/">“La prévision: ses lois logiques, ses sources subjectives”</a>, <em>Annales de l'Institut Henri Poincaré</em>, 7(1), 1–68, 1937.</li>
+          <li id="ref-13">J. von Neumann and O. Morgenstern, <em>Theory of Games and Economic Behavior</em>, Princeton University Press, 1944; the axiomatic treatment of utility appears in the 1947 second edition.</li>
+          <li id="ref-14">J. W. Pratt, <a href="https://doi.org/10.2307/1913738">“Risk Aversion in the Small and in the Large”</a>, <em>Econometrica</em>, 32(1/2), 122–136, 1964. K. J. Arrow developed the same measure independently in <em>Aspects of the Theory of Risk-Bearing</em>, 1965.</li>
+          <li id="ref-15">M. Allais, <a href="https://doi.org/10.2307/1907921">“Le comportement de l'homme rationnel devant le risque: critique des postulats et axiomes de l'école américaine”</a>, <em>Econometrica</em>, 21(4), 503–546, 1953.</li>
+          <li id="ref-16">D. Ellsberg, <a href="https://doi.org/10.2307/1884324">“Risk, Ambiguity, and the Savage Axioms”</a>, <em>The Quarterly Journal of Economics</em>, 75(4), 643–669, 1961.</li>
+          <li id="ref-17">H. A. Simon, <a href="https://doi.org/10.2307/1884852">“A Behavioral Model of Rational Choice”</a>, <em>The Quarterly Journal of Economics</em>, 69(1), 99–118, 1955.</li>
+          <li id="ref-18">A. Tversky and D. Kahneman, <a href="https://doi.org/10.1126/science.185.4157.1124">“Judgment under Uncertainty: Heuristics and Biases”</a>, <em>Science</em>, 185(4157), 1124–1131, 1974.</li>
+          <li id="ref-19">D. Kahneman and A. Tversky, <a href="https://doi.org/10.2307/1914185">“Prospect Theory: An Analysis of Decision under Risk”</a>, <em>Econometrica</em>, 47(2), 263–291, 1979.</li>
+          <li id="ref-20">A. Tversky and D. Kahneman, <a href="https://doi.org/10.1007/BF00122574">“Advances in Prospect Theory: Cumulative Representation of Uncertainty”</a>, <em>Journal of Risk and Uncertainty</em>, 5(4), 297–323, 1992.</li>
+          <li id="ref-21">R. M. Hogarth and H. J. Einhorn, <a href="https://doi.org/10.1016/0010-0285(92)90002-J">“Order Effects in Belief Updating: The Belief-Adjustment Model”</a>, <em>Cognitive Psychology</em>, 24(1), 1–55, 1992.</li>
+          <li id="ref-22">S. M. Mudambi and D. Schuff, <a href="https://doi.org/10.2307/20721420">“What Makes a Helpful Online Review? A Study of Customer Reviews on Amazon.com”</a>, <em>MIS Quarterly</em>, 34(1), 185–200, 2010.</li>
+          <li id="ref-23">J. A. Chevalier and D. Mayzlin, <a href="https://doi.org/10.1509/jmkr.43.3.345">“The Effect of Word of Mouth on Sales: Online Book Reviews”</a>, <em>Journal of Marketing Research</em>, 43(3), 345–354, 2006.</li>
+          <li id="ref-24">R. A. Howard, <a href="https://doi.org/10.1109/TSSC.1966.300074">“Information Value Theory”</a>, <em>IEEE Transactions on Systems Science and Cybernetics</em>, 2(1), 22–26, 1966.</li>
+          <li id="ref-25">R. A. Howard and J. E. Matheson, <a href="https://doi.org/10.1287/deca.1050.0020">“Influence Diagrams”</a>, 1984; reprinted in <em>Decision Analysis</em>, 2(3), 127–143, 2005.</li>
+          <li id="ref-26">A. Wald, <em>Sequential Analysis</em>, Wiley, 1947.</li>
+          <li id="ref-27">R. Bellman, <em>Dynamic Programming</em>, Princeton University Press, 1957.</li>
+          <li id="ref-28">W. R. Thompson, <a href="https://doi.org/10.2307/2332286">“On the Likelihood that One Unknown Probability Exceeds Another in View of the Evidence of Two Samples”</a>, <em>Biometrika</em>, 25(3/4), 285–294, 1933.</li>
+          <li id="ref-29">J. C. Gittins, <a href="https://doi.org/10.1111/j.2517-6161.1979.tb01068.x">“Bandit Processes and Dynamic Allocation Indices”</a>, <em>Journal of the Royal Statistical Society: Series B</em>, 41(2), 148–164, 1979.</li>
+          <li id="ref-30">T. L. Lai and H. Robbins, <a href="https://doi.org/10.1016/0196-8858(85)90002-8">“Asymptotically Efficient Adaptive Allocation Rules”</a>, <em>Advances in Applied Mathematics</em>, 6(1), 4–22, 1985.</li>
+          <li id="ref-31">L. Li, W. Chu, J. Langford, and R. E. Schapire, <a href="https://doi.org/10.1145/1772690.1772758">“A Contextual-Bandit Approach to Personalized News Article Recommendation”</a>, <em>Proceedings of WWW</em>, 661–670, 2010.</li>
+          <li id="ref-32">D. J. Russo, B. Van Roy, A. Kazerouni, I. Osband, and Z. Wen, <a href="https://doi.org/10.1561/2200000070">“A Tutorial on Thompson Sampling”</a>, <em>Foundations and Trends in Machine Learning</em>, 11(1), 1–96, 2018.</li>
+          <li id="ref-33">F. Eggenberger and G. Pólya, <a href="https://doi.org/10.1002/zamm.19230030407">“Über die Statistik verketteter Vorgänge”</a>, <em>Zeitschrift für Angewandte Mathematik und Mechanik</em>, 3(4), 279–289, 1923.</li>
+          <li id="ref-34">M. J. Salganik, P. S. Dodds, and D. J. Watts, <a href="https://doi.org/10.1126/science.1121066">“Experimental Study of Inequality and Unpredictability in an Artificial Cultural Market”</a>, <em>Science</em>, 311(5762), 854–856, 2006.</li>
+          <li id="ref-35">L. Muchnik, S. Aral, and S. J. Taylor, <a href="https://doi.org/10.1126/science.1240466">“Social Influence Bias: A Randomized Experiment”</a>, <em>Science</em>, 341(6146), 647–651, 2013.</li>
+          <li id="ref-36">C. Danescu-Niculescu-Mizil, G. Kossinets, J. Kleinberg, and L. Lee, <a href="https://doi.org/10.1145/1526709.1526729">“How Opinions Are Received by Online Communities: A Case Study on Amazon.com Helpfulness Votes”</a>, <em>Proceedings of WWW</em>, 141–150, 2009.</li>
+          <li id="ref-37">H. A. Simon, <em>The New Science of Management Decision</em>, Harper &amp; Row, 1960.</li>
+          <li id="ref-38">G. A. Gorry and M. S. Scott Morton, “A Framework for Management Information Systems”, <em>Sloan Management Review</em>, 13(1), 55–70, 1971.</li>
+          <li id="ref-39">C. Elkan, “The Foundations of Cost-Sensitive Learning”, <em>Proceedings of IJCAI</em>, 973–978, 2001.</li>
+          <li id="ref-40">J. C. Perdomo, T. Zrnic, C. Mendler-Dünner, and M. Hardt, <a href="https://arxiv.org/abs/2002.06673">“Performative Prediction”</a>, <em>Proceedings of ICML</em>, 2020.</li>
+        </ol>
+        <p class="footnote">All earphone prices, utility values, review likelihoods, belief-adjustment parameters, and reading costs are illustrative. The belief paths, stopping band, and urn simulations were computed for this essay: the stopping band by value iteration on a 2,001-point belief grid, and the urn paths from six seeded runs of 400 votes each.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="decision-footer">
+    &copy; 2025 Pratyaksh Patel
+  </footer>
+</body>
+</html>
