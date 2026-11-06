@@ -1,0 +1,3 @@
+# Keep unpublished writing in the repository without serving it on GitHub Pages.
+exclude:
+  - decision_theory.html
