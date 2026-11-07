@@ -184,13 +184,13 @@
       <a href="earlysig.html">Write-up</a>
     </p>
     <ul class="project-description">
-      <li>Built a CPU-only early-recognition system that classifies a single stroke while it is being drawn and commits to one irreversible decision with a separate threshold-and-stability policy.</li>
-      <li>Implemented exact piecewise-linear path signatures through depth 3 in NumPy (truncated Chen product, no left-Riemann approximation) and validated them against analytic values, shuffle, concatenation, subdivision, and scaling laws.</li>
-      <li>Compared eight causal representations — motion statistics, arc-length-resampled coordinates, global signatures at depths 1/2/3, a recent-250 ms branch, a matched historical-half control, and a prefix-template baseline — under one classifier family and one model-selection budget.</li>
-      <li>Ran a pre-registered five-fold writer-disjoint evaluation on the public $1 unistroke logs (1,800 out-of-fold strokes) with participant-cluster bootstrap intervals and paired comparisons on identical strokes.</li>
-      <li>Found depth-3 geometry decisively better than depth-1 (+0.565 paired forced correctness [0.520, 0.605]) and that a second signature branch helps, while recency specifically does not: the historical control beat both G3 and the recent-window model on public data.</li>
-      <li>Measured a stage-sensitivity failure mode of pooled-prefix training (0.975 balanced accuracy at 50% progress vs 0.811 at completion, against 0.944 for a completion-only fit) and reported it rather than hiding it.</li>
-      <li>Shipped a reproducible pipeline: checksum-verified data download and audit, immutable run directories, 53 tests, robustness stress tests, p95 1.31 ms live-update latency, and a local FastAPI + canvas drawing/replay/record app.</li>
+      <li>Small Friday evening experiment that got a bit out of hand: a CPU-only engine that classifies a stroke while you draw it and commits to one irreversible early decision through a separate threshold-and-stability policy.</li>
+      <li>Wrote exact piecewise-linear path signatures through depth 3 in NumPy, using the truncated Chen product rather than a left-Riemann approximation, and checked them against hand-computable values, the shuffle identity, concatenation, subdivision and scaling laws.</li>
+      <li>Benchmarked eight causal representations under one classifier and one selection budget: motion stats, 16 arc-length resampled points, global signatures at depths 1/2/3, a recent 250 ms branch, a matched historical-half control, and a prefix-template baseline.</li>
+      <li>Ran a writer-disjoint five-fold evaluation on the public $1 unistroke logs (1,800 out-of-fold strokes) with participant-cluster bootstrap intervals and paired comparisons on the same strokes.</li>
+      <li>Depth-3 geometry beat depth-1 decisively (+0.565 paired forced correctness [0.520, 0.605]), and a second signature branch helped, though recency specifically did not: the historical control beat both G3 and the recent-window model on public data.</li>
+      <li>Measured and reported a stage-sensitivity failure in pooled-prefix training: 0.975 balanced accuracy at 50% progress against 0.811 at completion, while a completion-only fit of the same features reaches 0.944.</li>
+      <li>Everything reproduces: checksum-verified data download and audit, immutable run directories, 53 tests, robustness stress tests, p95 1.31 ms per live update, and a local FastAPI + canvas app for drawing, replay and recording.</li>
     </ul>
 
     <h3>Muon Routing Atlas: Which Transformer Parameters Benefit from Orthogonalized Optimization?</h3>

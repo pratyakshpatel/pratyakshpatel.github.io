@@ -117,40 +117,6 @@
       min-width: 560px;
     }
 
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 0.75rem;
-      margin: 1.2rem 0 1.6rem;
-    }
-
-    .kpi {
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      padding: 0.75rem 0.9rem;
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    .kpi .value {
-      display: block;
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-
-    .kpi .label {
-      display: block;
-      font-size: 0.85rem;
-      color: #555;
-      margin-top: 0.15rem;
-    }
-
-    .callout {
-      border-left: 3px solid #000;
-      padding: 0.2rem 0 0.2rem 1rem;
-      margin: 1.3rem 0;
-      font-style: italic;
-    }
-
     .scenario {
       background: rgba(255, 255, 255, 0.45);
       border: 1px solid #bbb;
@@ -174,9 +140,6 @@
       h2 {
         font-size: 1.13rem;
       }
-      .kpis {
-        grid-template-columns: repeat(2, 1fr);
-      }
     }
 
     @media print {
@@ -197,55 +160,55 @@
 <main>
   <h1>Reading a Stroke Before It Ends</h1>
   <p class="subtitle">
-    7 November, 2026 · The complete <em>earlysig</em> report: path signatures, early commitments,
-    and the failures that turned out to be the interesting part ·
-    <a href="https://github.com/pratyakshpatel/earlysig">code</a>
+    7 November, 2026 · the whole <em>earlysig</em> story: signatures, early commitments, and
+    everything that broke on the way · <a href="https://github.com/pratyakshpatel/earlysig">code</a>
   </p>
 
   <p>
-    You draw an arrow on a tablet. The pen moves down, then up, then flattens to the right. At
-    175 milliseconds — fifteen percent of the way through — the program decides: <em>arrow</em>,
-    and it will not take that decision back.
+    You draw an arrow on a tablet. The pen goes down, then up, then flattens out to the right. At
+    175 milliseconds, fifteen percent of the way through the stroke, the program decides: arrow.
+    No second chances after that.
   </p>
   <p>
-    If the stroke really is an arrow, we have just built something that feels alive. If it is a
-    caret, whose first quarter looks suspiciously like an arrow's first quarter, we have built a
-    confident little machine that gets things wrong out loud. And here is the thing I keep coming
-    back to: almost every gesture demo I have ever seen shows you the first case and quietly hopes
-    you never ask about the second.
+    If it really is an arrow, we have built something that feels alive. If it is a caret, whose
+    first quarter looks a lot like an arrow's first quarter, we have built a small machine that
+    gets things wrong with total confidence. Almost every gesture demo I have seen shows you the
+    first case, and quietly hopes you never bring up the second.
   </p>
   <p>
-    This page is the complete story of one attempt to take the second case seriously. It began as
-    a research package called <strong>earlysig</strong> — a classifier that reads a stroke while
-    it is being drawn, a policy that decides when to commit, and a scoreboard that refuses to
-    flatter either of them. Somewhere in the middle it turned into a collection of questions I did
-    not know how to answer until I built the experiment: does the last quarter-second of motion
-    carry information the whole stroke does not? Can a machine know when it is ready? What does it
-    mean for a 5% error rate to be <em>true</em> when the strokes arrive one at a time?
+    This page is the whole story of one attempt to take the second case seriously. I explored
+    path signatures and rough path theory during my bachelor's thesis, and naturally got very
+    interested in them because of how many applications they bring to the table. <em>earlysig</em>
+    is just a small Friday evening experiment I planned out: a classifier that reads a stroke
+    while you are drawing it, a policy that decides when to commit, and a scoreboard that does not
+    flatter either of them. Halfway through it turned into a pile of questions I could not answer
+    without actually building the thing. Does the last quarter second of motion tell you anything
+    the whole stroke does not? Can a model tell when it is ready? And what does a 5% error rate
+    even mean when strokes arrive one at a time?
   </p>
   <p>
-    I wrote this as one long piece because that is how the work actually went — the boring parts
-    and the surprises, in order, with every number you could want to check. If you only have five
-    minutes, the route list below will get you to the punchlines. If you have an evening and a
-    pot of chai, read it top to bottom; that is how I would tell it to you in person.
+    I am writing this as one long piece because that is how the work went, boring parts and
+    surprises in order, with every number you might want to check. If you have five minutes, use
+    the list below to jump around. If you have an evening and something warm to drink, read it
+    top to bottom. That is how I would tell it to you in person.
   </p>
 
-  <p><strong>The route through this story</strong></p>
+  <p><strong>Where this goes</strong></p>
   <ol>
     <li><a href="#questions">Two questions pretending to be one</a></li>
     <li><a href="#allowed">What the machine is allowed to see</a></li>
     <li><a href="#signatures">Signatures, without ceremony</a></li>
     <li><a href="#contestants">The eight contestants</a></li>
-    <li><a href="#bet">The bet I registered before looking</a></li>
-    <li><a href="#honest">How to test an early recogniser honestly</a></li>
-    <li><a href="#bench">The bench: rows, C, and temperature</a></li>
+    <li><a href="#bet">What I promised to test before looking</a></li>
+    <li><a href="#honest">How to test an early recogniser without fooling yourself</a></li>
+    <li><a href="#bench">Rows, C, and temperature</a></li>
     <li><a href="#deciding">Waiting, committing, and the difference</a></li>
     <li><a href="#results">What actually happened</a></li>
     <li><a href="#surprise">The surprise: better halfway than at the end</a></li>
-    <li><a href="#seams">The seams I had to sew back together</a></li>
+    <li><a href="#seams">The bugs I had to sew back together</a></li>
     <li><a href="#break">Now try to break it</a></li>
     <li><a href="#notsay">What this story does not say</a></li>
-    <li><a href="#run">If you want to run it yourself</a></li>
+    <li><a href="#run">Running it yourself</a></li>
     <li><a href="#checks">Every check the math has to pass</a></li>
     <li><a href="#params">Every parameter, listed</a></li>
     <li><a href="#glossary">A glossary for the tables</a></li>
@@ -253,89 +216,87 @@
 
   <h2 id="questions">Two questions pretending to be one</h2>
   <p>
-    Gesture recognisers are trained, almost always, on completed strokes. You draw the whole thing,
-    lift the pen, and only then does the classifier see it. That is a perfectly sensible design
-    until you want the software to feel fast — to preview a label, fire a shortcut, or switch
-    modes mid-stroke. Then you are asking the model to work with half a sentence.
+    Gesture recognisers are trained on finished strokes. You draw the whole thing, lift the pen,
+    and only then does the classifier look at it. That makes sense until you want the software to
+    feel fast: to preview a label, fire a shortcut, switch modes while the pen is still moving.
+    Then you are asking the model to work with half a sentence.
   </p>
   <p>
-    The trap is that "early recognition" sounds like one problem and is actually two. The first is
-    <strong>prediction</strong>: given what has been drawn so far, what does this look like? The
-    second is <strong>stopping</strong>: is the evidence strong and stable enough to commit,
-    knowing that a commitment cannot be revised? You can have a brilliant classifier and a
-    terrible stopping rule, or vice versa, and the user only ever experiences the product of the
-    two.
+    The trap is that early recognition sounds like one problem. It is two. First there is
+    <strong>prediction</strong>: given what has been drawn so far, what does this look like?
+    Then there is <strong>stopping</strong>: is the evidence strong and stable enough to commit,
+    knowing you cannot take it back? A great classifier with a terrible stopping rule and the
+    other way around both end up as bad products. The user only ever experiences the product of
+    the two.
   </p>
   <p>
-    I spent the first two weeks of this project conflating them. I would look at accuracy curves,
-    feel pleased, and then realise the curves were computed only over the strokes my policy had
-    decided to accept. That is the oldest trick in evaluation and I walked straight into it. The
-    fix — one that shaped everything afterwards — was to keep the classifier and the policy as
-    separate objects, and to force every metric to say out loud what it is dividing by.
+    I spent the first two weeks mixing them together. I would stare at accuracy curves, feel
+    pleased, and only later notice the curves were computed over the strokes my policy had decided
+    to accept. Oldest trick in evaluation, and I walked straight into it. The fix is the thing
+    that shaped everything after: keep the classifier and the policy as separate objects, and make
+    every metric say what it is dividing by.
   </p>
   <p>
-    The scope of the project is deliberately narrow. One stroke at a time. Closed-set classes. A
-    known pointer-down start and pointer-up finish. No continuous spotting, no multistroke
-    gestures, no unknown-class rejection, no online training. Every one of those exclusions is a
-    future project, and every one of them is load-bearing for the claims I make here.
+    Scope is deliberately narrow. One stroke at a time. Closed set of classes. Known pointer-down
+    start, pointer-up finish. No continuous spotting, no multistroke gestures, no rejecting
+    unknown classes, no learning online. Every one of those is its own project, and every one of
+    them matters for the claims I make here.
   </p>
   <figure>
     <img src="assets/earlysig/fig_pipeline.png" alt="Pipeline from pointer samples through causal prefix, features, classifier, calibration, policy, to committed decisions" />
-    <figcaption>The whole machine on one line: pointer samples, the causal prefix boundary (dashed red), features, classifier, temperature, policy, decisions. Offline replay, the HTTP API, and the browser app run this same code path, which is what makes evaluation/inference parity a structural property instead of a hope.</figcaption>
+    <figcaption>The whole machine on one line. The dashed red boundary is causality: at query time q, nothing that happened after q gets in. Offline replay, the HTTP API, and the browser run the same code, which is how I know the evaluation and the product behave the same way.</figcaption>
   </figure>
 
   <h2 id="allowed">What the machine is allowed to see</h2>
   <p>
-    The first design decision is not about machine learning at all; it is about honesty. At query
-    time \(q\) — milliseconds since the pen went down — the model may see exactly the points with
-    \(t_i \le q\). Not the final duration, not the final number of points, not the true progress
-    fraction, not the writer's identity, not the label, and not one future coordinate. True
-    progress \(q/T\) is computed <em>after</em> the prediction, only to draw graphs.
+    Before any modelling decision, there is a fairness decision. At query time \(q\), measured in
+    milliseconds since the pen went down, the model gets exactly the points with \(t_i \le q\).
+    Not the final duration. Not the final point count. Not the true progress fraction, the
+    writer, the label, or any future coordinate. The true progress \(q/T\) is computed after the
+    prediction, and only so I can draw graphs.
   </p>
   <p>
-    This sounds obvious and is remarkably easy to violate. A tiny crop of the finished stroke. A
-    normalisation scale computed from the whole gesture. A resampling done on the full path and
-    then truncated. Each of those quietly hands the model knowledge that does not exist at
-    decision time, and each of them will produce a beautiful curve that means nothing. So I did
-    not settle for convention. The feature extractor accepts a <code>PrefixView</code> that
-    <em>cannot contain</em> the future — and there is a test that rewrites an entire stroke's
-    future, then asserts every earlier feature vector is bit-identical.
+    This sounds obvious and it is shockingly easy to break. A tiny crop of the finished stroke. A
+    normalisation scale computed from the whole gesture. Resampling the full path and then
+    truncating it. Each one quietly hands the model information that does not exist at decision
+    time, and each one will give you a beautiful curve that means nothing. So I did not trust
+    convention. The feature extractor takes a <code>PrefixView</code> that cannot contain the
+    future, and there is a test that rewrites an entire stroke's future and checks that every
+    earlier feature vector comes out identical, bit for bit.
   </p>
   <figure>
     <img src="assets/earlysig/fig_timeline.png" alt="Spatial and time views of causality at one query" />
-    <figcaption>Causality at one query. Blue points are visible; grey points are future. The right panel shows the 25 ms query grid, the cutoff, and a pause region where ticks continue but no new movement arrives — heartbeats do not count as evidence.</figcaption>
+    <figcaption>Causality at one query. Blue points are visible, grey ones are future. On the right you can see the 25 ms grid, the cutoff, and a pause where the clock keeps ticking but nothing new moves. Heartbeats are not evidence.</figcaption>
   </figure>
   <p>
-    Two more rules came out of that discipline and both matter more than they look. First, at
-    every query the visible prefix is translated to its own first point and divided by a single
-    isotropic factor \(s=\max(\text{range}_x,\text{range}_y)\) computed over the visible prefix
-    only. One scale, not separate x/y scales, and no rotation to the completed gesture's
-    "indicative angle". Second — and this one kept me up at night — because \(s\) changes as the
-    stroke grows, the normalised historical coordinates <em>change too</em>. A signature computed
-    at 300 ms on an unnormalised prefix cannot be rescaled and appended to at 600 ms without
-    lying. The implementation simply recomputes from the current normalised prefix at every tick.
-    It costs milliseconds; it saves the experiment.
+    Two more rules fell out of that discipline, and both matter more than they look. First, at
+    every query the visible prefix is moved so its first point sits at the origin, then divided by
+    one number: \(s=\max(\text{range}_x,\text{range}_y)\), computed over the visible prefix only.
+    One scale, not separate x and y scales, and no rotating the stroke to some "indicative angle"
+    of the completed gesture. Second, and this one cost me a night, \(s\) changes as the stroke
+    grows, so the normalised historical coordinates change with it. You cannot rescale a signature
+    computed at 300 ms and keep appending to it at 600 ms. The code just recomputes from the
+    current normalised prefix at every tick. Costs milliseconds, saves the experiment.
   </p>
   <figure>
     <img src="assets/earlysig/fig_normalization.png" alt="Raw prefix, translated, and scaled" />
-    <figcaption>Translate, then divide by one scale factor. The orange box is the bounding box whose extents define \(s\).</figcaption>
+    <figcaption>Translate, then divide by one scale factor. The orange box is the bounding box whose sides define s.</figcaption>
   </figure>
 
   <h2 id="signatures">Signatures, without ceremony</h2>
   <p>
-    I wrote a fuller treatment of the signature method in
+    I wrote the long version of the signature method in
     <a href="path_sigs.html">The Geometric Trace</a>, so here I will only build what this project
-    needs. The short version: a path signature is a fixed-size summary of a curve that keeps
-    order. For a 2D path, level 1 is the total displacement. Level 2 has four numbers for
-    channels \(x,y\) — \(xx, xy, yx, yy\) — and the antisymmetric part \((xy-yx)/2\) is the
-    signed area the path sweeps. Level 3 has eight ordered triples. Concatenated through depth 3:
-    14 numbers.
+    needs. A signature is a fixed size summary of a curve that remembers order. For a 2D path,
+    level 1 is just the total displacement. Level 2 gives you four numbers for x and y, written
+    \(xx, xy, yx, yy\), and the antisymmetric part \((xy-yx)/2\) is the signed area the path
+    sweeps. Level 3 gives eight ordered triples. Put levels 1 to 3 together and you get 14
+    numbers.
   </p>
   <p>
-    The reason this is even implementable in a weekend is that a stroke is not an arbitrary
-    continuous path; it is a polyline. And for a polyline, the signature can be computed
-    <em>exactly</em>, segment by segment, with the truncated Chen product. For each increment
-    \(v\):
+    The reason this is a weekend project and not a PhD is that a stroke is not an
+    arbitrary curve, it is a polyline. And for a polyline you can compute the signature exactly,
+    segment by segment, with the truncated Chen product. For one increment \(v\):
   </p>
   <p>
     \[ S^{(1)} \leftarrow S^{(1)} + v, \qquad
@@ -345,306 +306,294 @@
        + \frac{v \otimes v \otimes v}{6}. \]
   </p>
   <p>
-    Every right-hand side reads old values, which is why the code updates levels in descending
-    order. Many libraries approximate this with left-Riemann sums and silently drop the
-    same-segment terms; the version here does not, and I checked it against closed-form answers a
-    calculator could verify — the right-angle path, the area of a closed square (magnitude 1,
-    sign following traversal), the shuffle identity, subdivision invariance, and the scaling law
-    (level \(k\) scales by \(\alpha^k\)). If you have ever debugged a signature implementation by
-    staring at four numbers and hoping, the right-angle check alone is worth the afternoon.
+    Every right hand side reads old values, so the code updates levels in descending order. Plenty
+    of libraries approximate this with left Riemann sums and silently drop the same segment terms.
+    This one does not, and I checked it against answers a calculator can verify: the right angle
+    path, the area of a closed square with its sign, the shuffle identity, subdivision invariance,
+    and the scaling rule where level \(k\) scales by \(\alpha^k\). If you have ever debugged a
+    signature implementation by staring at four numbers and hoping, the right angle check is worth
+    your afternoon.
   </p>
   <figure>
     <img src="assets/earlysig/fig_g2.png" alt="Level 2 matrices for an open prefix and a closed loop" />
-    <figcaption>Level 2 for an open prefix and a closed loop. The antisymmetric part of the loop's matrix is its signed area. This is the first representation that can tell "right then up" from "up then right".</figcaption>
+    <figcaption>Level 2 for an open prefix and for a closed loop. The antisymmetric part of the loop is its signed area. This is the first representation that can tell "right then up" apart from "up then right".</figcaption>
   </figure>
   <p>
-    Why should anyone who studies <em>early</em> recognition care about ordered geometry? Because
-    of a fact about shapes that sounds like a joke until it bites you. A circle, a rectangle, and
-    a triangle all end near where they started. Displacement — level 1, the cheapest possible
-    feature — therefore says "nothing happened" about three shapes that clearly happened. Early
-    in the stroke it is informative; at the end it is a polite fiction. You will see this play out
-    in the results as the single sharpest curve in the whole project.
+    Why should anyone who studies early recognition care about ordered geometry? Because of one
+    fact about shapes that sounds like a joke until it bites. A circle, a rectangle and a triangle
+    all end near where they started. Displacement, the cheapest feature there is, therefore says
+    "nothing happened" about three shapes that clearly happened. Early in the stroke it is useful.
+    At the end it is a polite fiction. You will see this as the sharpest curve in the whole
+    project.
   </p>
   <figure>
     <img src="assets/earlysig/fig_g1.png" alt="G1 is a single displacement arrow" />
-    <figcaption>G1 is two numbers: the total displacement. Cheap, translation-invariant, and blind to everything in between.</figcaption>
+    <figcaption>G1 is two numbers: the total displacement. Cheap, translation invariant, and blind to everything between the endpoints.</figcaption>
   </figure>
 
   <h2 id="contestants">The eight contestants</h2>
   <p>
-    I could have built one classifier and one feature set and gone home. Instead I built eight
-    representations, all trained through the same classifier family with the same selection
-    budget, because a benchmark is only as honest as its controls. Each one exists to answer a
-    specific suspicion. Let me introduce them the way I introduced them to myself.
+    I could have built one feature set and gone home. I built eight instead, all through the same
+    classifier and the same selection budget, because a benchmark is only as honest as its
+    controls. Each one answers a specific suspicion. Let me introduce them the way I introduced
+    them to myself.
   </p>
 
-  <h3>MOTION — twelve numbers and a chip on their shoulder</h3>
+  <h3>MOTION: twelve numbers with a chip on their shoulder</h3>
   <p>
-    MOTION is the no-signature control: normalised displacement, arc length, straightness
-    \(=|\Delta|/\mathrm{arc}\), bounding-box width and height, the last non-zero movement
-    direction, cumulative signed and absolute turning angle, a circularity proxy, and the
-    recent-window arc length divided by the total. Every denominator is guarded; no quantity
-    touches the future. If the whole signature story were nonsense, MOTION would be the number to
-    beat.
+    MOTION is the control with no signature in it. Normalised displacement. Arc length. A
+    straightness score. Width and height of the bounding box. The last direction that actually
+    moved. Cumulative signed and absolute turning. A circularity proxy. And the recent arc length
+    divided by the total. Every denominator is guarded, nothing looks at the future. If the whole
+    signature story were nonsense, this is the number that would beat it.
   </p>
   <figure>
     <img src="assets/earlysig/fig_motion.png" alt="A stroke annotated with displacement, bounding box, arc length, and direction annotations" />
-    <figcaption>MOTION features illustrated on a real visible prefix. End displacement (red), bounding box (orange), arc length (green), and last movement direction (purple) are marked.</figcaption>
+    <figcaption>MOTION on a real prefix. Displacement in red, bounding box in orange, arc length in green, last direction in purple.</figcaption>
   </figure>
 
-  <h3>COORD16 — the baseline I refused to cheat for</h3>
+  <h3>COORD16: the baseline I refused to cheat for</h3>
   <p>
-    COORD16 simply keeps sixteen positions, resampled at equal arc-length increments. The
-    interesting design decision is the order of operations: crop to the visible prefix
-    <em>first</em>, then resample. Resampling the full stroke and truncating afterwards is the
-    classic leak — it lets the model feel the curvature of a future you have not drawn yet — and
-    there is a test that fails loudly if anyone ever reorders those lines.
+    COORD16 keeps sixteen positions, spaced evenly along arc length. The interesting part is the
+    order of operations: crop to the visible prefix first, then resample. Resampling the full
+    stroke and truncating afterwards is the classic leak. It lets the model feel the curvature of
+    a future you have not drawn yet. There is a test that fails loudly if anyone reorders those
+    two lines.
   </p>
   <figure>
     <img src="assets/earlysig/fig_coord16.png" alt="Arc-length resampling of a stroke into 16 equally spaced points, plus the spacing map" />
-    <figcaption>COORD16: crop to the visible prefix first, then resample at 16 equal arc-length increments.</figcaption>
+    <figcaption>COORD16: crop first, then resample at sixteen equal arc length steps.</figcaption>
   </figure>
 
-  <h3>G1, G2, G3 — the depth ladder</h3>
+  <h3>G1, G2, G3: the depth ladder</h3>
   <p>
-    Then the signatures themselves: depth 1 (two numbers), depth 2 (six), depth 3 (fourteen).
-    These are the heart of the first hypothesis and they cost the least to compute. G3 is
-    obviously richer than G1, which raises the honest worry that this is just a capacity
-    comparison wearing a geometry costume — which is exactly why COORD16 has thirty-two numbers
-    and MOTION has twelve. If fourteen structured numbers beat thirty-two unstructured ones, the
-    gain is not merely "more".
+    Then the signatures themselves. Depth 1 is two numbers, depth 2 is six, depth 3 is fourteen.
+    These carry the first hypothesis and they are the cheapest to compute. G3 is obviously richer
+    than G1, which brings the obvious worry that I am comparing capacity while telling myself a
+    geometry story. That worry is exactly why COORD16 has thirty two numbers and MOTION has
+    twelve. If fourteen structured numbers beat thirty two unstructured ones, the gain is not
+    just "more".
   </p>
   <figure>
     <img src="assets/earlysig/fig_g3.png" alt="Diagram of levels 1-3 concatenated into 14 numbers with the eight level-3 words" />
-    <figcaption>G3 concatenates levels 1–3 into 14 numbers. The per-segment update is the truncated Chen product, so the result is the exact signature of the polyline.</figcaption>
+    <figcaption>G3 puts levels 1 to 3 together into 14 numbers. The update is the truncated Chen product, so it is the exact signature of the polyline.</figcaption>
   </figure>
 
-  <h3>G3R3 and G3H3 — the bet and its control</h3>
+  <h3>G3R3 and G3H3: the bet and its control</h3>
   <p>
-    This pair is the actual experiment. G3R3 is G3 plus the depth-3 signature of just the last
-    250 ms — the recent window. G3H3 is G3 plus the depth-3 signature of the first half of
-    elapsed time \([0, q/2]\). They have the same size — 28 features — and the same classifier.
-    The only thing that differs is <em>which</em> extra slice of history you hand the model. If
-    recent motion carries information the accumulated global signature averages away, G3R3 should
-    win. If instead the benefit is just "a second, differently-shaped view helps", the control
-    should match it. Without the control, I would have had no way to tell those stories apart,
-    and I would have told the wrong one.
+    This pair is the actual experiment. G3R3 is G3 plus the depth 3 signature of just the last
+    250 ms. G3H3 is G3 plus the depth 3 signature of the first half of elapsed time, the
+    \([0, q/2]\) window. Same size, 28 features. Same classifier. The only difference is which
+    extra slice of history the model gets to see. If recent motion carries something the
+    accumulated global signature averages away, G3R3 should win. If the benefit is just "a second
+    view in a different shape helps", the control should match it. Without the control I would
+    have told whichever story fit the graph, and I would have been wrong.
   </p>
   <figure>
     <img src="assets/earlysig/fig_g3r3.png" alt="A stroke with the last 250 ms highlighted and a zoom of the window" />
-    <figcaption>G3R3 = 14 global values plus the depth-3 signature of the last 250 ms. Both branches reuse the global scale \(s\).</figcaption>
+    <figcaption>G3R3 is 14 global values plus the depth 3 signature of the last 250 ms. Both branches use the same global scale s.</figcaption>
   </figure>
   <figure>
     <img src="assets/earlysig/fig_g3h3.png" alt="A stroke with the first half highlighted and a zoom of the half-prefix" />
-    <figcaption>G3H3 = 14 global values plus the depth-3 signature of the first half of elapsed time. Same size, different temporal support — this is what separates "an extra branch helps" from "recency helps".</figcaption>
+    <figcaption>G3H3 is 14 global values plus the depth 3 signature of the first half of elapsed time. Same size, different time support. This is what separates "an extra branch helps" from "recency helps".</figcaption>
   </figure>
   <p>
-    The window rules deserve one honest paragraph, because they are where causality goes to die if
-    you are sloppy. The recent window's lower edge may interpolate between two samples you have
-    already seen; its upper edge \(q\) never interpolates, because that would require a future
-    sample. Both branches reuse the global scale \(s\); independently normalising a window changes
-    what the experiment measures. A window with no motion returns zero spatial features. And
-    during a pause, the window can shrink or empty while the clock keeps ticking. None of this is
-    glamorous. All of it is the difference between a benchmark and a magic trick.
+    The window rules deserve an honest paragraph, because this is where causality goes to die if
+    you get lazy. The recent window's lower edge can interpolate between two samples you have
+    already seen. Its upper edge \(q\) never interpolates, because that would need a future
+    sample. Both branches reuse the global scale \(s\). A window with no motion returns zero
+    spatial features. During a pause the window can shrink or empty while the clock keeps going.
+    None of this is glamorous, and all of it is the line between a benchmark and a magic trick.
   </p>
   <figure>
     <img src="assets/earlysig/fig_windows.png" alt="The three branches illustrated on one stroke: global prefix, recent 250 ms window, historical half" />
-    <figcaption>The three branches at one query, all sharing the single observed-prefix scale \(s\).</figcaption>
+    <figcaption>All three branches at one query, sharing the single observed-prefix scale s.</figcaption>
   </figure>
 
-  <h3>TEMPLATE — the boring neighbour who keeps beating people</h3>
+  <h3>TEMPLATE: the boring neighbour who keeps winning</h3>
   <p>
-    Finally a non-parametric baseline: store a capped, deterministic selection of training
-    prefixes per class, resample them exactly like COORD16, and score a query by its nearest
-    neighbour per class, with a softmax scale fitted on the development writers. It is not a
-    faithful reproduction of the full-stroke $1 algorithm — it is the causal-prefix version of
-    it — and I labelled it that way from the start. Neighbours are annoyingly strong at this kind
-    of problem and I wanted them on the board.
+    Last one is non parametric. Store a capped, deterministic selection of training prefixes per
+    class. Resample them exactly like COORD16. Score a query by its nearest neighbour per class,
+    with a softmax scale fitted on the development writers. It is not a faithful copy of the full
+    stroke $1 algorithm, it is the causal prefix version of it, and I labelled it that way from
+    day one. Nearest neighbours are annoyingly strong at this kind of problem, and I wanted them
+    on the board.
   </p>
   <figure>
     <img src="assets/earlysig/fig_template.png" alt="A query prefix overlaid with stored training prefixes of two classes" />
-    <figcaption>Template baseline. A query prefix at 60% progress against stored training prefixes of two classes.</figcaption>
+    <figcaption>The template baseline. A query at 60% progress against stored training prefixes from two classes.</figcaption>
   </figure>
 
-  <h2 id="bet">The bet I registered before looking</h2>
+  <h2 id="bet">What I promised to test before looking</h2>
   <p>
     I wrote these down before touching the test writers, mostly to protect myself from my own
-    hindsight. Three hypotheses, one primary question, and one target:
+    hindsight. Three hypotheses, one main question, one target.
   </p>
   <ul>
-    <li><strong>H1 — ordered geometry helps.</strong> Depth-2/3 signatures should beat depth-1
-      displacement once the classes have diverged, and the explicit non-signature baselines
-      should not run away with the prize.</li>
-    <li><strong>H2 — recent history helps earlier decisions.</strong> G3R3 should give higher
-      correct early coverage or earlier correct commitments than G3, without an unfavourable
-      error/coverage trade-off. The matched-size control G3H3 exists to falsify the recency
-      story.</li>
-    <li><strong>H3 — abstention is useful.</strong> A threshold-and-stability policy should
-      reduce incorrect early commitments relative to committing at the first eligible
-      prediction, at a measurable cost in coverage and delay.</li>
+    <li><strong>H1, ordered geometry helps.</strong> Depth 2 and 3 should beat depth 1 once the
+      classes have diverged, and the non signature baselines should not run away with it.</li>
+    <li><strong>H2, recent history helps earlier.</strong> G3R3 should give higher correct early
+      coverage or earlier correct commitments than G3, without a worse error to coverage trade.
+      The matched G3H3 exists to falsify the recency story.</li>
+    <li><strong>H3, abstention is useful.</strong> A threshold and stability policy should reduce
+      wrong early commitments compared to committing at the first eligible prediction, at a
+      measurable cost in coverage and delay.</li>
   </ul>
   <p>
-    The target for the policy was empirical selective error at most 5% on the policy-validation
-    writers, with enough commitments to make the number meaningful. This is a tuning target, not
-    a promise about the future — a distinction the results will make uncomfortably concrete.
+    The target was empirical selective error at most 5% on the policy writers, with enough
+    commitments to make the number mean something. That is a tuning target, not a promise about
+    the future, and the results will make that difference painfully concrete.
   </p>
 
-  <h2 id="honest">How to test an early recogniser honestly</h2>
+  <h2 id="honest">How to test an early recogniser without fooling yourself</h2>
   <p>
     Building the classifier was the easy part. A weighted <code>StandardScaler</code> plus
-    multinomial logistic regression was enough for every one of the eight representations. The
-    hard part is making the scoreboard mean something, and that fight happens on three fronts:
-    leakage, data, and tuning.
+    multinomial logistic regression was enough for all eight representations. Making the
+    scoreboard mean something is the hard part, and the fight happens on three fronts.
   </p>
 
   <h3>Front one: leakage</h3>
   <p>
-    If two classes share a prefix, a model must not be able to tell them apart before they
-    diverge. So I built a synthetic dataset where that check is mechanical. Three labels —
-    <code>turn_up</code>, <code>turn_down</code>, <code>loop</code> — share a byte-identical
-    prefix and identical timestamps until a branch point at 25% of the duration. Within a family,
-    translation, scale, rotation, duration, and prefix noise are all shared. Before the branch,
-    the three siblings must receive <em>identical probabilities</em>. A classifier that beats
-    chance before the branch point is not clever; it is a bug with a press release.
+    If two classes share a prefix, the model must not be able to tell them apart before they
+    diverge. So I built a synthetic set where the check is mechanical. Three labels,
+    <code>turn_up</code>, <code>turn_down</code> and <code>loop</code>, share a byte identical
+    prefix and identical timestamps until a branch point at 25% of the duration. Inside a family,
+    translation, scale, rotation, duration and prefix noise are all shared. Before the branch, the
+    three siblings have to get identical probabilities. A classifier that beats chance before the
+    branch is not clever. It is a bug with a press release.
   </p>
   <figure>
     <img src="assets/earlysig/fig_synthetic_family.png" alt="Three sibling strokes with a shared highlighted prefix" />
-    <figcaption>One synthetic family. Correct behaviour is forced to be trivially checkable: identical features and identical scores before the branch point.</figcaption>
+    <figcaption>One synthetic family. Correct behaviour is trivially checkable: identical features and identical scores before the branch.</figcaption>
   </figure>
   <figure>
     <img src="assets/earlysig/fig_synthetic_predictions.png" alt="Sibling probability traces, all identical before the branch, and the maximum sibling difference panel" />
-    <figcaption>The leakage check after training. The first three panels draw three overlapping traces (the topmost hides the others); the fourth panel shows the maximum sibling difference: exactly zero before the branch, jumping the moment the geometry diverges.</figcaption>
+    <figcaption>The leakage check after training. The first three panels have three traces drawn on top of each other, so you only see the top one. The fourth panel is the maximum difference between siblings: exactly zero before the branch, then up the moment the geometry diverges.</figcaption>
   </figure>
   <p>
-    The synthetic set has a second job. It is the only place where I know the ground truth about
-    <em>information availability</em>: before the branch, the correct answer is genuinely
-    unknowable, so no accuracy number there can be inflated by luck. When a model scores 1.0
-    balanced accuracy on completed synthetic strokes and 0.33 before the branch, those two
-    numbers bracket exactly what the data can and cannot support.
+    The synthetic set has a second job. It is the only place where I know the truth about
+    information availability. Before the branch, the answer is genuinely unknowable, so no
+    accuracy number there can be luck. When a model hits 1.0 balanced accuracy on finished
+    synthetic strokes and 0.33 before the branch, those two numbers bracket exactly what the data
+    can support.
   </p>
 
   <h3>Front two: a real benchmark that keeps writers apart</h3>
   <p>
-    The public data is the University of Washington <em>$1 unistroke</em> corpus — the logs from
-    the original 2007 recogniser, 5,280 XML recordings from ten writers. I verified the archive
-    by size and SHA-256 before use (4,789,784 bytes, hash pinned in the repository), and an audit
-    checks thirteen facts every time: the 480-recording pilot folder, 4,800 standard recordings,
-    ten writers with 480 each, sixteen classes with 300 each, three speed conditions with 1,600
-    each, no malformed timestamps, no repeated adjacent points, no point-count mismatches, and
-    agreement between the folder id and the file's subject attribute.
+    The public data is the University of Washington $1 unistroke corpus, the logs from the
+    original 2007 recogniser. 5,280 XML recordings from ten writers. I verify the archive by size
+    and SHA-256 before using it, and an audit checks thirteen facts every time: the 480 recording
+    pilot folder, 4,800 standard recordings, ten writers with 480 each, sixteen classes with 300
+    each, three speeds with 1,600 each, no broken timestamps, no repeated adjacent points, no
+    point count mismatches, and the folder id agreeing with the subject attribute in every file.
   </p>
   <figure>
     <img src="assets/earlysig/fig_dataset_examples.png" alt="One slow and one fast example of each of the six gesture classes" />
-    <figcaption>The six classes used here (top: slow trials, bottom: fast trials, with point counts). Strokes are shown in screen orientation; the model receives y-up coordinates.</figcaption>
+    <figcaption>The six classes I use, one slow and one fast example each, with point counts. Drawn in screen orientation; the model gets y-up coordinates.</figcaption>
   </figure>
   <p>
-    Six classes — <code>arrow, caret, check, circle, rectangle, triangle</code> — give 1,800
-    strokes. Splits are <strong>writer-disjoint</strong>: five outer folds rotate the ordered
-    writers \([2,\dots,11]\) left by two per fold; the first five train, then one writer each for
-    development, calibration, and policy selection, and the last two test. Every writer is tested
-    exactly once across the folds, so the pooled test set is 1,800 out-of-fold strokes per model
-    with no writer in both training and testing.
+    Six of those classes, <code>arrow, caret, check, circle, rectangle, triangle</code>, give 1,800
+    strokes. Splits are writer disjoint. Five outer folds rotate the writers
+    \([2,\dots,11]\) left by two per fold: first five train, then one writer each for development,
+    calibration and policy selection, last two test. Every writer is tested exactly once across
+    the folds, so pooling gives 1,800 out of fold test strokes per model with nobody appearing on
+    both sides.
   </p>
   <figure>
     <img src="assets/earlysig/fig_splits.png" alt="Fold diagram showing writer roles rotating across five folds" />
-    <figcaption>Five outer folds. Rows are folds, columns are writers, colours are roles. Roles rotate by position, never by measured performance.</figcaption>
+    <figcaption>Five outer folds. Rows are folds, columns are writers, colours are roles. The rotation is fixed in advance, not chosen from results.</figcaption>
   </figure>
   <p>
-    I want to be precise about why this matters, because it is the difference between a result and
-    a vibe. With random stroke splits, the same writer's quirks appear in training and testing,
-    and a model that memorises handwriting looks like a model that recognises gestures. With one
-    held-out writer, as I learned the hard way, the numbers swing so wildly that a policy that
-    looks feasible on Monday disappears on Tuesday. Ten writers, five folds, participant-cluster
-    uncertainty: that is the minimum I would trust.
+    Why am I so insistent on this. With random stroke splits, the same writer's quirks show up in
+    training and testing, and a model that memorised handwriting looks like a model that
+    recognises gestures. With one held out writer, which I tried first, the numbers swing so hard
+    that a policy that looks fine on Monday disappears on Tuesday. Ten writers, five folds, and
+    uncertainty computed over writers. That is the minimum I would trust.
   </p>
 
   <h3>Front three: tuning on the right writers</h3>
   <p>
-    Thresholds get chosen on the <em>policy</em> writers. The test writers stay untouched until
-    every knob — regularisation, temperature, threshold — is frozen. If no threshold reaches the
-    risk target, the early-commit policy is simply disabled and the run says so. The target is
-    never relaxed after seeing results. This sounds like a rule that everyone follows. In
-    practice it is a rule that everyone follows until their method looks bad, and then a
-    footnote appears.
+    Thresholds get chosen on the policy writers. Test writers stay untouched until regularisation,
+    temperature and threshold are all frozen. If no threshold reaches the target, the early commit
+    policy gets disabled and the run says so out loud. The target is never relaxed after seeing
+    results. It sounds like a rule everyone follows. It is a rule everyone follows until their
+    method looks bad, and then a footnote appears.
   </p>
 
-  <h2 id="bench">The bench: rows, C, and temperature</h2>
+  <h2 id="bench">Rows, C, and temperature</h2>
   <p>
-    Some of the most consequential decisions in this project are invisible in the pretty figures,
-    so here is the machinery, plainly.
+    Some of the decisions that matter most are invisible in the pretty figures, so here is the
+    machinery.
   </p>
   <p>
-    <strong>Rows and weights.</strong> Each training stroke contributes at most twelve prefix
-    states chosen deterministically from the 25 ms grid, with the completed stroke always
-    included and states strictly after \(t=0\). A stroke contributing \(K\) rows gives each row
-    weight \(1/K\), so every stroke has equal total training weight and long recordings cannot
-    dominate. Feature rows are cached per model and reused across the three values of \(C\) — no
-    repeated signature extraction during model selection.
+    <strong>Rows and weights.</strong> Every training stroke gives at most twelve prefix states,
+    picked from the 25 ms grid with the completed stroke always included and states strictly after
+    \(t=0\). A stroke that gives \(K\) rows gives each of them weight \(1/K\), so every stroke has
+    equal total weight and long recordings cannot bully the model. Feature rows are cached per
+    model and reused across the three values of \(C\), so model selection does not redo signature
+    extraction three times.
   </p>
   <p>
-    <strong>Choosing \(C\).</strong> The regularisation parameter is selected on the development
-    writers by mean balanced accuracy over the fraction grid \(\{0.1,\dots,1.0\}\). For a given
-    fraction, the prediction used is the one from the latest query-grid tick at or before it —
-    the same semantics the offline replay uses, so evaluation never reads a prediction the online
-    system could not have made. This tiny detail matters more than it looks: it means the curves
-    you see are curves the product could actually produce.
+    <strong>Choosing C.</strong> Regularisation is selected on the development writers by mean
+    balanced accuracy over the fraction grid \(\{0.1,\dots,1.0\}\). For a given fraction, the
+    prediction used is the one from the latest query grid tick at or before it. Same rule offline
+    replay uses, so evaluation never reads a prediction the online system could not have made.
+    Small detail, but it is the difference between curves that could ship and curves that could
+    not.
   </p>
   <p>
     <strong>Temperature.</strong> After \(C\) is frozen, one temperature per model is fitted on
-    the calibration writers by bounded scalar minimisation of the stroke-weighted negative
-    log-likelihood. Temperature changes confidence, never class ordering. Without it, every
-    threshold is being compared against a confidence scale the model invented for itself.
+    the calibration writers by bounded scalar minimisation of the stroke weighted negative log
+    likelihood. Temperature changes confidence, never the class order. Without it, every threshold
+    is being compared against a confidence scale the model invented for itself.
   </p>
 
   <h2 id="deciding">Waiting, committing, and the difference</h2>
   <p>
-    The policy is a small state machine — <em>waiting</em>, <em>tracking a candidate</em>,
-    <em>committed</em> — that consumes the calibrated probability trace and a little causal
-    observation evidence. To commit, it wants: at least 75 ms elapsed; at least 8 distinct
-    observed points counted with a scale-relative tolerance; the same winning class at probability
-    at least \(\theta\) for at least 100 ms; at least three ticks in that window; and at least
-    three ticks with <em>genuinely new movement</em>. That last gate exists because of pauses.
-    Without it, a user who holds still long enough earns a commitment by inertia, and heartbeats
-    would count as evidence. One commitment, ever. A commitment exactly at the stroke's end is
-    labelled "final-only", and a stroke that ends without one gets a separately labelled final
-    prediction that never counts as early.
+    The policy is a small state machine. It waits, it tracks a candidate, it either commits or
+    keeps waiting. To commit it wants five things at once: at least 75 ms gone by, at least eight
+    distinct observed points counted with a scale relative tolerance, the same winning class above
+    \(\theta\) for at least 100 ms, at least three ticks in that window, and at least three ticks
+    with genuinely new movement. That last gate exists because of pauses. Without it a user who
+    holds still long enough earns a commitment by inertia, and heartbeats count as evidence. One
+    commitment, ever. A commitment exactly at the stroke's end is labelled final-only. A stroke
+    that ends without one gets a separate final prediction, and that never counts as early.
   </p>
   <figure>
     <img src="assets/earlysig/fig_policy.png" alt="Policy state machine and commitment gates" />
-    <figcaption>The commitment policy: a pure state machine over calibrated probabilities. Every gate is computed from observed data only.</figcaption>
+    <figcaption>The policy: a state machine over calibrated probabilities. Everything on the right is computed from observed data only.</figcaption>
   </figure>
   <p>
-    Then there is the question every scoreboard raises and most papers dodge: what does the policy
-    get charged for? If a stroke waits and the final fallback saves the day, is that a success or
-    a failure? I report both sides. <strong>Coverage</strong> is the fraction of strokes that got
-    an early commitment. <strong>Selective error</strong> is the fraction of those commitments
-    that were wrong — and it is <em>undefined</em>, not zero, when there were none. If you
-    remember one sentence from this page, make it that one: a method that commits on nothing has
-    no selective error, and any table that prints 0.000 there is lying to you.
-    <strong>Deployed accuracy</strong> gives a wait its final fallback chance but pays for the
-    wait through the effective decision fraction — \(q/T\) for committed strokes, a full 1.0 for
-    waits. A system that waits on every hard gesture can have a beautiful conditional accuracy.
-    The coverage and delay columns are how we notice.
+    Then comes the question every scoreboard raises and most papers dodge. What does the policy
+    get charged for? If a stroke waits and the fallback saves the day, is that a win or a loss. I
+    report both sides. <strong>Coverage</strong> is the fraction of strokes that got an early
+    commitment. <strong>Selective error</strong> is the fraction of those commitments that were
+    wrong, and it is undefined, not zero, when there were none. If you remember one sentence from
+    this page, make it that one. A method that commits on nothing has no selective error, and any
+    table printing 0.000 there is lying to you. <strong>Deployed accuracy</strong> gives a wait
+    its fallback chance but charges for the wait through the effective decision fraction: \(q/T\)
+    if committed, a full 1.0 if not. A system that waits on every hard gesture can have a lovely
+    conditional accuracy. The coverage and delay columns are how you catch it.
   </p>
   <figure>
     <img src="assets/earlysig/fig_metrics.png" alt="Three strokes illustrating the metric definitions" />
-    <figcaption>The definitions on a timeline: one correct commitment, one wrong commitment, one wait.</figcaption>
+    <figcaption>The definitions on a timeline: one correct commitment, one wrong one, one wait.</figcaption>
   </figure>
   <p>
-    Uncertainty follows the same logic. Repeated prefixes of one writer are not independent
-    trials, so bootstrap resamples whole writers (families for synthetic data), a thousand draws.
-    With fewer than three clusters, a population interval is not estimable, and the code returns
-    a clearly labelled stroke-level interval <em>conditional on the observed writers</em> instead
-    of printing a fictitious number. That rule fired more often than I expected, and every time
-    it did, it was right to.
+    Uncertainty follows the same logic. Repeated prefixes from one writer are not independent
+    trials, so the bootstrap resamples whole writers, a thousand draws, families for synthetic
+    data. With fewer than three clusters a population interval is not estimable, and the code
+    returns a labelled stroke level interval, conditional on the observed writers, instead of
+    printing a made up number. That rule fired more often than I expected, and it was right every
+    time it did.
   </p>
 
   <h2 id="results">What actually happened</h2>
   <p>
-    Everything below comes from the five-fold writer-disjoint evaluation: 1,800 out-of-fold test
-    strokes per model, each writer tested exactly once, participant-cluster intervals with a
-    thousand draws. The headline table, and then I will tell you what I think it means — and
-    where it stops meaning it.
+    Everything below is from the five fold, writer disjoint evaluation: 1,800 out of fold test
+    strokes per model, every writer tested once, participant cluster intervals with a thousand
+    draws. Headline table first, then I will tell you what I think it means and where it stops
+    meaning anything.
   </p>
 
   <div class="table-wrap">
@@ -665,16 +614,15 @@
     </table>
   </div>
   <p>
-    Let me read one row the way I would read it to you across a table. G3H3 commits before
-    completion on 95.8% of strokes, and of those commitments 2.1% are wrong. It makes 1,725 early
-    decisions of which 1,688 are correct; including fallbacks it is right on 97.5% of all
-    strokes; and its completion-time prediction — a different thing entirely — reaches 95.4%
-    balanced accuracy. G1, at the other end, is a portrait of a feature set giving up: its policy
-    is feasible in only two of five folds, and its final accuracy of 0.236 is far below what it
-    knows mid-stroke.
+    Reading one row the way I would read it to you across a table. G3H3 commits before completion
+    on 95.8% of strokes, and 2.1% of those commitments are wrong. It makes 1,725 early decisions
+    and 1,688 of them are correct. Including fallbacks it is right on 97.5% of everything. Its
+    completion time prediction, which is a different thing entirely, reaches 95.4% balanced
+    accuracy. G1 at the other end is a feature set giving up: feasible policy in only two of five
+    folds, and a final accuracy of 0.236, far below what it knows halfway through.
   </p>
   <p>
-    And the per-fold table, because averages hide the thing that scared me most:
+    And the per fold table, because averages hide the thing that scared me most.
   </p>
   <div class="table-wrap">
     <table>
@@ -682,53 +630,51 @@
         <tr><th>model</th><th>fold 0</th><th>fold 1</th><th>fold 2</th><th>fold 3</th><th>fold 4</th></tr>
       </thead>
       <tbody>
-        <tr><td>G1</td><td>0.00 / –</td><td>0.00 / –</td><td>0.32 / 0.043</td><td>0.14 / 0.061</td><td>0.00 / –</td></tr>
+        <tr><td>G1</td><td>0.00 / n/a</td><td>0.00 / n/a</td><td>0.32 / 0.043</td><td>0.14 / 0.061</td><td>0.00 / n/a</td></tr>
         <tr><td>G3</td><td>0.97 / 0.040</td><td>0.95 / 0.009</td><td>1.00 / 0.122</td><td>0.85 / 0.003</td><td>0.95 / 0.056</td></tr>
-        <tr><td>G3R3</td><td>0.96 / 0.046</td><td>0.99 / 0.011</td><td>1.00 / 0.081</td><td>0.99 / 0.039</td><td>0.00 / –</td></tr>
+        <tr><td>G3R3</td><td>0.96 / 0.046</td><td>0.99 / 0.011</td><td>1.00 / 0.081</td><td>0.99 / 0.039</td><td>0.00 / n/a</td></tr>
         <tr><td>G3H3</td><td>0.99 / 0.045</td><td>0.98 / 0.008</td><td>0.99 / 0.042</td><td>0.93 / 0.000</td><td>0.90 / 0.006</td></tr>
       </tbody>
     </table>
   </div>
   <p>
-    Coverage / selective error per fold; the dashes mean the policy was <em>infeasible</em> on that
-    writer's policy partition — early commitment disabled, not quietly relaxed. Two facts live in
-    this table. First, writer difficulty varies enormously: G3's fold-2 selective error (12.2%) is
-    forty times its fold-3 error (0.3%). Second — and this one is a design lesson, not a gesture
-    lesson — a policy partition of one writer is a fragile place to choose a threshold. Different
-    holdout writer, different verdict. If I were shipping this, that sentence would be the first
-    line of the design review.
+    Coverage and selective error per fold. The dashes mean the policy was infeasible on that
+    writer's policy partition, so early commitment was switched off instead of the target being
+    quietly moved. Two things live in this table. Writer difficulty varies enormously, and G3's
+    fold 2 error is forty times its fold 3 error. And a policy partition of one writer is a
+    fragile place to pick a threshold. Different holdout writer, different verdict. If this ever
+    ships, that sentence goes on the first line of the design review.
   </p>
 
   <h3>Depth beats width, and the floor falls out</h3>
   <p>
-    The first hypothesis was not close. On paired forced predictions over late fractions,
-    G3 beats G1 by <strong>+0.565</strong> correctness with a 95% interval of [0.520, 0.605]. In
-    deployment terms: +81 points of correct early coverage, +66 points of deployed accuracy, and
-    58 percentage points of stroke <em>earlier</em> commitment. G2 sits exactly between them,
-    which is what you want a ladder to do.
+    The first hypothesis was not close. On paired forced predictions over late fractions, G3 beats
+    G1 by <strong>+0.565</strong> with a 95% interval of [0.520, 0.605]. In deployment terms that
+    is 81 points more correct early coverage, 66 points more deployed accuracy, and 58 points of
+    stroke earlier commitment. G2 sits right between them, which is what you want a ladder to do.
   </p>
   <figure>
     <img src="assets/earlysig/fig_forced_curves.png" alt="Forced balanced accuracy versus progress for all models" />
-    <figcaption>Forced balanced accuracy vs progress, pooled out-of-fold. G1 (depth-1) gets <em>worse</em> as the stroke completes — 0.675 at 25% down to 0.236 at the end — because closed shapes return to their origin. G3 and its 28-dimensional siblings stay high; G3H3 is the best late-stage model of all.</figcaption>
+    <figcaption>Forced balanced accuracy against progress, pooled out of fold. G1 gets worse as the stroke completes, 0.675 at 25% down to 0.236 at the end, because closed shapes come back to where they started. The depth 3 models stay high, and G3H3 is the best late stage model of all.</figcaption>
   </figure>
   <p>
-    That figure is the one I would put on a single slide. Watch G1: it is genuinely useful early —
-    0.675 at a quarter of the stroke — and then it falls off a cliff, because the geometry it can
-    see says "the pen came back to where it started" about circles, rectangles, and triangles
-    alike. The signature ladder does not save you from sparse data; it saves you from being
-    actively misled by it.
+    This figure is the one I would put on a single slide. Watch G1. It is genuinely useful early,
+    0.675 at a quarter of the stroke, and then it falls off a cliff, because the geometry it can
+    see says "the pen came back to where it started" about circles, rectangles and triangles
+    alike. Signatures do not save you from sparse data. They save you from being actively misled
+    by it.
   </p>
   <p>
-    The second result hiding in the same figure is the capacity check. The 32-dimensional COORD16
-    baseline is nearly matched by 14-dimensional G3 at the halfway point (0.938 vs 0.918). So the
-    depth-3 gain is not just "more numbers"; a compact, structured representation competes with a
-    larger unstructured one. I had half-expected the opposite, and this is the point where I
-    stopped thinking of signatures as a clever trick and started thinking of them as a reasonable
-    default for ordered motion.
+    There is a second result hiding in the same figure. The 32 dimensional COORD16 baseline is
+    nearly matched by 14 dimensional G3 at the halfway point, 0.938 against 0.918. The depth 3
+    gain is not just more numbers. A compact structured representation competes with a larger
+    unstructured one. I had half expected the opposite, and this is where I stopped thinking of
+    signatures as a clever trick and started thinking of them as a reasonable default for ordered
+    motion.
   </p>
   <p>
-    For the record-keepers, the same result as numbers — forced balanced accuracy at 25/50/75/100%
-    progress, pooled out-of-fold over all ten writers:
+    For the record keepers, the same result as numbers. Forced balanced accuracy at 25, 50, 75 and
+    100 percent progress, pooled out of fold over all ten writers.
   </p>
   <div class="table-wrap">
     <table>
@@ -750,38 +696,37 @@
 
   <h3>The recent window lost. The historical one won.</h3>
   <p>
-    Here is the result I did not expect, and the reason I am glad the control existed. On the
-    public data, the recent-window model is statistically indistinguishable from plain G3:
-    correct coverage difference −0.146 [−0.417, +0.051], wrong coverage −0.010 [−0.034, +0.013],
-    timing +0.094 [−0.043, +0.276] — every interval straddling zero. Meanwhile the
-    <em>historical</em> control, G3H3, improves correctness (+0.039 [0.015, 0.063]) <em>and</em>
-    reduces wrong coverage (−0.025 [−0.051, −0.004]).
+    Here is the result I did not expect, and the reason I am glad I built the control. On the
+    public data the recent window model is statistically indistinguishable from plain G3: correct
+    coverage difference −0.146 with interval [−0.417, +0.051], wrong coverage −0.010
+    [−0.034, +0.013], timing +0.094 [−0.043, +0.276]. Every interval straddles zero. Meanwhile
+    the historical control, G3H3, improves correctness (+0.039 [0.015, 0.063]) and reduces wrong
+    coverage (−0.025 [−0.051, −0.004]) at the same time.
   </p>
   <p>
     I sat with this for two days, because it is exactly the kind of result that tempts you into a
-    story that fits the graph rather than the data. The temptation: "recency is useless". The
-    data does not support that either, because on the synthetic families — where a task's label
-    lives only in the last quarter-second — the recent window does help: +12.8 points of correct
-    coverage and nearly fifteen points of stroke earlier commitment, for a small (+1.7 point)
-    error cost. So the honest conclusion has to survive both datasets: <em>an extra signature
-    branch helps; what that branch should contain depends on the data, and on this corpus it is
-    the opening, not the tail, that carries the extra information.</em>
+    story that fits the graph instead of the data. The temptation is to write "recency is useless"
+    and move on. The data does not support that either, because on the synthetic families, where
+    the label lives only in the last quarter second, the recent window does help: 12.8 points more
+    correct coverage and almost fifteen points of stroke earlier, for a small 1.7 point error
+    cost. So the conclusion has to survive both datasets. An extra signature branch helps. What
+    that branch should contain depends on the data, and on this corpus it is the opening, not the
+    tail, that carries the extra information.
   </p>
   <p>
-    Which brings me to the most-confused class pair on the public set: arrow and caret, the very
-    pair from the opening of this page. What separates them early is the <em>opening direction</em> —
-    which the historical half sees directly and the recent tail, by the time decisions are being
-    made, has already blurred. The control did not just falsify a hypothesis; it told me where the
-    real signal lived.
+    Which brings me back to arrow and caret, the pair from the very top of this page. What
+    separates them early is the opening direction. The historical half sees it directly. The
+    recent tail, by the time decisions are being made, has already blurred it. The control did not
+    just falsify a hypothesis. It told me where the real signal lived.
   </p>
   <figure>
     <img src="assets/earlysig/fig_forest.png" alt="Forest plot of paired differences with confidence intervals" />
-    <figcaption>Paired differences with 95% intervals. H1 is far from zero. All recent-window comparisons straddle zero, while the historical control is significantly positive for correctness and negative for errors.</figcaption>
+    <figcaption>Paired differences with 95% intervals. H1 is far from zero. The recent window comparisons straddle zero, and the historical control is clearly positive for correctness and negative for errors.</figcaption>
   </figure>
   <p>
-    And because the synthetic set tells a slightly different story, it deserves its own scoreboard.
-    Selected-policy results on its test partition (180 strokes, 60 families, family-cluster
-    intervals), for contrast with the public table above:
+    The synthetic set tells a slightly different story, so it deserves its own scoreboard.
+    Selected policy results on its test partition, 180 strokes from 60 families, with family
+    cluster intervals.
   </p>
   <div class="table-wrap">
     <table>
@@ -799,20 +744,20 @@
     </table>
   </div>
   <p>
-    Two things jump out. G1 recovers dramatically here — the synthetic suffixes are learnable
-    from displacement alone, which is precisely why this set is a diagnostic and not evidence.
-    And the policy dynamics differ from the public set: on shared prefixes, "correct coverage"
-    rises steeply the moment the branch point passes, so coverage is cheap and error is the whole
-    game. The synthetic set is where I learned to trust the leakage check and stopped trusting
-    the accuracy number.
+    Two things stand out. G1 recovers dramatically here, because the synthetic suffixes are
+    learnable from displacement alone, which is exactly why this set is a diagnostic and not
+    evidence. And the policy dynamics are different from the public set. On shared prefixes,
+    correct coverage jumps the moment the branch passes, so coverage is cheap and error is the
+    whole game. The synthetic set is where I learned to trust the leakage check and stopped
+    trusting the accuracy number.
   </p>
 
   <h3>Abstention is worth it, and it is not free</h3>
   <p>
-    If you commit at the first eligible tick, you commit on everything. On the synthetic set,
-    where the prefix is shared, that policy scores a 66.7% selective error — a coin flip in a
-    suit. On the public set it is 14.7%. A confidence threshold alone recovers almost all of the
-    accuracy; adding the 100 ms stability requirement buys insurance.
+    Commit at the first eligible tick and you commit on everything. On the synthetic set, where
+    the prefix is shared, that policy has a 66.7% selective error. A coin flip in a suit. On the
+    public set it is 14.7%. A confidence threshold alone recovers almost all of the accuracy.
+    Adding the 100 ms stability requirement buys insurance.
   </p>
   <div class="table-wrap">
     <table>
@@ -827,98 +772,95 @@
     </table>
   </div>
   <p>
-    Stability versus immediate removes 11.2 points of wrong early coverage (95% interval −16.3 to
-    −6.8 points) and costs 21 points of coverage. Against threshold-only it is statistically
-    identical on error; for G3 it even commits on 12.6 points <em>more</em> coverage at equal
-    error, and in two of five folds it is the only variant that can meet the risk target at all.
-    So the honest hierarchy is: thresholding does the heavy lifting, and the stability window is
-    cheap insurance that occasionally matters a lot.
+    Stability against immediate removes 11.2 points of wrong early coverage, interval −16.3 to
+    −6.8 points, and costs 21 points of coverage. Against threshold only it is statistically
+    identical on error. For G3 it even commits on 12.6 points more coverage at equal error, and in
+    two of five folds it is the only variant that meets the risk target at all. So the honest
+    hierarchy is: thresholding does the heavy lifting, and the stability window is cheap
+    insurance that occasionally matters a lot.
   </p>
   <figure>
     <img src="assets/earlysig/fig_policy_tradeoff.png" alt="Policy partition trade-off curves with selected operating points marked" />
-    <figcaption>Threshold sweeps on the policy partition; red stars are the selected operating points. The stability gate shifts the curve up: more correct coverage at the same wrong coverage.</figcaption>
+    <figcaption>Threshold sweeps on the policy partition, red stars are the selected operating points. The stability gate lifts the curve: more correct coverage at the same wrong coverage.</figcaption>
   </figure>
 
   <h3>The specific ways it fails in practice</h3>
   <p>
     On fold 0, G3R3 committed early on 95.8% of strokes with a 4.6% selective error. All sixteen
-    wrong commitments were the same mistake: <em>arrow read as caret</em>, at 175–200 ms, before
-    the disambiguating bend. Thirteen of the sixteen came from one writer's fast and medium
-    trials. Waiting helps the strokes it refuses to call; several of those had a wrong final
-    fallback anyway, so patience was not going to save that particular quirk of handwriting. The
-    earliest correct decisions are the mirror image: three slow-condition arrow trials committed
-    correctly at 175 ms — fifteen percent of the stroke — which is the whole reason this project
+    wrong commitments were the same mistake: arrow read as caret, at 175 to 200 ms, before the
+    disambiguating bend. Thirteen of the sixteen came from one writer's fast and medium trials.
+    Waiting helps the strokes it refuses to call. Several of those had a wrong final fallback
+    anyway, so patience was not going to fix that particular quirk of handwriting. The earliest
+    correct decisions are the mirror image. Three slow condition arrow trials were called
+    correctly at 175 ms, fifteen percent of the stroke, which is the entire reason this project
     exists.
   </p>
   <figure>
     <img src="assets/earlysig/fig_decision_fractions.png" alt="Histogram of decision fractions for correct and wrong commitments" />
-    <figcaption>When commitments happen. Correct decisions dominate; the wrong ones also cluster in the first third, exactly where classes are still ambiguous.</figcaption>
+    <figcaption>When commitments happen. Correct decisions dominate, and the wrong ones also cluster in the first third, right where classes are still ambiguous.</figcaption>
   </figure>
 
   <h2 id="surprise">The surprise: better halfway than at the end</h2>
   <p>
     This is the failure I did not see coming, and it is now my favourite result of the project,
-    precisely because it is embarrassing in a useful way. The protocol trains <em>one</em>
-    classifier on prefixes sampled across the whole stroke — early, middle, and completed. On
-    public fold 0, the pooled model scores 0.975 balanced accuracy at the halfway point and
-    <strong>0.811 at completion</strong>.
+    precisely because it is embarrassing in a useful way. The protocol trains one classifier on
+    prefixes sampled across the whole stroke, early, middle and finished. On public fold 0 the
+    pooled model scores 0.975 balanced accuracy at the halfway point and 0.811 at completion.
   </p>
   <figure>
     <img src="assets/earlysig/fig_stage.png" alt="Pooled, completion-only, and mid-only training compared across progress" />
-    <figcaption>One pooled classifier (blue) is better mid-stroke than at the end. A completion-only fit of the same features reaches 0.944; a mid-progress-only fit collapses to 0.189 at completion.</figcaption>
+    <figcaption>One pooled classifier (blue) is better mid-stroke than at the end. A completion-only fit of the same features reaches 0.944. A mid-progress-only fit collapses to 0.189 at completion.</figcaption>
   </figure>
   <p>
-    Read that figure slowly, because there are three models in it and each one tells a different
-    cautionary tale. The pooled model (blue) is excellent in the middle and mediocre at the
-    finish. A model trained only on completed strokes (star) reaches 0.944 — nearly as good at
-    the finish as the pooled model was at its peak. A model trained only on halfway prefixes
-    (dashed) forgets how strokes end entirely: 0.189 at completion. So the pooled training
-    protocol is not "the model", it is a <em>trade</em>: it borrows accuracy from the end to pay
-    for accuracy in the middle, and since the system's fallback prediction uses the completed
-    prefix, that bill is real.
+    Read that figure slowly, because there are three models in it and each tells its own story.
+    The pooled model is excellent in the middle and mediocre at the finish. A model trained only
+    on finished strokes reaches 0.944, nearly as good at the end as the pooled model was at its
+    peak. A model trained only on halfway prefixes forgets how strokes end, 0.189 at completion.
+    So pooled training is not "the model". It is a trade. It borrows accuracy from the end to pay
+    for accuracy in the middle, and since the fallback prediction uses the completed prefix, that
+    bill is real.
   </p>
   <p>
-    The late errors are not noise spread evenly across the classes. They are two specific
-    confusions: completed <em>arrows</em> read as <em>carets</em> (29 of 60), and completed
-    <em>triangles</em> read as <em>circles</em> (32 of 60). And here the historical branch looks
-    almost clairvoyant: G3H3 mispredicts only 4 and 2 of those sixty, respectively. Whatever the
-    opening of the stroke encodes, it encodes a startling amount about the ending.
+    The late errors are not noise spread evenly across classes. They are two specific confusions.
+    Completed arrows read as carets, 29 out of 60. Completed triangles read as circles, 32 out of
+    60. And here the historical branch looks almost clairvoyant. G3H3 gets only 4 and 2 of those
+    sixty wrong. Whatever the opening of the stroke encodes, it encodes a startling amount about
+    the ending.
   </p>
   <figure>
     <img src="assets/earlysig/fig_confusion_g3r3.png" alt="G3R3 confusion matrices at 25, 50, 75, 100 percent" />
-    <figcaption>G3R3 at 25/50/75/100% progress. Mid-stroke is nearly clean; completion concentrates errors in two class pairs.</figcaption>
+    <figcaption>G3R3 at 25, 50, 75 and 100 percent progress. Mid stroke is nearly clean. Completion concentrates the errors in two class pairs.</figcaption>
   </figure>
   <figure>
     <img src="assets/earlysig/fig_confusion_g3h3.png" alt="G3H3 confusion matrices at 25, 50, 75, 100 percent" />
-    <figcaption>The same matrices for G3H3. The historical branch removes nearly all of the completion-time confusion on this fold.</figcaption>
+    <figcaption>The same matrices for G3H3. The historical branch wipes out almost all of the completion time confusion on this fold.</figcaption>
   </figure>
   <p>
-    If you want one sentence of interpretation: the pooled classifier learns progress-specific
-    cues, and some of those cues invert at completion. That is a property of the training
-    protocol, not of the representation — the completion-only fit proves the representation has
-    the information. Per-stage heads or stage-aware weighting are the obvious fix, and I left
-    them out on purpose. Changing the protocol after seeing the failure is how you fool yourself;
-    it belongs in a pre-registered follow-up, not in a footnote of this one.
+    One sentence of interpretation. The pooled classifier learns progress specific cues, and some
+    of them invert at completion. That is a property of the training protocol, not of the
+    representation, and the completion only fit proves the representation has the information. Per
+    stage heads or stage aware weighting are the obvious fix. I left them out on purpose. Changing
+    the protocol after seeing the failure is how you fool yourself, so it belongs in a separate
+    pre registered experiment, not in a footnote of this one.
   </p>
 
   <h3>Robustness: what actually breaks it</h3>
   <figure>
     <img src="assets/earlysig/fig_robustness.png" alt="Robustness bar charts for perturbations and speed conditions" />
-    <figcaption>Frozen model, shifted data, no retraining. Interior dropout barely matters; coordinate noise and compressed time are the real adversaries; fast strokes are the hardest provided condition.</figcaption>
+    <figcaption>Frozen model, shifted data, no retraining. Interior dropout barely matters. Coordinate noise and compressed time are the real adversaries. Fast strokes are the hardest provided condition.</figcaption>
   </figure>
   <p>
-    The stress tests are run with the frozen fold-0 model — no retraining — because the question
-    is what happens to <em>this</em> system under shift, not what a better-trained system could
-    do. Deleting up to 30% of interior points barely moves the numbers (4.6% selective error,
-    unchanged), because the reconstructed polyline on these smooth strokes stays close to the
-    original; I explicitly do <em>not</em> claim robustness to arbitrary point deletion.
-    Coordinate noise at 5% of path scale pushes selective error from 4.6% to 15.7%, and
-    compressing every timestamp by a quarter does similar damage — which makes sense once you
-    remember the recent window is a fixed number of milliseconds, so squeezing time changes what
-    a window contains. Inserted pauses are harmless; more ticks, more evidence. And the fast
-    speed condition is the hardest one: 11.4% selective error versus 0.8% on slow strokes. A
-    fixed millisecond window does not fully absorb speed, and I think that is a genuinely open
-    problem rather than a tuning knob.
+    The stress tests run with the frozen fold 0 model and no retraining, because the question is
+    what happens to this system under shift, not what a better trained system could do. Deleting
+    up to 30% of interior points barely moves anything, 4.6% selective error unchanged, because
+    the reconstructed polyline on these smooth strokes stays close to the original. I explicitly
+    do not claim robustness to arbitrary point deletion. Coordinate noise at 5% of path scale
+    pushes selective error from 4.6% to 15.7%, and compressing every timestamp by a quarter does
+    similar damage. That makes sense once you remember the recent window is a fixed number of
+    milliseconds, so squeezing time changes what a window contains. Inserted pauses are harmless,
+    more ticks, more evidence. And fast strokes are the hardest condition, 11.4% selective error
+    against 0.8% on slow. A fixed millisecond window does not fully absorb speed, and I think that
+    is a genuinely open problem rather than a tuning knob.
   </p>
   <div class="table-wrap">
     <table>
@@ -937,16 +879,15 @@
     </table>
   </div>
 
-  <h3>Calibration, and the boring numbers that decide whether it ships</h3>
+  <h3>Calibration, and the boring numbers that decide if it ships</h3>
   <figure>
     <img src="assets/earlysig/fig_reliability.png" alt="Reliability diagrams for all eight models after temperature scaling" />
-    <figcaption>Reliability on the fold-0 calibration partition after temperature scaling. Points on the diagonal are perfectly calibrated; deviations concentrate at high confidence.</figcaption>
+    <figcaption>Reliability on the fold 0 calibration partition after temperature scaling. Points on the diagonal are perfectly calibrated, and the deviations sit at high confidence.</figcaption>
   </figure>
   <p>
-    Temperature was an interior optimum for all eight models, and it improved every one — the
-    biggest disagreements between confidence and accuracy were exactly the overconfident models
-    (the template baseline and G2). The full calibration table, fold 0, 2,152 stroke-weighted
-    rows:
+    Temperature was an interior optimum for all eight models and it improved every one. The
+    biggest gaps between confidence and accuracy belonged to the overconfident models, TEMPLATE
+    and G2. The full calibration table, fold 0, 2,152 stroke weighted rows.
   </p>
   <div class="table-wrap">
     <table>
@@ -966,103 +907,103 @@
     </table>
   </div>
   <p>
-    And the boring numbers that decide whether any of this ships. Latency for G3R3 — prefix
-    extraction plus feature extraction plus calibrated prediction — is 0.83 ms mean and 1.31 ms
-    p95 per live update, against a 50 ms budget; peak memory is 130–165 MB. No GPU, no cloud, no
-    compiled signature library. The browser demo commits on live drawing, replays held-out
+    Now the boring numbers, which decide whether any of this could ship. Latency for G3R3, which
+    is prefix extraction plus features plus calibrated prediction, is 0.83 ms mean and 1.31 ms p95
+    per live update against a 50 ms budget. Peak memory is 130 to 165 MB. No GPU, no cloud, no
+    compiled signature library. The browser demo commits on live drawing, replays held out
     examples through the same API, records labelled strokes, and shows the commitment marker
-    landing on the path at 175–350 ms.
+    landing on the path at 175 to 350 ms.
   </p>
 
-  <h2 id="seams">The seams I had to sew back together</h2>
+  <h2 id="seams">The bugs I had to sew back together</h2>
   <p>
     No build report is honest without the part where everything was quietly broken. Before I
-    froze the results, a line-by-line review of the implementation turned up fourteen real
-    defects. I fixed all of them and re-ran the affected experiments, so every number on this
-    page comes from the corrected pipeline. Three of the bugs are worth telling, because they are
-    the kind that produce confident, wrong research.
+    froze the results, a line by line review of the code turned up fourteen real defects. I fixed
+    all of them and re-ran the affected experiments, so every number on this page comes from the
+    corrected pipeline. Three of the bugs are worth telling, because they are the kind that
+    produce confident, wrong conclusions.
   </p>
   <p>
-    <strong>The vertical lie.</strong> The browser captured canvas coordinates with \(y\) pointing
-    down. The model expected \(y\) pointing up. Every hand-drawn "arrow" reached the classifier
-    as an anti-arrow. For a representation whose entire point is preserving orientation, this is
-    not a cosmetic bug; and because the offline evaluation used correctly-oriented data, the bug
-    would only have shown up in the live demo — the place where you look at a drawing, see a
-    plausible answer, and move on.
+    <strong>The vertical lie.</strong> The browser captured canvas coordinates with y pointing
+    down. The model expected y pointing up. Every hand drawn arrow reached the classifier as an
+    anti arrow. For a representation whose whole point is preserving orientation, that is not
+    cosmetic. And because the offline evaluation used correctly oriented data, the bug would only
+    have shown up in the live demo. The place where you look at a drawing, see a plausible answer,
+    and move on.
   </p>
   <p>
-    <strong>The disappearing final point.</strong> If the pen stopped at an off-grid timestamp —
-    say 113 ms rather than a multiple of 25 — the API's completion tick never processed it, and
-    pointer-up could race an in-flight batch and lose the last observations entirely. Two points
-    in, one point seen. The offline replay, which used the exact grid, was innocent, so the
-    evaluation looked fine while the product was subtly blind. The fix made the exact completion
-    instant a first-class tick and made pointer-up drain everything before finishing.
+    <strong>The disappearing final point.</strong> If the pen stopped at an off grid timestamp,
+    say 113 ms instead of a multiple of 25, the API's completion tick never processed it. And
+    pointer up could race an in flight batch and lose the last observations entirely. Two points
+    in, one point seen. Offline replay used the exact grid and was innocent, so the evaluation
+    looked fine while the product was quietly blind. The fix made the exact completion instant a
+    first class tick and made pointer up drain everything before finishing.
   </p>
   <p>
-    <strong>The threshold that only existed on paper.</strong> The registered floor asked for
-    thirty early commitments on the policy partition. One fold's policy partition could not
-    supply them, and my first implementation quietly capped the floor to the partition size —
-    turning an infeasible target into a "feasible" one. That change is exactly the thing the
-    protocol forbids, and catching it made the results more honest but less flattering: the
-    infeasible folds now report disabled policies and dashes in the table above.
+    <strong>The threshold that only existed on paper.</strong> The registered floor asks for
+    thirty early commitments on the policy partition. One fold's partition could not supply them,
+    and my first implementation quietly capped the floor to the partition size, turning an
+    infeasible target into a "feasible" one. That is exactly what the protocol forbids, and
+    catching it made the results more honest and less flattering. The infeasible folds now report
+    disabled policies and dashes in the table above.
   </p>
   <p>
-    The rest of the list is less cinematic and more engineering: fold aggregation that did not
-    validate that the folds were writer-disjoint; synthetic robustness perturbations that were
-    not family-shared, breaking the leakage invariant they were meant to preserve; the first
-    hypothesis being labelled from policy-dependent evidence instead of the registered forced
-    predictions; a first-eligible policy that could not actually commit on its first eligible
-    tick; point-count gates that depended on raw coordinate units, so the same geometry at two
-    scales counted as one point or eight; cached data archives that were not re-verified on
-    reuse; forced curves that did not use the replay grid; API batches that mutated before
-    validation; and per-fold model bundles overwriting one another. Each one now has a
-    regression test, which is the only way I trust that a fixed bug stays fixed.
+    The rest of the list is less cinematic. Fold aggregation that did not check the folds were
+    writer disjoint. Synthetic robustness perturbations that were not family shared, breaking the
+    leakage invariant they were supposed to preserve. The first hypothesis being labelled from
+    policy dependent evidence instead of the forced predictions I registered. A first eligible
+    policy that could not commit on its first eligible tick. Point count gates that depended on
+    raw coordinate units, so the same geometry at two scales counted as one point or eight.
+    Cached data archives that were not re-verified on reuse. Forced curves that did not use the
+    replay grid. API batches that mutated before validation. Per fold model bundles overwriting
+    one another. Every one of them has a regression test now, which is the only way I trust a
+    fixed bug to stay fixed.
   </p>
 
   <h2 id="break">Now try to break it</h2>
   <ol>
-    <li><strong>Threshold fragility.</strong> Pick a different policy writer and the "5% error"
-      threshold can become infeasible — three of five folds for one model, one of five for
-      another. Real deployment needs pooled policy validation, per-class thresholds, or an
-      explicit abstention budget.</li>
-    <li><strong>Stage sensitivity.</strong> Completion-time accuracy lags mid-stroke accuracy by
-      8–16 points for the pooled models. Per-stage heads would probably fix it, but that changes
-      the registered protocol and belongs in a follow-up.</li>
+    <li><strong>Threshold fragility.</strong> Pick a different policy writer and the 5% target
+      can become infeasible, three of five folds for one model and one of five for another. Real
+      deployment needs pooled policy validation, per class thresholds, or an explicit abstention
+      budget.</li>
+    <li><strong>Stage sensitivity.</strong> Completion time accuracy lags mid stroke accuracy by
+      8 to 16 points for the pooled models. Per stage heads would probably fix it, but that
+      changes the registered protocol, so it is a follow up.</li>
     <li><strong>Closed set.</strong> There is no "none of the above". An unknown gesture gets
-      confidently mapped to the nearest class — the wrong failure mode for a production UI.</li>
+      confidently mapped to the nearest class, which is the wrong failure mode for a production
+      UI.</li>
     <li><strong>Ten writers, one device.</strong> Mouse input is a domain shift from tablet
       strokes, and the app says so on the tin.</li>
     <li><strong>Sequential error.</strong> A 5% empirical selective error is not a sequential
-      guarantee. Users interact one stroke at a time; a calibrated 0.95 is not a promise that
-      ninety-five of the next hundred commitments are right.</li>
-    <li><strong>The template baseline.</strong> It is close behind the signatures and much
-      simpler. Any deployment arguing for signatures has to explain why they are worth the extra
-      machinery — on this data, the honest answer is the error rate and the late-stage accuracy,
-      not the concept.</li>
+      guarantee. Users interact one stroke at a time, and a calibrated 0.95 is not a promise that
+      ninety five of the next hundred commitments will be right.</li>
+    <li><strong>The template baseline.</strong> It sits close behind the signatures and it is far
+      simpler. Any argument for signatures has to explain why they are worth the extra machinery.
+      On this data, the honest answer is the error rate and the late stage accuracy, not the
+      concept.</li>
   </ol>
 
   <h2 id="notsay">What this story does not say</h2>
   <p>
-    It does not say signatures are magic. Depth 1 to depth 3 is a large, real jump — the
-    sharpest curve in the whole project — but the synthetic suffixes are simple enough that even
-    displacement nearly suffices there; the public data is the honest test, and there the gain is
-    large but the setting is six classes, ten writers, and small strokes.
+    It does not say signatures are magic. Depth 1 to depth 3 is a large, real jump, the sharpest
+    curve in the project, but the synthetic suffixes are simple enough that displacement nearly
+    suffices there. The public data is the honest test, and there the setting is six classes, ten
+    writers, and small strokes.
   </p>
   <p>
     It does not say the recent window is useless. It says that on this corpus the extra branch
-    helps and recency specifically does not, and that the matched-size control is what lets us
-    tell those two claims apart. Without the control I would have published the flattering
-    version.
+    helps and recency specifically does not, and that the matched control is what lets you tell
+    those two claims apart. Without it I would have published the flattering version.
   </p>
   <p>
-    It does not say the system is finished, or that the 5% target is a property of the method
-    rather than of these ten writers. It says the measured error rate of early commitments, the
-    coverage it costs to keep that error low, and the failure cases that remain are all on the
-    record, with exact commands to reproduce them. If a number here disagrees with your setting,
-    believe the number over the story, and run it again.
+    It also does not say the 5% target is a property of the method rather than of these ten
+    writers. What it says is that the measured error of early commitments, the coverage cost of
+    keeping that error low, and the failures that remain are all on the record, with commands to
+    reproduce them. If a number here disagrees with your setting, trust the number over the story
+    and run it again.
   </p>
 
-  <h2 id="run">If you want to run it yourself</h2>
+  <h2 id="run">Running it yourself</h2>
 <pre><code>uv python install 3.12
 uv venv --python 3.12 &amp;&amp; source .venv/bin/activate
 uv pip install -e ".[dev]"
@@ -1079,57 +1020,56 @@ earlysig run --config configs/dollar6.yaml --all-folds
 earlysig aggregate --runs reports/runs/BASE_DIR
 earlysig serve --bundle BUNDLE --port 8000</code></pre>
   <p>
-    Each run directory is immutable and contains the resolved config, environment and source
-    digests, dataset audit and split manifest, model selection and calibration tables, policy
-    sweeps, per-stroke commitments, comparisons, dense prediction traces, figures, and a
-    generated report. The five-fold public run is
-    <code>20261106-164925-dollar6-f323a05c333b2727</code>, and the served bundle is
-    <code>G3R3-f323a05c333b2727-aa8f4f48-fold0.joblib</code>. The runs were produced on macOS
-    (arm64) with Python 3.12.15, NumPy 2.5.4, SciPy 1.18.1, and scikit-learn 1.9.1; exact pins
-    live in <code>requirements.lock</code>. Every figure on this page is regenerated from the run
-    artifacts by <code>scripts/make_report_figures.py</code>, and the fifty-three tests cover the
-    signature algebra, causality, splits, the policy, replay/API parity, and the four bugs I
-    least want to meet a second time.
+    Every run directory is immutable and holds the resolved config, environment and source
+    digests, the dataset audit and split manifest, model selection and calibration tables, policy
+    sweeps, per stroke commitments, comparisons, dense prediction traces, figures, and a
+    generated report. The five fold public run is
+    <code>20261106-164925-dollar6-f323a05c333b2727</code> and the served bundle is
+    <code>G3R3-f323a05c333b2727-aa8f4f48-fold0.joblib</code>. I ran everything on a MacBook Air,
+    arm64, 16 GB of RAM, Python 3.12.15, NumPy 2.5.4, SciPy 1.18.1, scikit-learn 1.9.1. Exact
+    pins are in <code>requirements.lock</code>. Every figure on this page is regenerated from the
+    run artifacts by <code>scripts/make_report_figures.py</code>, and the fifty three tests cover
+    the signature algebra, causality, splits, the policy, replay and API parity, and the four bugs
+    I least want to meet a second time.
   </p>
 
   <h2 id="checks">Every check the math has to pass</h2>
   <p>
-    I do not trust a signature implementation that has only been tested against itself. A
-    recurrence that copies the code's own recurrence proves nothing; it will happily confirm the
-    same half-factor error twice. So the backend is pinned to closed-form values that a
-    calculator could verify, and every one of these is a test in the repository:
+    I do not trust a signature implementation that has only been tested against itself. A test
+    that copies the code's own recurrence proves nothing, because it will happily confirm the same
+    half factor error twice. So the backend is pinned to closed form values a calculator could
+    check, and every one of these is a test in the repository.
   </p>
   <ul>
     <li><strong>Single segment.</strong> For one increment \(v\), level \(k\) equals
-      \(v^{\otimes k}/k!\) — for example, level 2 is \(vv^{\top}/2\).</li>
-    <li><strong>Right angle.</strong> For the path \((0,0)\to(1,0)\to(1,1)\):
+      \(v^{\otimes k}/k!\). Level 2 is \(vv^{\top}/2\).</li>
+    <li><strong>Right angle.</strong> For the path \((0,0)\to(1,0)\to(1,1)\), you should get
       \(S^{(1)}=(1,1)\), \(S^{(2)}=(0.5,\,1,\,0,\,0.5)\), and
-      \(S^{(3)}=(1/6,\,0.5,\,0,\,0.5,\,0,\,0,\,0,\,1/6)\). If your level-2 order is wrong, half
-      the numbers move; if your half-factors are wrong, all of them do.</li>
+      \(S^{(3)}=(1/6,\,0.5,\,0,\,0.5,\,0,\,0,\,0,\,1/6)\). Get the level 2 order wrong and half
+      those numbers move. Get the half factors wrong and all of them do.</li>
     <li><strong>Closed square.</strong> Displacement is exactly zero, and the antisymmetric area
-      \((S_{xy}-S_{yx})/2\) has magnitude 1 with the sign following the traversal direction
-      (positive counter-clockwise in \(y\)-up coordinates).</li>
-    <li><strong>Invariance under the boring transformations.</strong> Translation leaves every
-      level unchanged; isotropic scaling by \(\alpha\) multiplies level \(k\) by \(\alpha^k\);
-      subdividing a straight segment into collinear sub-segments leaves the signature unchanged;
-      inserting repeated identical points leaves the spatial signature unchanged.</li>
+      \((S_{xy}-S_{yx})/2\) has magnitude 1 with the sign following the traversal direction,
+      positive counter clockwise in y up coordinates.</li>
+    <li><strong>Boring transformations.</strong> Translation changes nothing. Isotropic scaling
+      by \(\alpha\) multiplies level \(k\) by \(\alpha^k\). Subdividing a straight segment into
+      collinear pieces changes nothing. Inserting repeated identical points changes nothing.</li>
     <li><strong>Algebra.</strong> The shuffle identity \(S_i S_j = S_{ij} + S_{ji}\) holds at
-      level 2, and the Chen product of the two halves of a path equals the signature of the
-      whole — checked against an independently written tensor product, not the production
+      level 2, and the Chen product of the two halves of a path equals the signature of the whole.
+      That one is checked against an independently written tensor product, not the production
       code.</li>
     <li><strong>Incremental versus batch.</strong> Signatures accumulated over growing prefixes
-      agree with one-shot computation on the final path.</li>
+      agree with one shot computation on the final path.</li>
   </ul>
   <p>
-    All of these pass at \(10^{-12}\) where the value is exact. The right-angle check is the one
-    that caught things during development; the closed-square area is the one that keeps the
+    All of these pass at \(10^{-12}\) where the value is exact. The right angle check is the one
+    that caught bugs during development. The closed square area is the one that keeps the
     orientation convention honest.
   </p>
 
   <h2 id="params">Every parameter, listed</h2>
   <p>
-    I keep saying the targets were registered before the results, so here is the registration
-    itself. If you want to argue with a number in this report, this is the table to argue with:
+    I keep saying the targets were registered before the results, so here is the registration. If
+    you want to argue with a number on this page, this is the table to argue with.
   </p>
   <div class="table-wrap">
     <table>
@@ -1144,28 +1084,28 @@ earlysig serve --bundle BUNDLE --port 8000</code></pre>
         <tr><td>row weights</td><td>1/K per row, so every stroke has equal total weight</td></tr>
         <tr><td>C grid</td><td>{0.1, 1, 10}, lbfgs, max 1,000 iterations</td></tr>
         <tr><td>development fractions</td><td>{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0}, latest grid tick at or before the fraction</td></tr>
-        <tr><td>calibration bounds</td><td>log-temperature in [−3, 3]; practical bound tolerance 1e−3</td></tr>
-        <tr><td>policy gates</td><td>≥ 75 ms, ≥ 8 distinct points, same winner ≥ θ for ≥ 100 ms, ≥ 3 ticks, ≥ 3 new movements</td></tr>
+        <tr><td>calibration bounds</td><td>log temperature in [−3, 3], practical bound tolerance 1e−3</td></tr>
+        <tr><td>policy gates</td><td>at least 75 ms, at least 8 distinct points, same winner at least θ for 100 ms, at least 3 ticks, at least 3 new movements</td></tr>
         <tr><td>movement tolerance</td><td>1e−3 in observed-prefix normalized units</td></tr>
         <tr><td>threshold grid</td><td>{0.50, 0.55, …, 0.95, 0.975, 0.99}</td></tr>
-        <tr><td>risk target</td><td>selective error ≤ 5% with ≥ 30 commitments on the policy writers</td></tr>
-        <tr><td>uncertainty</td><td>1,000 participant-cluster bootstrap draws; conditional stroke interval below 3 clusters</td></tr>
+        <tr><td>risk target</td><td>selective error at most 5% with at least 30 commitments on the policy writers</td></tr>
+        <tr><td>uncertainty</td><td>1,000 participant-cluster bootstrap draws, conditional stroke interval below 3 clusters</td></tr>
         <tr><td>seed</td><td>20261106</td></tr>
       </tbody>
     </table>
   </div>
   <p>
-    One footnote to the footnote: the tiny smoke profile keeps every rule above, but its
-    six-stroke policy partition cannot supply the 30 commitments that the floor asks for. It
-    reports the policy as infeasible by design. That outcome is deliberate; the alternative —
-    capping the floor to whatever the partition can give — is the kind of quiet protocol edit
-    that turns a benchmark into a press release.
+    One footnote to the footnote. The tiny smoke profile keeps every rule above, but its six
+    stroke policy partition cannot supply the thirty commitments the floor asks for. It reports
+    the policy as infeasible, on purpose. The alternative, capping the floor to whatever the
+    partition can give, is the kind of quiet protocol edit that turns a benchmark into a press
+    release.
   </p>
 
   <h2 id="glossary">A glossary for the tables</h2>
   <p>
-    Because this page leans on a handful of numbers so heavily, here is every term in one place,
-    written the way I would define it to a friend over coffee:
+    This page leans on a handful of numbers pretty heavily, so here is every term in one place,
+    written the way I would explain it to a friend over coffee.
   </p>
   <div class="table-wrap">
     <table>
@@ -1173,45 +1113,45 @@ earlysig serve --bundle BUNDLE --port 8000</code></pre>
         <tr><th>term</th><th>meaning</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong>commitment</strong></td><td>an irreversible early decision emitted before the stroke completes</td></tr>
-        <tr><td><strong>early vs final-only</strong></td><td>a commitment is early only if strictly before completion; one made at the final instant is annotated final-only and never counted as early</td></tr>
-        <tr><td><strong>coverage</strong></td><td>committed strokes ÷ all test strokes</td></tr>
-        <tr><td><strong>correct / wrong coverage</strong></td><td>correct or wrong early commitments ÷ all test strokes</td></tr>
-        <tr><td><strong>selective error</strong></td><td>wrong commitments ÷ commitments; undefined — not zero — when there are no commitments</td></tr>
-        <tr><td><strong>no-commit rate</strong></td><td>1 − coverage; the fraction of strokes that waited</td></tr>
-        <tr><td><strong>deployed accuracy</strong></td><td>per stroke: correct if the early commitment was correct, or if there was no commitment and the completion-time fallback was correct</td></tr>
-        <tr><td><strong>final accuracy</strong></td><td>accuracy of the completion-time full-prefix prediction, a separate quantity from every early number</td></tr>
-        <tr><td><strong>effective decision fraction</strong></td><td>q/T at commitment, or 1.0 for a wait; its mean charges abstention explicitly</td></tr>
-        <tr><td><strong>forced prediction</strong></td><td>a prediction read directly from the classifier at a progress fraction, ignoring the policy, using the latest grid tick at or before the fraction</td></tr>
-        <tr><td><strong>participant-cluster bootstrap</strong></td><td>resampling whole writers with replacement while keeping all of a writer's strokes together, used because repeated prefixes are not independent trials</td></tr>
-        <tr><td><strong>conditional stroke interval</strong></td><td>the labelled fallback used when fewer than three clusters exist: a stroke-level interval conditional on the observed writers, never presented as a population interval</td></tr>
+        <tr><td><strong>commitment</strong></td><td>an irreversible early decision made before the stroke completes</td></tr>
+        <tr><td><strong>early vs final-only</strong></td><td>a commitment counts as early only if it is strictly before completion. One made at the final instant is annotated final-only and never counts as early.</td></tr>
+        <tr><td><strong>coverage</strong></td><td>committed strokes divided by all test strokes</td></tr>
+        <tr><td><strong>correct / wrong coverage</strong></td><td>correct or wrong early commitments divided by all test strokes</td></tr>
+        <tr><td><strong>selective error</strong></td><td>wrong commitments divided by commitments. Undefined, not zero, when there are no commitments.</td></tr>
+        <tr><td><strong>no-commit rate</strong></td><td>1 minus coverage, the share of strokes that waited</td></tr>
+        <tr><td><strong>deployed accuracy</strong></td><td>per stroke: correct if the early commitment was correct, or if there was no commitment and the completion time fallback was correct</td></tr>
+        <tr><td><strong>final accuracy</strong></td><td>accuracy of the completion time full prefix prediction, a separate quantity from every early number</td></tr>
+        <tr><td><strong>effective decision fraction</strong></td><td>q/T at commitment, or 1.0 for a wait. Its mean charges abstention explicitly.</td></tr>
+        <tr><td><strong>forced prediction</strong></td><td>a prediction read straight from the classifier at a progress fraction, ignoring the policy, using the latest grid tick at or before the fraction</td></tr>
+        <tr><td><strong>participant-cluster bootstrap</strong></td><td>resampling whole writers with replacement while keeping all of a writer's strokes together, because repeated prefixes are not independent trials</td></tr>
+        <tr><td><strong>conditional stroke interval</strong></td><td>the labelled fallback when fewer than three clusters exist: a stroke level interval conditional on the observed writers, never presented as a population interval</td></tr>
       </tbody>
     </table>
   </div>
 
   <h2>Back to the first 175 milliseconds</h2>
   <p>
-    The arrow gets called at 175 ms and, on this writer, it is usually right. When it is wrong,
-    it is wrong in the most human way: two gestures that open the same way, decided before they
-    have had the chance to differ. That is the texture of early recognition — not one big
-    accuracy number, but a curve of decisions trading coverage against error against time, and a
-    policy that decides when the evidence has earned the right to stop.
+    The arrow gets called at 175 ms and on this writer it is usually right. When it is wrong, it
+    is wrong in the most human way possible. Two gestures that open the same way, decided before
+    they have a chance to differ. That is the texture of early recognition. Not one big accuracy
+    number, but a curve of decisions trading coverage against error against time, plus a policy
+    deciding when the evidence has earned the right to stop.
   </p>
   <p>
-    The project, the fifty-three tests, the five-fold runs, the thirty-page LaTeX write-up, and
-    every figure on this page are in the repository. If you build something with it — or find a
-    bug, which is more likely and more useful — I am one email away.
+    The project, the fifty three tests, the five fold runs, and every figure on this page are in
+    the repository. If you build something with it, or find a bug, which is more likely and more
+    useful, I am one email away.
   </p>
-  <p><em>Companion piece on the mathematics itself: <a href="path_sigs.html">The Geometric Trace</a>.</em></p>
+  <p><em>The maths companion piece is <a href="path_sigs.html">The Geometric Trace</a>.</em></p>
 
   <h2>References and links</h2>
   <ol>
     <li>I. Chevyrev and A. Kormilitzin, <a href="https://arxiv.org/abs/1603.03788">A Primer on the Signature Method in Machine Learning</a>, arXiv:1603.03788, 2016 (expanded 2025).</li>
     <li>J. Morrill, A. Fermanian, P. Kidger, T. Lyons, <a href="https://arxiv.org/abs/2006.00873">A Generalised Signature Method for Multivariate Time Series Feature Extraction</a>, arXiv:2006.00873, 2020/2021.</li>
-    <li>A. Renault, A. Bondu, A. Cornuéjols, <a href="https://arxiv.org/abs/2406.18332">Early Classification of Time Series: A Survey and Benchmark</a>, TMLR / arXiv, 2025.</li>
+    <li>A. Renault, A. Bondu, A. Cornuéjols, <a href="https://arxiv.org/abs/2406.18332">Early Classification of Time Series: A Survey and Benchmark</a>, TMLR and arXiv, 2025.</li>
     <li>J. O. Wobbrock, A. D. Wilson, Y. Li, <a href="https://faculty.washington.edu/wobbrock/pubs/uist-07.01.pdf">Gestures without Libraries, Toolkits or Training: A $1 Recognizer for User Interface Prototypes</a>, UIST 2007. Logs: <a href="https://depts.washington.edu/acelab/proj/dollar/">University of Washington</a>.</li>
     <li>C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger, <a href="https://arxiv.org/abs/1706.04599">On Calibration of Modern Neural Networks</a>, ICML 2017.</li>
-    <li><a href="https://github.com/pratyakshpatel/earlysig">github.com/pratyakshpatel/earlysig</a> — package, experiments, tests, run artifacts, and the LaTeX report.</li>
+    <li><a href="https://github.com/pratyakshpatel/earlysig">github.com/pratyakshpatel/earlysig</a>, the package, experiments, tests, run artifacts, and everything above.</li>
   </ol>
 </main>
 
