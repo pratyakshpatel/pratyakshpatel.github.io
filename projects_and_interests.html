@@ -178,6 +178,22 @@
 
   <section>
     <h2>Projects</h2>
+    <h3>Early Gesture Recognition with Low-Order Path Signatures</h3>
+    <p>Nov 2026 |
+      <a href="https://github.com/pratyakshpatel/earlysig" target="_blank">Project Link</a> |
+      <a href="earlysig_report.html">Report</a> |
+      <a href="earlysig.html">Blog</a>
+    </p>
+    <ul class="project-description">
+      <li>Built a CPU-only early-recognition system that classifies a single stroke while it is being drawn and commits to one irreversible decision with a separate threshold-and-stability policy.</li>
+      <li>Implemented exact piecewise-linear path signatures through depth 3 in NumPy (truncated Chen product, no left-Riemann approximation) and validated them against analytic values, shuffle, concatenation, subdivision, and scaling laws.</li>
+      <li>Compared eight causal representations — motion statistics, arc-length-resampled coordinates, global signatures at depths 1/2/3, a recent-250 ms branch, a matched historical-half control, and a prefix-template baseline — under one classifier family and one model-selection budget.</li>
+      <li>Ran a pre-registered five-fold writer-disjoint evaluation on the public $1 unistroke logs (1,800 out-of-fold strokes) with participant-cluster bootstrap intervals and paired comparisons on identical strokes.</li>
+      <li>Found depth-3 geometry decisively better than depth-1 (+0.565 paired forced correctness [0.520, 0.605]) and that a second signature branch helps, while recency specifically does not: the historical control beat both G3 and the recent-window model on public data.</li>
+      <li>Measured a stage-sensitivity failure mode of pooled-prefix training (0.975 balanced accuracy at 50% progress vs 0.811 at completion, against 0.944 for a completion-only fit) and reported it rather than hiding it.</li>
+      <li>Shipped a reproducible pipeline: checksum-verified data download and audit, immutable run directories, 53 tests, robustness stress tests, p95 1.31 ms live-update latency, and a local FastAPI + canvas drawing/replay/record app.</li>
+    </ul>
+
     <h3>Muon Routing Atlas: Which Transformer Parameters Benefit from Orthogonalized Optimization?</h3>
     <p>May 2026 |
       <a href="https://github.com/pratyakshpatel/having-fun-with-muon" target="_blank">Project Link</a> |
