@@ -197,10 +197,9 @@
 <main>
   <h1>Reading a Stroke Before It Ends</h1>
   <p class="subtitle">
-    7 November, 2026 · The complete <em>earlysig</em> write-up: path signatures, early commitments,
+    7 November, 2026 · The complete <em>earlysig</em> report: path signatures, early commitments,
     and the failures that turned out to be the interesting part ·
-    <a href="https://github.com/pratyakshpatel/earlysig">code</a> ·
-    <a href="https://github.com/pratyakshpatel/earlysig/blob/main/reports/earlysig_report.pdf">formal PDF</a>
+    <a href="https://github.com/pratyakshpatel/earlysig">code</a>
   </p>
 
   <p>
@@ -247,6 +246,9 @@
     <li><a href="#break">Now try to break it</a></li>
     <li><a href="#notsay">What this story does not say</a></li>
     <li><a href="#run">If you want to run it yourself</a></li>
+    <li><a href="#checks">Every check the math has to pass</a></li>
+    <li><a href="#params">Every parameter, listed</a></li>
+    <li><a href="#glossary">A glossary for the tables</a></li>
   </ol>
 
   <h2 id="questions">Two questions pretending to be one</h2>
@@ -724,6 +726,27 @@
     stopped thinking of signatures as a clever trick and started thinking of them as a reasonable
     default for ordered motion.
   </p>
+  <p>
+    For the record-keepers, the same result as numbers — forced balanced accuracy at 25/50/75/100%
+    progress, pooled out-of-fold over all ten writers:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>model</th><th>25%</th><th>50%</th><th>75%</th><th>100%</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>G1</td><td>0.675</td><td>0.449</td><td>0.309</td><td>0.236</td></tr>
+        <tr><td>G2</td><td>0.774</td><td>0.829</td><td>0.741</td><td>0.603</td></tr>
+        <tr><td>G3</td><td>0.889</td><td>0.918</td><td>0.931</td><td>0.839</td></tr>
+        <tr><td>G3R3</td><td>0.902</td><td>0.913</td><td>0.928</td><td>0.871</td></tr>
+        <tr><td>G3H3</td><td>0.897</td><td>0.963</td><td>0.968</td><td>0.954</td></tr>
+        <tr><td>MOTION</td><td>0.826</td><td>0.819</td><td>0.848</td><td>0.714</td></tr>
+        <tr><td>COORD16</td><td>0.855</td><td>0.938</td><td>0.955</td><td>0.947</td></tr>
+        <tr><td>TEMPLATE</td><td>0.816</td><td>0.934</td><td>0.944</td><td>0.938</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h3>The recent window lost. The historical one won.</h3>
   <p>
@@ -755,6 +778,34 @@
     <img src="assets/earlysig/fig_forest.png" alt="Forest plot of paired differences with confidence intervals" />
     <figcaption>Paired differences with 95% intervals. H1 is far from zero. All recent-window comparisons straddle zero, while the historical control is significantly positive for correctness and negative for errors.</figcaption>
   </figure>
+  <p>
+    And because the synthetic set tells a slightly different story, it deserves its own scoreboard.
+    Selected-policy results on its test partition (180 strokes, 60 families, family-cluster
+    intervals), for contrast with the public table above:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>model</th><th>commits</th><th>coverage</th><th>selective error</th><th>correct coverage</th><th>deployed acc.</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>G1</td><td>140</td><td>0.778</td><td>0.000</td><td>0.778</td><td>1.000</td></tr>
+        <tr><td>G2</td><td>160</td><td>0.889</td><td>0.025</td><td>0.867</td><td>0.978</td></tr>
+        <tr><td>G3</td><td>142</td><td>0.789</td><td>0.000</td><td>0.789</td><td>1.000</td></tr>
+        <tr><td>G3R3</td><td>168</td><td>0.933</td><td>0.018</td><td>0.917</td><td>0.983</td></tr>
+        <tr><td>G3H3</td><td>180</td><td>1.000</td><td>0.044</td><td>0.956</td><td>0.956</td></tr>
+        <tr><td>TEMPLATE</td><td>180</td><td>1.000</td><td>0.022</td><td>0.978</td><td>0.978</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Two things jump out. G1 recovers dramatically here — the synthetic suffixes are learnable
+    from displacement alone, which is precisely why this set is a diagnostic and not evidence.
+    And the policy dynamics differ from the public set: on shared prefixes, "correct coverage"
+    rises steeply the moment the branch point passes, so coverage is cheap and error is the whole
+    game. The synthetic set is where I learned to trust the leakage check and stopped trusting
+    the accuracy number.
+  </p>
 
   <h3>Abstention is worth it, and it is not free</h3>
   <p>
@@ -869,6 +920,22 @@
     fixed millisecond window does not fully absorb speed, and I think that is a genuinely open
     problem rather than a tuning knob.
   </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>variant</th><th>n</th><th>commits</th><th>coverage</th><th>selective error</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>clean</td><td>360</td><td>345</td><td>0.958</td><td>0.046</td></tr>
+        <tr><td>timestamps ×1.5</td><td>360</td><td>358</td><td>0.994</td><td>0.028</td></tr>
+        <tr><td>timestamps ×0.75</td><td>360</td><td>312</td><td>0.867</td><td>0.087</td></tr>
+        <tr><td>dropout 10% / 30%</td><td>360</td><td>346</td><td>0.961</td><td>0.046</td></tr>
+        <tr><td>coordinate noise 2% / 5%</td><td>360</td><td>341 / 299</td><td>0.947 / 0.831</td><td>0.079 / 0.157</td></tr>
+        <tr><td>inserted pauses</td><td>360</td><td>355</td><td>0.986</td><td>0.051</td></tr>
+        <tr><td>speed = fast / medium / slow</td><td>120 each</td><td>105 / 120 / 120</td><td>0.875 / 1.000 / 1.000</td><td>0.114 / 0.025 / 0.008</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h3>Calibration, and the boring numbers that decide whether it ships</h3>
   <figure>
@@ -878,12 +945,33 @@
   <p>
     Temperature was an interior optimum for all eight models, and it improved every one — the
     biggest disagreements between confidence and accuracy were exactly the overconfident models
-    (the template baseline and G2). Weighted NLL after calibration ranges from 0.461 (G3H3) to
-    1.219 (G1) on 2,152 calibration rows. Latency is 0.83 ms mean and 1.31 ms p95 per live update,
-    against a 50 ms budget; peak memory is 130–165 MB. No GPU, no cloud, no compiled signature
-    library. The browser demo commits on live drawing, replays held-out examples through the same
-    API, records labelled strokes, and shows the commitment marker landing on the path at
-    175–350 ms.
+    (the template baseline and G2). The full calibration table, fold 0, 2,152 stroke-weighted
+    rows:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>model</th><th>temperature</th><th>NLL before</th><th>NLL after</th><th>weighted Brier</th><th>weighted ECE</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>MOTION</td><td>1.401</td><td>0.702</td><td>0.671</td><td>0.307</td><td>0.081</td></tr>
+        <tr><td>COORD16</td><td>1.838</td><td>0.688</td><td>0.596</td><td>0.272</td><td>0.071</td></tr>
+        <tr><td>G1</td><td>0.783</td><td>1.232</td><td>1.219</td><td>0.639</td><td>0.074</td></tr>
+        <tr><td>G2</td><td>1.897</td><td>1.015</td><td>0.907</td><td>0.453</td><td>0.157</td></tr>
+        <tr><td>G3</td><td>1.500</td><td>0.604</td><td>0.560</td><td>0.255</td><td>0.055</td></tr>
+        <tr><td>G3R3</td><td>1.651</td><td>0.597</td><td>0.528</td><td>0.248</td><td>0.037</td></tr>
+        <tr><td>G3H3</td><td>1.411</td><td>0.489</td><td>0.461</td><td>0.197</td><td>0.036</td></tr>
+        <tr><td>TEMPLATE</td><td>2.946</td><td>1.085</td><td>0.692</td><td>0.305</td><td>0.123</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    And the boring numbers that decide whether any of this ships. Latency for G3R3 — prefix
+    extraction plus feature extraction plus calibrated prediction — is 0.83 ms mean and 1.31 ms
+    p95 per live update, against a 50 ms budget; peak memory is 130–165 MB. No GPU, no cloud, no
+    compiled signature library. The browser demo commits on live drawing, replays held-out
+    examples through the same API, records labelled strokes, and shows the commitment marker
+    landing on the path at 175–350 ms.
   </p>
 
   <h2 id="seams">The seams I had to sew back together</h2>
@@ -996,9 +1084,110 @@ earlysig serve --bundle BUNDLE --port 8000</code></pre>
     sweeps, per-stroke commitments, comparisons, dense prediction traces, figures, and a
     generated report. The five-fold public run is
     <code>20261106-164925-dollar6-f323a05c333b2727</code>, and the served bundle is
-    <code>G3R3-f323a05c333b2727-aa8f4f48-fold0.joblib</code>. The formal PDF version of this
-    write-up lives in the repository at <code>reports/earlysig_report.pdf</code>.
+    <code>G3R3-f323a05c333b2727-aa8f4f48-fold0.joblib</code>. The runs were produced on macOS
+    (arm64) with Python 3.12.15, NumPy 2.5.4, SciPy 1.18.1, and scikit-learn 1.9.1; exact pins
+    live in <code>requirements.lock</code>. Every figure on this page is regenerated from the run
+    artifacts by <code>scripts/make_report_figures.py</code>, and the fifty-three tests cover the
+    signature algebra, causality, splits, the policy, replay/API parity, and the four bugs I
+    least want to meet a second time.
   </p>
+
+  <h2 id="checks">Every check the math has to pass</h2>
+  <p>
+    I do not trust a signature implementation that has only been tested against itself. A
+    recurrence that copies the code's own recurrence proves nothing; it will happily confirm the
+    same half-factor error twice. So the backend is pinned to closed-form values that a
+    calculator could verify, and every one of these is a test in the repository:
+  </p>
+  <ul>
+    <li><strong>Single segment.</strong> For one increment \(v\), level \(k\) equals
+      \(v^{\otimes k}/k!\) — for example, level 2 is \(vv^{\top}/2\).</li>
+    <li><strong>Right angle.</strong> For the path \((0,0)\to(1,0)\to(1,1)\):
+      \(S^{(1)}=(1,1)\), \(S^{(2)}=(0.5,\,1,\,0,\,0.5)\), and
+      \(S^{(3)}=(1/6,\,0.5,\,0,\,0.5,\,0,\,0,\,0,\,1/6)\). If your level-2 order is wrong, half
+      the numbers move; if your half-factors are wrong, all of them do.</li>
+    <li><strong>Closed square.</strong> Displacement is exactly zero, and the antisymmetric area
+      \((S_{xy}-S_{yx})/2\) has magnitude 1 with the sign following the traversal direction
+      (positive counter-clockwise in \(y\)-up coordinates).</li>
+    <li><strong>Invariance under the boring transformations.</strong> Translation leaves every
+      level unchanged; isotropic scaling by \(\alpha\) multiplies level \(k\) by \(\alpha^k\);
+      subdividing a straight segment into collinear sub-segments leaves the signature unchanged;
+      inserting repeated identical points leaves the spatial signature unchanged.</li>
+    <li><strong>Algebra.</strong> The shuffle identity \(S_i S_j = S_{ij} + S_{ji}\) holds at
+      level 2, and the Chen product of the two halves of a path equals the signature of the
+      whole — checked against an independently written tensor product, not the production
+      code.</li>
+    <li><strong>Incremental versus batch.</strong> Signatures accumulated over growing prefixes
+      agree with one-shot computation on the final path.</li>
+  </ul>
+  <p>
+    All of these pass at \(10^{-12}\) where the value is exact. The right-angle check is the one
+    that caught things during development; the closed-square area is the one that keeps the
+    orientation convention honest.
+  </p>
+
+  <h2 id="params">Every parameter, listed</h2>
+  <p>
+    I keep saying the targets were registered before the results, so here is the registration
+    itself. If you want to argue with a number in this report, this is the table to argue with:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>parameter</th><th>value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>query grid</td><td>25 ms, fixed, relative to pointer-down</td></tr>
+        <tr><td>recent window</td><td>[max(0, q − 250 ms), q]</td></tr>
+        <tr><td>historical control</td><td>[0, q/2]</td></tr>
+        <tr><td>training rows per stroke</td><td>at most 12, completion always included, states strictly after t = 0</td></tr>
+        <tr><td>row weights</td><td>1/K per row, so every stroke has equal total weight</td></tr>
+        <tr><td>C grid</td><td>{0.1, 1, 10}, lbfgs, max 1,000 iterations</td></tr>
+        <tr><td>development fractions</td><td>{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0}, latest grid tick at or before the fraction</td></tr>
+        <tr><td>calibration bounds</td><td>log-temperature in [−3, 3]; practical bound tolerance 1e−3</td></tr>
+        <tr><td>policy gates</td><td>≥ 75 ms, ≥ 8 distinct points, same winner ≥ θ for ≥ 100 ms, ≥ 3 ticks, ≥ 3 new movements</td></tr>
+        <tr><td>movement tolerance</td><td>1e−3 in observed-prefix normalized units</td></tr>
+        <tr><td>threshold grid</td><td>{0.50, 0.55, …, 0.95, 0.975, 0.99}</td></tr>
+        <tr><td>risk target</td><td>selective error ≤ 5% with ≥ 30 commitments on the policy writers</td></tr>
+        <tr><td>uncertainty</td><td>1,000 participant-cluster bootstrap draws; conditional stroke interval below 3 clusters</td></tr>
+        <tr><td>seed</td><td>20261106</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    One footnote to the footnote: the tiny smoke profile keeps every rule above, but its
+    six-stroke policy partition cannot supply the 30 commitments that the floor asks for. It
+    reports the policy as infeasible by design. That outcome is deliberate; the alternative —
+    capping the floor to whatever the partition can give — is the kind of quiet protocol edit
+    that turns a benchmark into a press release.
+  </p>
+
+  <h2 id="glossary">A glossary for the tables</h2>
+  <p>
+    Because this page leans on a handful of numbers so heavily, here is every term in one place,
+    written the way I would define it to a friend over coffee:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>term</th><th>meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>commitment</strong></td><td>an irreversible early decision emitted before the stroke completes</td></tr>
+        <tr><td><strong>early vs final-only</strong></td><td>a commitment is early only if strictly before completion; one made at the final instant is annotated final-only and never counted as early</td></tr>
+        <tr><td><strong>coverage</strong></td><td>committed strokes ÷ all test strokes</td></tr>
+        <tr><td><strong>correct / wrong coverage</strong></td><td>correct or wrong early commitments ÷ all test strokes</td></tr>
+        <tr><td><strong>selective error</strong></td><td>wrong commitments ÷ commitments; undefined — not zero — when there are no commitments</td></tr>
+        <tr><td><strong>no-commit rate</strong></td><td>1 − coverage; the fraction of strokes that waited</td></tr>
+        <tr><td><strong>deployed accuracy</strong></td><td>per stroke: correct if the early commitment was correct, or if there was no commitment and the completion-time fallback was correct</td></tr>
+        <tr><td><strong>final accuracy</strong></td><td>accuracy of the completion-time full-prefix prediction, a separate quantity from every early number</td></tr>
+        <tr><td><strong>effective decision fraction</strong></td><td>q/T at commitment, or 1.0 for a wait; its mean charges abstention explicitly</td></tr>
+        <tr><td><strong>forced prediction</strong></td><td>a prediction read directly from the classifier at a progress fraction, ignoring the policy, using the latest grid tick at or before the fraction</td></tr>
+        <tr><td><strong>participant-cluster bootstrap</strong></td><td>resampling whole writers with replacement while keeping all of a writer's strokes together, used because repeated prefixes are not independent trials</td></tr>
+        <tr><td><strong>conditional stroke interval</strong></td><td>the labelled fallback used when fewer than three clusters exist: a stroke-level interval conditional on the observed writers, never presented as a population interval</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h2>Back to the first 175 milliseconds</h2>
   <p>
