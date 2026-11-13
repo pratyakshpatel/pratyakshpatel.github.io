@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How a one-bit change can send nearly identical neural networks toward different solutions, and why riddled basins may be stranger than ordinary chaos.">
+  <title>The Butterfly Effect Inside Gradient Descent</title>
+  <link rel="stylesheet" href="https://latex.vercel.app/style.css">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YEX4Y4DJM3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YEX4Y4DJM3');
+  </script>
+  <style>
+    body.butterfly-page {
+      max-width: 80rem !important;
+      counter-reset: sidenote-counter;
+      overflow-x: hidden;
+    }
+
+    .butterfly-nav,
+    .article-frame,
+    .butterfly-footer {
+      width: 100%;
+      max-width: 50rem;
+      margin-right: auto !important;
+      margin-left: auto !important;
+    }
+
+    .article-frame {
+      overflow: visible;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+    }
+
+    .hero-figure,
+    .viz {
+      margin: 2rem 0 !important;
+    }
+
+    .hero-figure img {
+      display: block;
+      width: 100%;
+      border: 1px solid #777;
+    }
+
+    .hero-figure figcaption,
+    .viz-caption {
+      margin-top: 0.65rem;
+    }
+
+    .butterfly-line {
+      margin: 1.6rem 0;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid #888;
+      border-left: 5px solid #b65a32;
+      font-size: 1.04rem;
+    }
+
+    .trajectory-pair {
+      margin: 1.6rem 0;
+      padding: 0.7rem;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid #999;
+      text-align: center;
+    }
+
+    .basin-triptych {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.7rem;
+    }
+
+    .basin-panel {
+      padding: 0.55rem;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid #888;
+    }
+
+    .basin-panel svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .basin-panel strong {
+      display: block;
+      margin-top: 0.45rem;
+      font-size: 0.84rem;
+    }
+
+    .basin-panel span {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.72rem;
+      line-height: 1.4;
+    }
+
+    .comparison-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .comparison-wrap table {
+      min-width: 650px;
+    }
+
+    .precision-plot {
+      padding: 0.75rem;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, 0.23);
+      border: 1px solid #888;
+    }
+
+    .precision-plot svg {
+      display: block;
+      width: 100%;
+      min-width: 590px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    sup.sidenote-number {
+      counter-increment: sidenote-counter;
+      color: #0000ee;
+      font-size: 0.7em;
+      line-height: 0;
+    }
+
+    sup.sidenote-number::after {
+      content: counter(sidenote-counter);
+      padding: 0 0.08em;
+    }
+
+    span.sidenote {
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.25rem -15rem 0.9rem 1.2rem;
+      color: #222;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    span.sidenote.left {
+      float: left;
+      clear: left;
+      margin-right: 1.2rem;
+      margin-left: -15rem;
+      text-align: right;
+    }
+
+    span.sidenote::before {
+      content: counter(sidenote-counter) ". ";
+      color: #0000ee;
+      font-weight: 700;
+    }
+
+    .references {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #aaa;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .references li {
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 1320px) {
+      body.butterfly-page {
+        max-width: 50rem !important;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        clear: both;
+        width: auto;
+        margin: 0.45rem 0 0.85rem 1rem;
+        padding: 0.45rem 0.65rem;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 2px solid #777;
+        font-size: 0.74rem;
+        line-height: 1.4;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .basin-triptych {
+        grid-template-columns: 1fr;
+      }
+
+      .basin-panel {
+        display: grid;
+        grid-template-columns: 9rem 1fr;
+        gap: 0 0.65rem;
+        align-items: center;
+      }
+
+      .basin-panel svg {
+        grid-row: 1 / span 2;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        margin-left: 0.55rem;
+        font-size: 0.72rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .basin-panel {
+        grid-template-columns: 7.25rem 1fr;
+      }
+    }
+
+    @media print {
+      body.butterfly-page {
+        max-width: none !important;
+      }
+
+      .hero-figure,
+      .viz,
+      .comparison-wrap {
+        break-inside: avoid;
+      }
+
+      span.sidenote,
+      span.sidenote.left {
+        display: block;
+        float: none;
+        width: auto;
+        margin: 0.4rem 0 0.8rem;
+        padding-left: 0.8rem;
+        border-left: 2px solid #777;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body class="butterfly-page">
+  <nav class="nav-links butterfly-nav" aria-label="Blog navigation">
+    <a class="go-back" href="technical_blog.html">&larr; Technical blog</a>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <main>
+    <article class="article-frame">
+      <h1>The Butterfly Effect Inside Gradient Descent</h1>
+      <div class="meta">13 November, 2026 &middot; How changing one bit can send two nearly identical neural networks toward different solutions</div>
+
+      <p class="lede">Take a neural network and freeze everything: the architecture, the data, the optimizer, the learning rate, and the training code. Copy its initial weights. In the copy, change the smallest numerical detail the computer can store, one bit in one parameter. Then train both networks deterministically.</p>
+
+      <p>I would expect the two runs to wobble apart. Neural-network training is sensitive, floating-point numbers are finite, and millions of updates give a small difference plenty of time to grow. I would still expect the runs to remain recognizably related.</p>
+
+      <p>In one recent experiment, the one-bit change sent training to a different internal destination in 47.7 percent of pairs.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>One bit, in this experiment.</strong> The authors flipped the least significant bit of one parameter in a representative VGG-12 setup. The 47.7 percent is not universal.</span> The result survived CPU training designed to remove platform nondeterminism. The difference was not a GPU rolling dice. It came from feeding two almost indistinguishable starting points into the same deterministic rule.<a href="#ref-1">[1]</a><a href="#ref-4">[4]</a></p>
+
+      <p>This sounds like the butterfly effect. But the geometry underneath it may be stranger than chaos.</p>
+
+      <p>The butterfly effect is often used as a poetic name for randomness. It means almost the opposite. The system can be perfectly lawful: the same state always produces the same next state. The problem is that two states too close for us to distinguish can separate until their later trajectories have almost nothing in common. Determinism tells us that the future exists inside the rule. It does not promise that finite measurements let us recover it.</p>
+
+      <p>That familiar story is about losing the path. Start two weather simulations a hair apart and, after enough time, the exact location of each storm becomes unreliable. Yet both trajectories may still live on the same broad climatic attractor. They forget their separation without necessarily changing the kind of long-term world they occupy.</p>
+
+      <p>Neural-network training adds a more unsettling possibility. What if the tiny difference does not merely change the path through weight space? What if it changes which stable solution, symmetry class, or learned function receives the trajectory at the end? Then the one-bit experiment is not only a story about magnification. It is a story about a map whose destinations are mixed together more intimately than a normal border allows.</p>
+
+      <figure class="hero-figure">
+        <img src="assets/butterfly_effect/butterfly_basin.png" width="1536" height="1024" alt="An abstract navy and burnt-orange fractal basin map loosely forming two butterfly-like wings, with a tiny white initialization point at the centre">
+        <figcaption>An original basin-map illustration. Navy and orange mark two possible destinations; the white point marks one initialization. The butterfly shape is only a visual metaphor, not a reproduction of the paper's figures.</figcaption>
+      </figure>
+
+      <h2>The butterfly enters the update rule</h2>
+
+      <p>Plain gradient descent can be written as</p>
+
+      <p>\[
+        \theta_{t+1}=\theta_t-\eta\nabla L(\theta_t).
+      \]</p>
+
+      <p>Here \(\theta_t\) is every weight after step \(t\), \(L\) is the loss, \(\nabla L(\theta_t)\) is its local uphill direction, and \(\eta\) is the learning rate that decides the step size.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>The gradient sign.</strong> \(\nabla L\) points toward increasing loss. The minus sign walks the other way; \(t+1\) means one update later.</span> Fix the initial weights \(\theta_0\), the loss, and the update rule, and the full sequence \(\theta_1,\theta_2,\ldots\) is fixed.</p>
+
+      <p>Deterministic does not mean insensitive. A pencil balanced on its tip follows deterministic physics, but moving it a hair changes where it falls. The question is what kind of prediction we lose. Ordinary chaos says nearby starts can produce rapidly separating trajectories.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Trajectory.</strong> The ordered parameter states visited during training. Different trajectories can still settle in the same region.</span> The new paper asks whether nearby starts can also change the kind of place where training ends.</p>
+
+      <p>There is also an important difference between rerunning an identical file and perturbing its neighbourhood. If the same bit pattern enters deterministic code twice, we should get the same run twice. That is ordinary repeatability. The paper asks a local robustness question: if the bit pattern changes by the smallest representable amount, do we still reach the same kind of outcome? A random seed can answer the first question while telling us almost nothing about the second.</p>
+
+      <div class="trajectory-pair" aria-label="Two nearby initializations reaching different destinations">
+        \[
+          \theta_0 \longrightarrow A,
+          \qquad
+          \theta_0+\varepsilon \longrightarrow B.
+        \]
+      </div>
+
+      <p>The small quantity \(\varepsilon\) is the perturbation added to the initialization. The letters \(A\) and \(B\) stand for two long-term destinations, not necessarily two individual points. A destination could be a stable solution, a cycle, or a more complicated set that keeps the trajectory nearby.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Attractor.</strong> A state or set of states that pulls in nearby trajectories and governs their long-term behaviour.</span></p>
+
+      <h2>A map where every colour is an ending</h2>
+
+      <p>Imagine flattening a tiny slice of the enormous initialization space into a map. Every point is a possible \(\theta_0\). Colour a point navy if training from it ends at \(A\), and orange if it ends at \(B\). All navy points together form the basin of attraction for \(A\). In plain language, a basin is the set of starting points that drain into the same ending.</p>
+
+      <p>Suppose our stored initialization is not an infinitely sharp point but a tiny disk of possible points. That disk represents everything we do not know or cannot control about the final digits. With a smooth boundary, most disks are boring. A navy point far from the border has a navy disk around it. Only a disk crossing the border contains both outcomes.</p>
+
+      <p>If the border is smooth, prediction is easy almost everywhere. Only starts close to the border are ambiguous. Measure the initialization more precisely and eventually the uncertainty ball around it sits entirely inside one colour.</p>
+
+      <p>A fractal boundary complicates the same picture. Its coastline sprouts bays, fingers, and smaller coastlines whenever we zoom in. A disk near that boundary can contain both colours at many scales. But “fractal” alone is not enough for the paper's claim. A thin fractal boundary can be spectacularly complicated while leaving almost every point inside a clean patch. Precision still wins once our disk becomes small enough and happens not to sit on the edge.</p>
+
+      <figure class="viz" aria-labelledby="basin-caption">
+        <div class="basin-triptych">
+          <div class="basin-panel">
+            <svg viewBox="0 0 240 160" role="img" aria-label="Two basins separated by a smooth boundary">
+              <rect width="240" height="160" fill="#13283b"/>
+              <path d="M126 0 C103 28 145 48 119 78 C94 106 135 128 112 160 L240 160 L240 0 Z" fill="#b65a32"/>
+              <path d="M126 0 C103 28 145 48 119 78 C94 106 135 128 112 160" fill="none" stroke="#f4ead7" stroke-width="2"/>
+            </svg>
+            <strong>1. Smooth</strong>
+            <span>Only points near one clean border are uncertain.</span>
+          </div>
+          <div class="basin-panel">
+            <svg viewBox="0 0 240 160" role="img" aria-label="Two basins separated by a thin fractal boundary">
+              <rect width="240" height="160" fill="#13283b"/>
+              <path d="M129 0 C102 18 149 28 116 44 C91 57 148 65 117 80 C91 93 150 103 112 119 C89 129 139 143 108 160 L240 160 L240 0 Z" fill="#b65a32"/>
+              <g fill="#b65a32">
+                <path d="M110 35 l-31 -11 24 20 -29 8 38 -2 Z"/>
+                <path d="M112 91 l-37 -13 27 22 -34 10 45 -4 Z"/>
+                <path d="M109 139 l-29 -12 21 19 -27 7 36 -3 Z"/>
+              </g>
+              <g fill="#13283b">
+                <path d="M126 19 l35 -11 -27 20 31 8 -40 -2 Z"/>
+                <path d="M124 64 l39 -12 -30 21 35 10 -45 -4 Z"/>
+                <path d="M121 113 l38 -11 -29 20 34 9 -44 -3 Z"/>
+              </g>
+              <path d="M129 0 C102 18 149 28 116 44 C91 57 148 65 117 80 C91 93 150 103 112 119 C89 129 139 143 108 160" fill="none" stroke="#f4ead7" stroke-width="1.4"/>
+            </svg>
+            <strong>2. Fractal boundary</strong>
+            <span>The edge keeps wrinkling, but clean interiors remain.</span>
+          </div>
+          <div class="basin-panel">
+            <svg viewBox="0 0 240 160" role="img" aria-label="Navy and orange basins interwoven throughout the region">
+              <rect width="240" height="160" fill="#13283b"/>
+              <path d="M0 18 C42 -6 55 47 96 20 C137 -7 148 45 190 18 C214 3 228 9 240 22 L240 58 C209 77 189 35 152 61 C116 87 94 43 55 70 C31 86 13 76 0 64 Z" fill="#b65a32"/>
+              <path d="M0 96 C29 72 56 122 91 96 C128 69 150 122 184 94 C210 73 226 82 240 97 L240 139 C210 158 186 118 151 143 C116 168 91 124 58 150 C31 170 13 148 0 139 Z" fill="#b65a32"/>
+              <g fill="#b65a32">
+                <circle cx="19" cy="10" r="5"/><circle cx="72" cy="8" r="4"/><circle cx="118" cy="52" r="5"/><circle cx="173" cy="9" r="4"/><circle cx="218" cy="70" r="5"/>
+                <circle cx="36" cy="87" r="4"/><circle cx="83" cy="79" r="5"/><circle cx="139" cy="89" r="4"/><circle cx="193" cy="78" r="4"/><circle cx="228" cy="154" r="4"/>
+              </g>
+              <g fill="#13283b">
+                <circle cx="31" cy="40" r="5"/><circle cx="78" cy="36" r="4"/><circle cx="130" cy="17" r="4"/><circle cx="176" cy="43" r="5"/><circle cx="224" cy="35" r="4"/>
+                <circle cx="17" cy="119" r="4"/><circle cx="69" cy="111" r="5"/><circle cx="117" cy="132" r="4"/><circle cx="174" cy="113" r="4"/><circle cx="215" cy="126" r="5"/>
+              </g>
+            </svg>
+            <strong>3. Riddled</strong>
+            <span>The competing colour keeps reappearing throughout the basin.</span>
+          </div>
+        </div>
+        <figcaption class="viz-caption" id="basin-caption">More complicated boundaries are not automatically riddled. Riddling means the competing outcome remains arbitrarily close throughout the basin.</figcaption>
+      </figure>
+
+      <p>A fractal boundary keeps revealing finer wrinkles as we zoom in, but it can still be thin. Most points can sit in large, clean interiors. A riddled basin is harsher: every neighbourhood around a point leading to \(A\), however small, also contains a non-negligible collection of points leading elsewhere.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Non-negligible.</strong> The competing basin must occupy positive volume inside every neighbourhood. Merely containing one stray point is not enough.</span> The basin is not merely next to its boundary. It is perforated by the other basin all the way through.<a href="#ref-6">[6]</a></p>
+
+      <p>This is why the paper uses the phrase <em>fat fractal</em>.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Fat versus thin.</strong> A thin fractal can have intricate structure but zero area or volume. A fat fractal occupies positive volume, so its fine structure is not confined to a negligible edge.</span> The competing colour is not dust sprinkled on a zero-width line. It occupies real volume, yet appears in holes distributed so densely that no point in the riddled basin owns a completely private neighbourhood.</p>
+
+      <h2>Stronger than losing the route</h2>
+
+      <div class="comparison-wrap" tabindex="0" aria-label="Comparison of ordinary chaos and riddled basins">
+        <table>
+          <thead>
+            <tr><th>Ordinary chaos</th><th>Riddled basins</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tiny errors change the detailed trajectory.</td><td>Tiny errors can change the final attractor.</td></tr>
+            <tr><td>Long-term coordinates become unpredictable.</td><td>Qualitative outcomes become unpredictable.</td></tr>
+            <tr><td>Trajectories may remain around the same attractor.</td><td>Trajectories can end in different basins.</td></tr>
+            <tr><td>Better precision extends the forecast horizon.</td><td>Better precision may barely improve outcome prediction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="butterfly-line">Chaos says I cannot tell you exactly how the butterfly will fly. Riddling says I may not even be able to tell you which continent it will reach.</p>
+
+      <p>The distinction is route versus destination. Chaos can make the route impossible to follow while leaving the destination recognizable. Riddling makes the destination itself sensitive to a perturbation that we cannot practically remove.<a href="#ref-1">[1]</a></p>
+
+      <p>Picture two hikers released one millimetre apart on a strange mountain. In the chaotic version, both remain inside the same valley, but their detailed walks diverge until we cannot say which boulder either will pass. In the riddled version, hidden channels send one hiker to the north sea and the other to the south. Better measurement helps with the first problem by postponing the moment when the paths become useless. In the second, the uncertainty is about which drainage system owns the starting point.</p>
+
+      <p>This does not mean every chaotic system is riddled, or that every network with multiple minima has riddled basins. Riddling needs a particular combination: more than one attractor, special invariant geometry, chaos within that geometry, and instability that can eject trajectories toward a competitor. The stronger conclusion earns a stronger burden of evidence.</p>
+
+      <p>The paper measures that sensitivity with one scaling law:</p>
+
+      <p>\[
+        f(\varepsilon)\propto\varepsilon^\phi.
+      \]</p>
+
+      <p>We already know \(\varepsilon\): it is the initialization perturbation. The function \(f(\varepsilon)\) is the fraction of nearby pairs that finish in different basins. The exponent \(\phi\) tells us how quickly that fraction falls as the perturbation shrinks.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Why an exponent?</strong> On logarithmic axes, a power law is a line and \(\phi\) is its slope. Near zero means nearly flat.</span></p>
+
+      <p>The useful part is not the equation's shape but the bargain it describes. Imagine reducing the perturbation a million-fold. If \(\phi=0.5\), the changed-outcome fraction falls by a factor of one thousand. Precision is buying a lot. If \(\phi=0.01\), the same heroic improvement changes the fraction only modestly. At exactly zero, the power-law factor does not fall at all.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Reading the power.</strong> Shrinking \(\varepsilon\) by \(10^6\) multiplies \(f\) by \((10^{-6})^\phi\). With \(\phi=0.5\), that is \(10^{-3}\). With \(\phi=0\), it is 1.</span></p>
+
+      <p>If \(\phi>0\), buying more precision helps. If \(\phi\approx0\), making \(\varepsilon\) dramatically smaller does almost nothing. In the paper's representative deep-network analysis, the parameter-space estimate was \(\phi_p=0.000\pm0.002\) across ten orders of magnitude.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>The subscript \(p\).</strong> It means parameter space. The fitted exponent and its reported uncertainty are indistinguishable from zero.</span> Ten billion times more precision produced no measurable improvement in predicting the parameter-space destination for that setup.<a href="#ref-2">[2]</a></p>
+
+      <p>Near zero is a measured statement, not a metaphysical one. Computers eventually run out of smaller representable perturbations, experiments cover finite scales, and a fitted exponent can carry uncertainty. The result says that across the ten orders of magnitude the authors could test, the curve was effectively flat. It does not say mathematics has proved that every still-smaller scale in every deep network must behave identically.</p>
+
+      <figure class="viz precision-plot" aria-labelledby="precision-caption">
+        <svg viewBox="0 0 700 400" role="img" aria-labelledby="precision-title precision-desc">
+          <title id="precision-title">How uncertainty changes as perturbations become smaller</title>
+          <desc id="precision-desc">A navy line descends as perturbation size decreases, representing a positive uncertainty exponent. A burnt-orange line stays nearly flat, representing an exponent near zero.</desc>
+          <rect x="0" y="0" width="700" height="400" fill="#eee3ce"/>
+          <g stroke="#aa9d86" stroke-width="1">
+            <line x1="90" y1="70" x2="650" y2="70"/><line x1="90" y1="140" x2="650" y2="140"/>
+            <line x1="90" y1="210" x2="650" y2="210"/><line x1="90" y1="280" x2="650" y2="280"/>
+            <line x1="90" y1="340" x2="650" y2="340"/>
+          </g>
+          <g stroke="#222" stroke-width="2">
+            <line x1="90" y1="45" x2="90" y2="340"/><line x1="90" y1="340" x2="660" y2="340"/>
+          </g>
+          <polyline points="105,96 235,148 370,205 505,260 640,314" fill="none" stroke="#13283b" stroke-width="5"/>
+          <polyline points="105,154 235,158 370,160 505,164 640,167" fill="none" stroke="#b65a32" stroke-width="5"/>
+          <g fill="#13283b">
+            <circle cx="105" cy="96" r="5"/><circle cx="235" cy="148" r="5"/><circle cx="370" cy="205" r="5"/><circle cx="505" cy="260" r="5"/><circle cx="640" cy="314" r="5"/>
+          </g>
+          <g fill="#b65a32">
+            <circle cx="105" cy="154" r="5"/><circle cx="235" cy="158" r="5"/><circle cx="370" cy="160" r="5"/><circle cx="505" cy="164" r="5"/><circle cx="640" cy="167" r="5"/>
+          </g>
+          <g fill="#222" font-family="Verdana, Geneva, sans-serif" font-size="14">
+            <text x="105" y="365" text-anchor="middle">10⁻²</text><text x="235" y="365" text-anchor="middle">10⁻⁴</text>
+            <text x="370" y="365" text-anchor="middle">10⁻⁶</text><text x="505" y="365" text-anchor="middle">10⁻⁸</text>
+            <text x="640" y="365" text-anchor="middle">10⁻¹²</text>
+            <text x="370" y="392" text-anchor="middle">perturbation size ε  (smaller →)</text>
+            <text x="25" y="195" text-anchor="middle" transform="rotate(-90 25 195)">changed outcomes  f(ε)</text>
+          </g>
+          <g font-family="Verdana, Geneva, sans-serif" font-size="15" font-weight="700">
+            <text x="475" y="285" fill="#13283b">ordinary boundary: φ &gt; 0</text>
+            <text x="465" y="145" fill="#b65a32">riddled basin: φ ≈ 0</text>
+          </g>
+        </svg>
+        <figcaption class="viz-caption" id="precision-caption">On log-log axes, the uncertainty exponent is the line's slope. An ordinary boundary rewards smaller perturbations. A near-horizontal riddled curve says that precision has stopped buying much predictability.</figcaption>
+      </figure>
+
+      <h2>How a basin gets holes everywhere</h2>
+
+      <p>The proposed mechanism begins with symmetry. Swap two hidden neurons and their outgoing weights in the same way, and the network can still compute the same function.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Parameter symmetry.</strong> Several weight descriptions can encode one input-output rule. Equivalent neurons can be permuted; some architectures also allow scaling and sign symmetries.</span> Those symmetries create invariant subspaces, special slices of parameter space that a trajectory cannot leave once it starts exactly inside them.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote left" role="note"><strong>Invariant subspace.</strong> A lower-dimensional slice of weights that the training update always maps back into itself.</span></p>
+
+      <p>Take the smallest useful example: a network with two hidden neurons. There is a slice of parameter space where both neurons have identical weights. Because the gradient sees two identical neurons in identical roles, one update preserves their equality. Another slice can encode a sign or permutation relation. These slices are not artificial walls added by the analyst. They are consequences of the network computing the same thing under certain parameter transformations.</p>
+
+      <p>Training trajectories do not have to begin exactly inside an invariant slice for it to matter. They can be attracted toward it from nearby points. Once close, their motion has two components: movement along the slice and movement away from it. Most of the time the second component can shrink, which makes the slice look stable. Yet certain recurring points inside the chaotic motion can be unstable in the outward direction.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Transverse direction.</strong> “Along” means motion that stays inside the invariant slice. “Transverse” means motion pointing out of it. A point can be stable along one direction and unstable along the other.</span></p>
+
+      <p>Now let training be attracted toward one of those slices. Inside it, the dynamics can be chaotic. Most nearby motion may be pulled inward, while rare points on the attractor are unstable in directions pointing out of the slice. A trajectory passing close to one of those points gets ejected. If another attractor waits outside, the ejected trajectory lands in a competing destination. Repeated through chaotic motion, those escape routes puncture the original basin at finer and finer scales.</p>
+
+      <p>The order matters. Symmetry supplies the invariant slice. Attraction brings a positive volume of initializations toward it. Chaos makes the trajectory explore the attractor in a complicated way. Outward instability supplies escape hatches. A competing attractor gives the escaped trajectory somewhere qualitatively different to go. Remove the competitor and we may have sensitive motion without two destinations. Remove the outward instability and the original basin is not perforated. Riddling is the assembled mechanism, not a synonym for any one ingredient.</p>
+
+      <p>That is the classical route to riddling, and the authors establish it analytically in a minimal two-layer network. For deep networks, direct proof is much harder. They instead report intertwined destination maps, near-zero uncertainty exponents, and related signatures across the architectures, optimizers, and training protocols they tested. The right conclusion is not “all neural networks have riddled basins.” It is that riddling is a candidate organizing principle for an otherwise puzzling kind of irreproducibility.<a href="#ref-1">[1]</a> Work on the edge of stability helps explain how large learning rates can weaken local stability, but riddling additionally needs competing attractors and the global geometry connecting them.<a href="#ref-5">[5]</a></p>
+
+      <p>The scale of that empirical search matters. The study trained roughly 500,000 networks across image and text tasks, including VGGNet, ResNet, and BERT configurations, with gradient descent, SGD, and AdamW among the tested optimizers. That breadth makes the signatures harder to dismiss as one quirky toy. It still does not turn the deep-network result into a theorem. High-dimensional attractors are difficult to identify completely, and an intricate two-dimensional slice can only reveal part of their geometry.</p>
+
+      <h2>Different weights are not enough</h2>
+
+      <p>There is one important trap. Two networks can finish far apart in parameter space and still make the same predictions, because their weights may differ only by a symmetry. Parameter reproducibility asks whether training reached the same region of weight space. Functional reproducibility asks whether the trained networks behave the same on inputs. The second question is usually the one a user cares about.</p>
+
+      <p>Suppose the first hidden neuron in one model learns the feature “curved edge” and the second learns “vertical edge.” Swap those neurons and adjust the next layer to match. Every relevant weight has moved, but the input-output function has not. A parameter-distance test can call the models different while every user sees the same answer. Scaling symmetries can create the same illusion: multiply one layer and compensate in the next, and the computation can remain unchanged.</p>
+
+      <p>The paper therefore introduces functional uncertainty exponents. Instead of checking which parameter basin each run reached, it measures whether nearby starts produce models that disagree on predictions. One measure is prediction churn, the fraction of examples on which two models choose different labels.<sup class="sidenote-number" aria-hidden="true"></sup><span class="sidenote" role="note"><strong>Churn.</strong> Disagreement on 29 of 1,000 inputs is 2.9 percent churn. It looks at decisions, not weight distance.</span> In the representative experiment, this functional difference also stopped shrinking as the initialization perturbation became smaller. That does not make parameter and function space identical. It shows that the instability was not only cosmetic relabelling of neurons.<a href="#ref-2">[2]</a></p>
+
+      <p>The distinction stays important even here. A near-zero functional exponent does not by itself prove that function space contains literal riddled basins. The paper presents it as a practical diagnostic: predictive differences fail to diminish as initialization precision increases. In the representative CPU-trained analysis, prediction churn plateaued around 2.9 percent and the functional exponent was statistically indistinguishable from zero. Other similarity measures showed the same scale-insensitive pattern.</p>
+
+      <p>This matters whenever a model is trained again. A production retrain can introduce prediction churn even when the recipe barely changes. A fixed random seed proves that one exact address can be revisited; it does not show that the surrounding neighbourhood is stable. A benchmark score from one checkpoint may hide a distribution of other models that the same training procedure could have produced. A safety behaviour found in one checkpoint is evidence about that checkpoint, not an automatic guarantee about its retrained sibling.</p>
+
+      <p>Imagine a loan model retrained after a routine data refresh. Aggregate accuracy stays at 92 percent, so the dashboard remains green. Yet the new model reverses decisions for three percent of applicants, with the changes concentrated near a policy boundary. Nothing in the mean score tells us who moved or why. Or imagine a language model whose refusal behaviour was carefully tested in one checkpoint. A sibling run can match the benchmark average while exchanging a small set of safe answers for unsafe ones. Reproducibility is about the identity of those changed cases, not only the height of one summary metric.</p>
+
+      <p>This also changes how to interpret a seed. A seed records the pseudorandom choices used to construct one run: initialization, batch order, dropout masks, and perhaps augmentation. Preserving it is valuable for debugging. But a seed is one coordinate, not a certificate that nearby coordinates agree. Neighbourhood-level stability needs perturbation tests that deliberately move the least significant bits, batch order, or other controlled parts of the training state and then compare the outcomes.</p>
+
+      <p>The practical response is not to abandon reproducibility. It is to test the object we actually deploy: the training procedure, not only one frozen model. High-stakes systems need evaluation across independently trained checkpoints. Ensembles can average structural training variability as well as ordinary prediction noise. Reports should include the spread of outcomes, disagreement rates, and failure cases across runs, not only a mean score and a seed.</p>
+
+      <p>A useful evaluation would train several models under the intended recipe, compare their overall scores, and then inspect where their predictions disagree. For a classifier, that can mean churn by subgroup and by confidence. For a generative model, it can mean repeated safety and capability evaluations across checkpoints rather than repeated prompts to one checkpoint. Those two repetitions answer different questions: inference sampling studies variability after training, while independent retraining studies variability in the model that training produces.</p>
+
+      <p>There may also be a real trade-off. In the tested settings, lowering the learning rate improved reproducibility but reduced learning effectiveness. The learning rates with the best training performance often sat near the riddling-like regime.<a href="#ref-4">[4]</a> That is evidence from these experiments, not a law that accuracy must always purchase instability. It does mean that “just use smaller steps” can change the model we are able to train, not merely make the same model more reliable.</p>
+
+      <p>We usually treat the random seed as an address. If we preserve it carefully enough, we expect training to return to the same neighbourhood. Riddled basins suggest that the address may be written on a coastline that produces new coastlines whenever we zoom in.</p>
+
+      <p>The butterfly effect inside gradient descent is therefore not merely that one bit can change the route. It is that there may be no practical scale at which that bit finally stops changing where the route ends.</p>
+
+      <section class="references" aria-labelledby="references-title">
+        <h2 id="references-title">References and links</h2>
+        <ol>
+          <li id="ref-1">Andrew Ly and Pulin Gong, <a href="https://www.nature.com/articles/s42256-026-01336-3" target="_blank" rel="noopener noreferrer">“Fractal basin geometry and the limits to predictability and reproducibility in deep learning”</a>, <em>Nature Machine Intelligence</em>, 2026.</li>
+          <li id="ref-2">Andrew Ly and Pulin Gong, <a href="https://arxiv.org/abs/2510.05606" target="_blank" rel="noopener noreferrer">searchable arXiv version and supplementary material</a>, revised 2026.</li>
+          <li id="ref-3">Andrew Ly and Pulin Gong, <a href="https://github.com/anly2178/riddled_basins_neural_network" target="_blank" rel="noopener noreferrer">official experiment and analysis code</a>, 2026.</li>
+          <li id="ref-4">University of Sydney, <a href="https://www.sydney.edu.au/news-opinion/news/2026/11/06/sydney-researchers-uncover-a-hidden-limit-to-ai-predictability.html" target="_blank" rel="noopener noreferrer">“Sydney researchers uncover a hidden limit to AI predictability”</a>, 6 November 2026.</li>
+          <li id="ref-5">Jeremy M. Cohen et al., <a href="https://arxiv.org/abs/2103.00065" target="_blank" rel="noopener noreferrer">“Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability”</a>, ICLR 2021.</li>
+          <li id="ref-6">Edward Ott et al., <a href="https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.71.4134" target="_blank" rel="noopener noreferrer">“Scaling behavior of chaotic systems with riddled basins”</a>, <em>Physical Review Letters</em>, 1993.</li>
+        </ol>
+      </section>
+    </article>
+  </main>
+
+  <footer class="butterfly-footer">
+    &copy; 2026 Pratyaksh Patel
+  </footer>
+</body>
+</html>
